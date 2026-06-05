@@ -133,10 +133,7 @@ function FilesRoute() {
       setUploading(true);
       setMessage(null);
 
-      const tagList = tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean);
+      const tagList = tags.map((t) => t.trim()).filter(Boolean);
       const metadata: FileMetadata = {
         user_id: user.id,
         folder: folder.trim() || "Sem pasta",
@@ -194,7 +191,7 @@ function FilesRoute() {
         setMessage("Upload concluído com sucesso.");
         setFolder("");
         setProject("");
-        setTags("");
+        setTags([]);
       }
 
       await fetchFiles();
