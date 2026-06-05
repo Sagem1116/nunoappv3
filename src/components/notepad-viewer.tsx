@@ -91,9 +91,10 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
             <FileText className="h-4 w-4" />
             <span className="truncate">{title || "Sem título"}{!saved && " •"} — Bloco de notas</span>
           </div>
-          <button onClick={onClose} className="px-2 py-0.5 hover:bg-destructive/80 rounded-sm" title="Fechar (Esc)">
+          <button onClick={tryClose} className="px-2 py-0.5 hover:bg-destructive/80 rounded-sm" title="Fechar (Esc)">
             <X className="h-4 w-4" />
           </button>
+
         </div>
 
         {/* Menu/toolbar */}
