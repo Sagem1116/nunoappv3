@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { TagInput } from "@/components/tag-input";
+import { NotepadViewer } from "@/components/notepad-viewer";
 
 export const Route = createFileRoute("/_app/notas")({
   component: NotesPage,
@@ -32,6 +34,7 @@ function NotesPage() {
   const [sortBy, setSortBy] = useState<SortBy>("created_desc");
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [viewing, setViewing] = useState<Note | null>(null);
   const pageSize = 12;
 
   const load = async () => {
@@ -79,6 +82,16 @@ function NotesPage() {
 
   const startNew = () => { setEditing(null); setOpen(true); };
   const startEdit = (n: Note) => { setEditing(n); setOpen(true); };
+  const openViewer = (n: Note) => setViewing(n);
+
+  const saveContent = async (id: string, content: string) => {
+    const { data: upd } = await supabase
+      .from("notes").update({ content }).eq("id", id).select().single();
+    if (upd) {
+      setNotes((prev) => prev.map((n) => (n.id === id ? (upd as Note) : n)));
+      setViewing((v) => (v && v.id === id ? (upd as Note) : v));
+    }
+  };
 
   const exportAll = async () => {
     const [{ data: notesData, error: notesError }, { data: linksData, error: linksError }] = await Promise.all([
