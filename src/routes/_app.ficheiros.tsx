@@ -659,12 +659,21 @@ function FilesRoute() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setEditingTagsFile(file)}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm text-muted-foreground transition hover:border-primary hover:text-primary"
+                  >
+                    <Tag className="h-4 w-4" />
+                    Editar tags
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleDelete(file)}
                     className="inline-flex items-center gap-2 rounded-full border border-destructive/70 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive/20"
                   >
                     <Trash2 className="h-4 w-4" />
                     Eliminar
                   </button>
+
                 </div>
               </div>
             ))}
@@ -702,9 +711,11 @@ function FilesRoute() {
                       <div className="inline-flex items-center gap-2">
                         <button onClick={() => handlePreview(file)} className="text-muted-foreground hover:text-primary">Ver</button>
                         <button onClick={() => handleDownload(file)} className="text-primary font-semibold">Download</button>
+                        <button onClick={() => setEditingTagsFile(file)} className="text-muted-foreground hover:text-primary">Tags</button>
                         <button onClick={() => handleDelete(file)} className="text-destructive">Eliminar</button>
                       </div>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
