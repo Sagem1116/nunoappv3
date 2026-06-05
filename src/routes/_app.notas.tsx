@@ -154,7 +154,7 @@ function NotesPage() {
         <div className="glass-card divide-y divide-border">
           {paged.map((n) => (
             <div key={n.id} className="w-full px-4 py-3 hover:bg-accent/40 transition-colors flex items-center gap-3">
-              <button type="button" onClick={() => startEdit(n)} className="flex-1 text-left">
+              <button type="button" onClick={() => openViewer(n)} className="flex-1 text-left" title="Abrir no bloco de notas">
                 <div className="flex items-start gap-3">
                   <StickyNote className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -169,9 +169,13 @@ function NotesPage() {
               <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                 <Download className="h-3.5 w-3.5" />
               </button>
+              <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
               <button onClick={() => remove(n.id)} className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive" title="Eliminar esta nota">
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
+
             </div>
           ))}
         </div>
@@ -180,12 +184,14 @@ function NotesPage() {
           {paged.map((n) => (
             <article key={n.id} className="glass-card glass-card-hover p-5 flex flex-col gap-3">
               <header className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight">{n.title}</h3>
+                <button onClick={() => openViewer(n)} className="text-left flex-1 min-w-0" title="Abrir no bloco de notas">
+                  <h3 className="font-semibold leading-tight hover:text-primary transition-colors">{n.title}</h3>
+                </button>
                 <div className="flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
                   <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                     <Download className="h-3.5 w-3.5" />
                   </button>
-                  <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary">
+                  <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button onClick={() => remove(n.id)} className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive">
@@ -193,7 +199,10 @@ function NotesPage() {
                   </button>
                 </div>
               </header>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-6">{n.content}</p>
+              <button onClick={() => openViewer(n)} className="text-left">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-6 hover:text-foreground/80 transition-colors">{n.content}</p>
+              </button>
+
               {n.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {n.tags.map((t) => (
@@ -218,10 +227,22 @@ function NotesPage() {
       {open && (
         <NoteDialog
           initial={editing}
+          allTags={allTags}
           onClose={() => setOpen(false)}
           onSave={handleSave}
         />
       )}
+
+      {viewing && (
+        <NotepadViewer
+          title={viewing.title}
+          initialContent={viewing.content}
+          onSave={(c) => saveContent(viewing.id, c)}
+          onClose={() => setViewing(null)}
+          onEditMeta={() => { setEditing(viewing); setViewing(null); setOpen(true); }}
+        />
+      )}
+
 
       {tagManagerOpen && (
         <TagManagerDialog
