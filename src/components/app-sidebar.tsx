@@ -12,6 +12,7 @@ import {
   Sparkles,
   Brain,
   Ticket,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -28,22 +29,50 @@ const items = [
   { title: "Nuno AI", url: "/ai", icon: Brain },
 ] as const;
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function AppSidebar({ mobileOpen, onClose }: AppSidebarProps) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-sidebar-border bg-sidebar">
-      <div className="flex items-center gap-2 px-5 h-16 border-b border-sidebar-border">
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary-glow grid place-items-center shadow-glow">
-          <Sparkles className="h-4 w-4 text-primary-foreground" />
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={[
+          mobileOpen ? "fixed inset-y-0 left-0 z-40 flex" : "hidden md:flex",
+          "flex-col w-64 shrink-0 h-screen border-r border-sidebar-border bg-sidebar shadow-xl md:shadow-none",
+        ].join(" ")}
+      >
+        <div className="flex items-center gap-2 px-5 h-16 border-b border-sidebar-border">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary-glow grid place-items-center shadow-glow">
+            <Sparkles className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="font-semibold tracking-wide text-sidebar-foreground">
+            Nuno<span className="neon-text"> App</span>
+          </span>
+          {mobileOpen && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="ml-auto p-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/40 transition-colors md:hidden"
+              aria-label="Fechar menu"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <span className="font-semibold tracking-wide text-sidebar-foreground">
-          Nuno<span className="neon-text"> App</span>
-        </span>
-      </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {items.map((item) => {
           const active = pathname === item.url || pathname.startsWith(item.url + "/");
           return (
