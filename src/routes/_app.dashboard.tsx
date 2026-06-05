@@ -4,7 +4,7 @@ import {
   StickyNote, Link2, CheckSquare, Wallet, Plane, Ticket,
   TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight,
 } from "lucide-react";
-import { format, isToday, isPast, parseISO, differenceInCalendarDays } from "date-fns";
+import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -23,6 +23,25 @@ interface Reservation { id: string; title: string; reservation_type: string; sta
 const fmtEur = (v: number) =>
   new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(v);
 
+const parseValidDate = (value: string | null | undefined) => {
+  if (!value) return null;
+  const parsed = parseISO(value);
+  return isValid(parsed) ? parsed : null;
+};
+
+const fmtDate = (value: string | null | undefined, pattern: string) => {
+  const parsed = parseValidDate(value);
+  return parsed ? format(parsed, pattern, { locale: pt }) : "—";
+};
+
+const safeHost = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
+
 const PRIO_DOT: Record<string, string> = {
   high: "bg-red-400", medium: "bg-yellow-400", low: "bg-primary",
 };
@@ -39,24 +58,29 @@ function Dashboard() {
 
   const load = async () => {
     setLoading(true);
-    const [t, tr, tx, n, l, r] = await Promise.all([
-      supabase.from("tasks").select("id,title,status,priority,due_date").order("due_date", { ascending: true, nullsFirst: false }),
-      supabase.from("trips").select("id,name,destination,start_date,end_date,budget").order("start_date", { ascending: true, nullsFirst: false }),
-      supabase.from("transactions").select("id,amount,type,category,description,occurred_at").order("occurred_at", { ascending: false }),
-      supabase.from("notes").select("id,title,created_at").order("created_at", { ascending: false }).limit(5),
-      supabase.from("links").select("id,title,url,created_at").order("created_at", { ascending: false }).limit(5),
-      supabase.from("reservations").select("id,title,reservation_type,status,extracted_data,created_at").order("created_at", { ascending: false }),
-    ]);
-    setTasks((t.data as any) ?? []);
-    setTrips((tr.data as any) ?? []);
-    setTxs(((tx.data as any) ?? []).map((x: any) => ({ ...x, amount: Number(x.amount) })));
-    setNotes((n.data as any) ?? []);
-    setLinks((l.data as any) ?? []);
-    setReservations((r.data as any) ?? []);
-    setLoading(false);
+    try {
+      const [t, tr, tx, n, l, r] = await Promise.all([
+        supabase.from("tasks").select("id,title,status,priority,due_date").order("due_date", { ascending: true, nullsFirst: false }),
+        supabase.from("trips").select("id,name,destination,start_date,end_date,budget").order("start_date", { ascending: true, nullsFirst: false }),
+        supabase.from("transactions").select("id,amount,type,category,description,occurred_at").order("occurred_at", { ascending: false }),
+        supabase.from("notes").select("id,title,created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("links").select("id,title,url,created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("reservations").select("id,title,reservation_type,status,extracted_data,created_at").order("created_at", { ascending: false }),
+      ]);
+      setTasks((t.data as any) ?? []);
+      setTrips((tr.data as any) ?? []);
+      setTxs(((tx.data as any) ?? []).map((x: any) => ({ ...x, amount: Number(x.amount) })));
+      setNotes((n.data as any) ?? []);
+      setLinks((l.data as any) ?? []);
+      setReservations((r.data as any) ?? []);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (user?.id) load();
+  }, [user?.id]);
 
   const today = new Date();
 
