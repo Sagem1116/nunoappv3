@@ -34,6 +34,11 @@ const fmtDate = (value: string | null | undefined, pattern: string) => {
   return parsed ? format(parsed, pattern, { locale: pt }) : "—";
 };
 
+const daysUntil = (value: string | null | undefined, from: Date) => {
+  const parsed = parseValidDate(value);
+  return parsed ? differenceInCalendarDays(parsed, from) : null;
+};
+
 const safeHost = (url: string) => {
   try {
     return new URL(url).hostname;
@@ -182,8 +187,8 @@ function Dashboard() {
           icon={Plane}
           label="Próxima viagem"
           value={tripStats.upcoming[0]?.destination ?? tripStats.active?.destination ?? "—"}
-          sub={tripStats.upcoming[0]?.start_date
-            ? `em ${differenceInCalendarDays(parseValidDate(tripStats.upcoming[0].start_date)!, today)} dias`
+          sub={daysUntil(tripStats.upcoming[0]?.start_date, today) !== null
+            ? `em ${daysUntil(tripStats.upcoming[0]?.start_date, today)} dias`
             : tripStats.active ? "Em curso" : `${tripStats.total} no total`}
         />
         <Kpi
@@ -292,7 +297,7 @@ function Dashboard() {
                       </div>
                     </div>
                     <span className="text-xs text-primary shrink-0">
-                      {parseValidDate(t.start_date) && `em ${differenceInCalendarDays(parseValidDate(t.start_date)!, today)}d`}
+                      {daysUntil(t.start_date, today) !== null && `em ${daysUntil(t.start_date, today)}d`}
                     </span>
                   </Link>
                 </li>
