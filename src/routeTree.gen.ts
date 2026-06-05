@@ -9,12 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiChatTravelRouteImport } from './routes/api/chat-travel'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AppViagensRouteImport } from './routes/_app.viagens'
+import { Route as AppTarefasRouteImport } from './routes/_app.tarefas'
+import { Route as AppReservasRouteImport } from './routes/_app.reservas'
+import { Route as AppProjetosRouteImport } from './routes/_app.projetos'
+import { Route as AppNotasRouteImport } from './routes/_app.notas'
+import { Route as AppLinksRouteImport } from './routes/_app.links'
+import { Route as AppFinancasRouteImport } from './routes/_app.financas'
+import { Route as AppFicheirosRouteImport } from './routes/_app.ficheiros'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppAiRouteImport } from './routes/_app.ai'
+import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index'
+import { Route as AppReservasIndexRouteImport } from './routes/_app.reservas.index'
+import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
+import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
+import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,40 +44,240 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatTravelRoute = ApiChatTravelRouteImport.update({
+  id: '/api/chat-travel',
+  path: '/api/chat-travel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppViagensRoute = AppViagensRouteImport.update({
+  id: '/viagens',
+  path: '/viagens',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTarefasRoute = AppTarefasRouteImport.update({
+  id: '/tarefas',
+  path: '/tarefas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReservasRoute = AppReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProjetosRoute = AppProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotasRoute = AppNotasRouteImport.update({
+  id: '/notas',
+  path: '/notas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLinksRoute = AppLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFinancasRoute = AppFinancasRouteImport.update({
+  id: '/financas',
+  path: '/financas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFicheirosRoute = AppFicheirosRouteImport.update({
+  id: '/ficheiros',
+  path: '/ficheiros',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAiRoute = AppAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppViagensIndexRoute = AppViagensIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppViagensRoute,
+} as any)
+const AppReservasIndexRoute = AppReservasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppReservasRoute,
+} as any)
+const AppAiIndexRoute = AppAiIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAiRoute,
+} as any)
+const AppViagensTripIdRoute = AppViagensTripIdRouteImport.update({
+  id: '/$tripId',
+  path: '/$tripId',
+  getParentRoute: () => AppViagensRoute,
+} as any)
+const AppAiThreadIdRoute = AppAiThreadIdRouteImport.update({
+  id: '/$threadId',
+  path: '/$threadId',
+  getParentRoute: () => AppAiRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/auth': typeof AuthRoute
+  '/ai': typeof AppAiRouteWithChildren
+  '/dashboard': typeof AppDashboardRoute
+  '/ficheiros': typeof AppFicheirosRoute
+  '/financas': typeof AppFinancasRoute
+  '/links': typeof AppLinksRoute
+  '/notas': typeof AppNotasRoute
+  '/projetos': typeof AppProjetosRoute
+  '/reservas': typeof AppReservasRouteWithChildren
+  '/tarefas': typeof AppTarefasRoute
+  '/viagens': typeof AppViagensRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
+  '/api/chat-travel': typeof ApiChatTravelRoute
+  '/ai/$threadId': typeof AppAiThreadIdRoute
+  '/viagens/$tripId': typeof AppViagensTripIdRoute
+  '/ai/': typeof AppAiIndexRoute
+  '/reservas/': typeof AppReservasIndexRoute
+  '/viagens/': typeof AppViagensIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/ficheiros': typeof AppFicheirosRoute
+  '/financas': typeof AppFinancasRoute
+  '/links': typeof AppLinksRoute
+  '/notas': typeof AppNotasRoute
+  '/projetos': typeof AppProjetosRoute
+  '/tarefas': typeof AppTarefasRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/chat-travel': typeof ApiChatTravelRoute
+  '/ai/$threadId': typeof AppAiThreadIdRoute
+  '/viagens/$tripId': typeof AppViagensTripIdRoute
+  '/ai': typeof AppAiIndexRoute
+  '/reservas': typeof AppReservasIndexRoute
+  '/viagens': typeof AppViagensIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_app/ai': typeof AppAiRouteWithChildren
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/ficheiros': typeof AppFicheirosRoute
+  '/_app/financas': typeof AppFinancasRoute
+  '/_app/links': typeof AppLinksRoute
+  '/_app/notas': typeof AppNotasRoute
+  '/_app/projetos': typeof AppProjetosRoute
+  '/_app/reservas': typeof AppReservasRouteWithChildren
+  '/_app/tarefas': typeof AppTarefasRoute
+  '/_app/viagens': typeof AppViagensRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
+  '/api/chat-travel': typeof ApiChatTravelRoute
+  '/_app/ai/$threadId': typeof AppAiThreadIdRoute
+  '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
+  '/_app/ai/': typeof AppAiIndexRoute
+  '/_app/reservas/': typeof AppReservasIndexRoute
+  '/_app/viagens/': typeof AppViagensIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sitemap.xml'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/ai'
+    | '/dashboard'
+    | '/ficheiros'
+    | '/financas'
+    | '/links'
+    | '/notas'
+    | '/projetos'
+    | '/reservas'
+    | '/tarefas'
+    | '/viagens'
+    | '/api/chat'
+    | '/api/chat-travel'
+    | '/ai/$threadId'
+    | '/viagens/$tripId'
+    | '/ai/'
+    | '/reservas/'
+    | '/viagens/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sitemap.xml'
-  id: '__root__' | '/' | '/sitemap.xml'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/ficheiros'
+    | '/financas'
+    | '/links'
+    | '/notas'
+    | '/projetos'
+    | '/tarefas'
+    | '/api/chat'
+    | '/api/chat-travel'
+    | '/ai/$threadId'
+    | '/viagens/$tripId'
+    | '/ai'
+    | '/reservas'
+    | '/viagens'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/auth'
+    | '/_app/ai'
+    | '/_app/dashboard'
+    | '/_app/ficheiros'
+    | '/_app/financas'
+    | '/_app/links'
+    | '/_app/notas'
+    | '/_app/projetos'
+    | '/_app/reservas'
+    | '/_app/tarefas'
+    | '/_app/viagens'
+    | '/api/chat'
+    | '/api/chat-travel'
+    | '/_app/ai/$threadId'
+    | '/_app/viagens/$tripId'
+    | '/_app/ai/'
+    | '/_app/reservas/'
+    | '/_app/viagens/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ApiChatRoute: typeof ApiChatRoute
+  ApiChatTravelRoute: typeof ApiChatTravelRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -65,23 +287,201 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat-travel': {
+      id: '/api/chat-travel'
+      path: '/api/chat-travel'
+      fullPath: '/api/chat-travel'
+      preLoaderRoute: typeof ApiChatTravelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/viagens': {
+      id: '/_app/viagens'
+      path: '/viagens'
+      fullPath: '/viagens'
+      preLoaderRoute: typeof AppViagensRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/tarefas': {
+      id: '/_app/tarefas'
+      path: '/tarefas'
+      fullPath: '/tarefas'
+      preLoaderRoute: typeof AppTarefasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reservas': {
+      id: '/_app/reservas'
+      path: '/reservas'
+      fullPath: '/reservas'
+      preLoaderRoute: typeof AppReservasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/projetos': {
+      id: '/_app/projetos'
+      path: '/projetos'
+      fullPath: '/projetos'
+      preLoaderRoute: typeof AppProjetosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/notas': {
+      id: '/_app/notas'
+      path: '/notas'
+      fullPath: '/notas'
+      preLoaderRoute: typeof AppNotasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/links': {
+      id: '/_app/links'
+      path: '/links'
+      fullPath: '/links'
+      preLoaderRoute: typeof AppLinksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/financas': {
+      id: '/_app/financas'
+      path: '/financas'
+      fullPath: '/financas'
+      preLoaderRoute: typeof AppFinancasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/ficheiros': {
+      id: '/_app/ficheiros'
+      path: '/ficheiros'
+      fullPath: '/ficheiros'
+      preLoaderRoute: typeof AppFicheirosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/ai': {
+      id: '/_app/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AppAiRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/viagens/': {
+      id: '/_app/viagens/'
+      path: '/'
+      fullPath: '/viagens/'
+      preLoaderRoute: typeof AppViagensIndexRouteImport
+      parentRoute: typeof AppViagensRoute
+    }
+    '/_app/reservas/': {
+      id: '/_app/reservas/'
+      path: '/'
+      fullPath: '/reservas/'
+      preLoaderRoute: typeof AppReservasIndexRouteImport
+      parentRoute: typeof AppReservasRoute
+    }
+    '/_app/ai/': {
+      id: '/_app/ai/'
+      path: '/'
+      fullPath: '/ai/'
+      preLoaderRoute: typeof AppAiIndexRouteImport
+      parentRoute: typeof AppAiRoute
+    }
+    '/_app/viagens/$tripId': {
+      id: '/_app/viagens/$tripId'
+      path: '/$tripId'
+      fullPath: '/viagens/$tripId'
+      preLoaderRoute: typeof AppViagensTripIdRouteImport
+      parentRoute: typeof AppViagensRoute
+    }
+    '/_app/ai/$threadId': {
+      id: '/_app/ai/$threadId'
+      path: '/$threadId'
+      fullPath: '/ai/$threadId'
+      preLoaderRoute: typeof AppAiThreadIdRouteImport
+      parentRoute: typeof AppAiRoute
+    }
   }
 }
 
+interface AppAiRouteChildren {
+  AppAiThreadIdRoute: typeof AppAiThreadIdRoute
+  AppAiIndexRoute: typeof AppAiIndexRoute
+}
+
+const AppAiRouteChildren: AppAiRouteChildren = {
+  AppAiThreadIdRoute: AppAiThreadIdRoute,
+  AppAiIndexRoute: AppAiIndexRoute,
+}
+
+const AppAiRouteWithChildren = AppAiRoute._addFileChildren(AppAiRouteChildren)
+
+interface AppReservasRouteChildren {
+  AppReservasIndexRoute: typeof AppReservasIndexRoute
+}
+
+const AppReservasRouteChildren: AppReservasRouteChildren = {
+  AppReservasIndexRoute: AppReservasIndexRoute,
+}
+
+const AppReservasRouteWithChildren = AppReservasRoute._addFileChildren(
+  AppReservasRouteChildren,
+)
+
+interface AppViagensRouteChildren {
+  AppViagensTripIdRoute: typeof AppViagensTripIdRoute
+  AppViagensIndexRoute: typeof AppViagensIndexRoute
+}
+
+const AppViagensRouteChildren: AppViagensRouteChildren = {
+  AppViagensTripIdRoute: AppViagensTripIdRoute,
+  AppViagensIndexRoute: AppViagensIndexRoute,
+}
+
+const AppViagensRouteWithChildren = AppViagensRoute._addFileChildren(
+  AppViagensRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAiRoute: typeof AppAiRouteWithChildren
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppFicheirosRoute: typeof AppFicheirosRoute
+  AppFinancasRoute: typeof AppFinancasRoute
+  AppLinksRoute: typeof AppLinksRoute
+  AppNotasRoute: typeof AppNotasRoute
+  AppProjetosRoute: typeof AppProjetosRoute
+  AppReservasRoute: typeof AppReservasRouteWithChildren
+  AppTarefasRoute: typeof AppTarefasRoute
+  AppViagensRoute: typeof AppViagensRouteWithChildren
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAiRoute: AppAiRouteWithChildren,
+  AppDashboardRoute: AppDashboardRoute,
+  AppFicheirosRoute: AppFicheirosRoute,
+  AppFinancasRoute: AppFinancasRoute,
+  AppLinksRoute: AppLinksRoute,
+  AppNotasRoute: AppNotasRoute,
+  AppProjetosRoute: AppProjetosRoute,
+  AppReservasRoute: AppReservasRouteWithChildren,
+  AppTarefasRoute: AppTarefasRoute,
+  AppViagensRoute: AppViagensRouteWithChildren,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ApiChatRoute: ApiChatRoute,
+  ApiChatTravelRoute: ApiChatTravelRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
