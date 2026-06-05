@@ -252,6 +252,23 @@ function FilesRoute() {
     await fetchFiles();
   };
 
+  const updateFileTags = async (file: StoredFile, nextTags: string[]) => {
+    const { error } = await (supabase as any)
+      .from("file_metadata")
+      .update({ tags: nextTags })
+      .eq("path", file.path);
+    if (error) {
+      console.error(error);
+      setMessage("Não foi possível guardar as tags.");
+      return;
+    }
+    setFiles((prev) =>
+      prev.map((f) => (f.path === file.path ? { ...f, metadata: { ...f.metadata, tags: nextTags } } : f)),
+    );
+    setEditingTagsFile(null);
+  };
+
+
   const folderOptions = useMemo(
     () => Array.from(new Set(files.map((file) => file.metadata.folder || "Sem pasta"))).sort(),
     [files],
