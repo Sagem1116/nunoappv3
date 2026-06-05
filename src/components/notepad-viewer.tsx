@@ -19,6 +19,7 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
   const [content, setContent] = useState(initialContent);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);
+  const [confirmClose, setConfirmClose] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -41,13 +42,30 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
     }
   };
 
+  const tryClose = () => {
+    if (saved) onClose();
+    else setConfirmClose(true);
+  };
+
+  const saveAndClose = async () => {
+    try {
+      setSaving(true);
+      await onSave(content);
+      setSaved(true);
+      setConfirmClose(false);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         save();
       } else if (e.key === "Escape") {
-        onClose();
+        tryClose();
       }
     };
     window.addEventListener("keydown", onKey);
