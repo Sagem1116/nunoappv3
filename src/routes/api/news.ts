@@ -25,7 +25,13 @@ export const Route = createFileRoute("/api/news")({
           pageSize,
         });
 
-        const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`);
+        const headers: Record<string, string> = {
+          "Accept": "application/json",
+          // Provide a User-Agent to identify the application (required by some APIs)
+          "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0",
+        };
+
+        const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`, { headers });
         const data = await response.json();
 
         return new Response(JSON.stringify(data), {

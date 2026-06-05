@@ -29,6 +29,11 @@ export function createLovableAiGatewayProvider(lovableApiKey: string, initialRun
     },
     fetch: async (input, init) => {
       const headers = new Headers(init?.headers);
+      // Ensure a User-Agent header is present to identify the application
+      const userAgent = process.env.USER_AGENT;
+      if (userAgent && !headers.has("User-Agent")) {
+        headers.set("User-Agent", userAgent);
+      }
       if (runId && !headers.has(LOVABLE_AIG_RUN_ID_HEADER)) {
         headers.set(LOVABLE_AIG_RUN_ID_HEADER, runId);
       }
