@@ -106,5 +106,6 @@ export function AppSidebar({ mobileOpen, onClose }: AppSidebarProps) {
         </button>
       </div>
     </aside>
+    </>
   );
 }

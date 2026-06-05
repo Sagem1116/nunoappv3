@@ -1,5 +1,3 @@
-// Load .env into process.env for server-side code (ensures variables like USER_AGENT are available)
-import "dotenv/config";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
