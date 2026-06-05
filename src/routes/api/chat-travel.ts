@@ -106,13 +106,17 @@ export const Route = createFileRoute("/api/chat-travel")({
 
         // Stream response
         const result = streamText({
-          model: provider("gpt-4-turbo"),
+          model: provider("google/gemini-3-flash-preview"),
           system: systemPrompt,
           messages: await convertToModelMessages(body.messages),
-          temperature: 0.7,
+          onError: ({ error }) => {
+            console.error("[Travel AI] streamText error", error);
+          },
         });
 
-        return result.toTextStreamResponse();
+        return result.toUIMessageStreamResponse({
+          originalMessages: body.messages,
+        });
       },
     },
   },
