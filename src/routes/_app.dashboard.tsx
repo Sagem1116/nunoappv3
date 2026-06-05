@@ -86,10 +86,19 @@ function Dashboard() {
 
   const taskStats = useMemo(() => {
     const pending = tasks.filter((t) => t.status === "pending");
-    const overdue = pending.filter((t) => t.due_date && isPast(parseISO(t.due_date)) && !isToday(parseISO(t.due_date)));
-    const todayTasks = pending.filter((t) => t.due_date && isToday(parseISO(t.due_date)));
+    const overdue = pending.filter((t) => {
+      const due = parseValidDate(t.due_date);
+      return due && isPast(due) && !isToday(due);
+    });
+    const todayTasks = pending.filter((t) => {
+      const due = parseValidDate(t.due_date);
+      return due && isToday(due);
+    });
     const upcoming = pending
-      .filter((t) => t.due_date && !isPast(parseISO(t.due_date)))
+      .filter((t) => {
+        const due = parseValidDate(t.due_date);
+        return due && !isPast(due);
+      })
       .slice(0, 5);
     const doneCount = tasks.filter((t) => t.status === "done").length;
     return { pending, overdue, todayTasks, upcoming, doneCount };
@@ -108,11 +117,14 @@ function Dashboard() {
 
   const tripStats = useMemo(() => {
     const upcoming = trips
-      .filter((t) => t.start_date && parseISO(t.start_date) >= new Date(today.toDateString()))
+      .filter((t) => {
+        const start = parseValidDate(t.start_date);
+        return start && start >= new Date(today.toDateString());
+      })
       .slice(0, 3);
     const active = trips.find((t) => {
-      if (!t.start_date || !t.end_date) return false;
-      const s = parseISO(t.start_date), e = parseISO(t.end_date);
+      const s = parseValidDate(t.start_date), e = parseValidDate(t.end_date);
+      if (!s || !e) return false;
       return s <= today && today <= e;
     });
     return { upcoming, active, total: trips.length };
@@ -205,7 +217,8 @@ function Dashboard() {
               {[...taskStats.overdue, ...taskStats.todayTasks, ...taskStats.upcoming.filter(u => !taskStats.todayTasks.includes(u))]
                 .slice(0, 7)
                 .map((t) => {
-                  const overdue = t.due_date && isPast(parseISO(t.due_date)) && !isToday(parseISO(t.due_date));
+                  const due = parseValidDate(t.due_date);
+                  const overdue = due && isPast(due) && !isToday(due);
                   return (
                     <li key={t.id} className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-accent/40 transition-colors">
                       <button
@@ -217,7 +230,7 @@ function Dashboard() {
                       <span className="flex-1 text-sm truncate">{t.title}</span>
                       {t.due_date && (
                         <span className={`text-xs shrink-0 ${overdue ? "text-red-400" : "text-muted-foreground"}`}>
-                          {isToday(parseISO(t.due_date)) ? "Hoje" : format(parseISO(t.due_date), "d MMM", { locale: pt })}
+                          {due && isToday(due) ? "Hoje" : fmtDate(t.due_date, "d MMM")}
                         </span>
                       )}
                     </li>
@@ -274,12 +287,12 @@ function Dashboard() {
                     <div className="min-w-0">
                       <div className="text-sm truncate">{t.destination}</div>
                       <div className="text-xs text-muted-foreground">
-                        {t.start_date && format(parseISO(t.start_date), "d MMM", { locale: pt })}
-                        {t.end_date && ` – ${format(parseISO(t.end_date), "d MMM", { locale: pt })}`}
+                        {t.start_date && fmtDate(t.start_date, "d MMM")}
+                        {t.end_date && ` – ${fmtDate(t.end_date, "d MMM")}`}
                       </div>
                     </div>
                     <span className="text-xs text-primary shrink-0">
-                      {t.start_date && `em ${differenceInCalendarDays(parseISO(t.start_date), today)}d`}
+                      {parseValidDate(t.start_date) && `em ${differenceInCalendarDays(parseValidDate(t.start_date)!, today)}d`}
                     </span>
                   </Link>
                 </li>
@@ -314,7 +327,7 @@ function Dashboard() {
               {notes.map((n) => (
                 <li key={n.id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md hover:bg-accent/40 text-sm">
                   <span className="truncate">{n.title || "Sem título"}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">{format(parseISO(n.created_at), "d MMM", { locale: pt })}</span>
+                  <span className="text-xs text-muted-foreground shrink-0">{fmtDate(n.created_at, "d MMM")}</span>
                 </li>
               ))}
             </ul>
@@ -330,7 +343,7 @@ function Dashboard() {
                   <a href={l.url} target="_blank" rel="noreferrer" className="text-sm truncate block">
                     {l.title || l.url}
                   </a>
-                  <div className="text-xs text-muted-foreground truncate">{new URL(l.url).hostname}</div>
+                  <div className="text-xs text-muted-foreground truncate">{safeHost(l.url)}</div>
                 </li>
               ))}
             </ul>
