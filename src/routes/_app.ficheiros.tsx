@@ -774,6 +774,60 @@ function FilesRoute() {
           </div>
         </div>
       ) : null}
+
+      {editingTagsFile && (
+        <EditFileTagsDialog
+          file={editingTagsFile}
+          suggestions={tagOptions}
+          onClose={() => setEditingTagsFile(null)}
+          onSave={(next) => updateFileTags(editingTagsFile, next)}
+        />
+      )}
     </div>
   );
 }
+
+function EditFileTagsDialog({
+  file,
+  suggestions,
+  onClose,
+  onSave,
+}: {
+  file: StoredFile;
+  suggestions: string[];
+  onClose: () => void;
+  onSave: (tags: string[]) => Promise<void> | void;
+}) {
+  const [tags, setTags] = useState<string[]>(file.metadata.tags ?? []);
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    await onSave(tags);
+    setBusy(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
+      <div className="glass-card neon-border w-full max-w-md p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold neon-text">Editar tags</h3>
+          <button onClick={onClose} className="p-1 hover:text-primary">✕</button>
+        </div>
+        <p className="text-xs text-muted-foreground truncate">{file.metadata.original_name || file.name}</p>
+        <TagInput value={tags} onChange={setTags} suggestions={suggestions} />
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Cancelar</button>
+          <button
+            onClick={save}
+            disabled={busy}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-glow-strong disabled:opacity-50"
+          >
+            {busy ? "A guardar..." : "Guardar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
