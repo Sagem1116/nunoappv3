@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { TagInput } from "@/components/tag-input";
+import { NotepadViewer } from "@/components/notepad-viewer";
 
 export const Route = createFileRoute("/_app/notas")({
   component: NotesPage,
@@ -32,6 +34,7 @@ function NotesPage() {
   const [sortBy, setSortBy] = useState<SortBy>("created_desc");
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [viewing, setViewing] = useState<Note | null>(null);
   const pageSize = 12;
 
   const load = async () => {
@@ -79,6 +82,16 @@ function NotesPage() {
 
   const startNew = () => { setEditing(null); setOpen(true); };
   const startEdit = (n: Note) => { setEditing(n); setOpen(true); };
+  const openViewer = (n: Note) => setViewing(n);
+
+  const saveContent = async (id: string, content: string) => {
+    const { data: upd } = await supabase
+      .from("notes").update({ content }).eq("id", id).select().single();
+    if (upd) {
+      setNotes((prev) => prev.map((n) => (n.id === id ? (upd as Note) : n)));
+      setViewing((v) => (v && v.id === id ? (upd as Note) : v));
+    }
+  };
 
   const exportAll = async () => {
     const [{ data: notesData, error: notesError }, { data: linksData, error: linksError }] = await Promise.all([
@@ -141,7 +154,7 @@ function NotesPage() {
         <div className="glass-card divide-y divide-border">
           {paged.map((n) => (
             <div key={n.id} className="w-full px-4 py-3 hover:bg-accent/40 transition-colors flex items-center gap-3">
-              <button type="button" onClick={() => startEdit(n)} className="flex-1 text-left">
+              <button type="button" onClick={() => openViewer(n)} className="flex-1 text-left" title="Abrir no bloco de notas">
                 <div className="flex items-start gap-3">
                   <StickyNote className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -156,9 +169,13 @@ function NotesPage() {
               <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                 <Download className="h-3.5 w-3.5" />
               </button>
+              <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
               <button onClick={() => remove(n.id)} className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive" title="Eliminar esta nota">
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
+
             </div>
           ))}
         </div>
@@ -167,12 +184,14 @@ function NotesPage() {
           {paged.map((n) => (
             <article key={n.id} className="glass-card glass-card-hover p-5 flex flex-col gap-3">
               <header className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold leading-tight">{n.title}</h3>
+                <button onClick={() => openViewer(n)} className="text-left flex-1 min-w-0" title="Abrir no bloco de notas">
+                  <h3 className="font-semibold leading-tight hover:text-primary transition-colors">{n.title}</h3>
+                </button>
                 <div className="flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
                   <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                     <Download className="h-3.5 w-3.5" />
                   </button>
-                  <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary">
+                  <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button onClick={() => remove(n.id)} className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive">
@@ -180,7 +199,10 @@ function NotesPage() {
                   </button>
                 </div>
               </header>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-6">{n.content}</p>
+              <button onClick={() => openViewer(n)} className="text-left">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-6 hover:text-foreground/80 transition-colors">{n.content}</p>
+              </button>
+
               {n.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {n.tags.map((t) => (
@@ -205,10 +227,22 @@ function NotesPage() {
       {open && (
         <NoteDialog
           initial={editing}
+          allTags={allTags}
           onClose={() => setOpen(false)}
           onSave={handleSave}
         />
       )}
+
+      {viewing && (
+        <NotepadViewer
+          title={viewing.title}
+          initialContent={viewing.content}
+          onSave={(c) => saveContent(viewing.id, c)}
+          onClose={() => setViewing(null)}
+          onEditMeta={() => { setEditing(viewing); setViewing(null); setOpen(true); }}
+        />
+      )}
+
 
       {tagManagerOpen && (
         <TagManagerDialog
@@ -225,23 +259,24 @@ function NotesPage() {
 
 function NoteDialog({
   initial,
+  allTags,
   onClose,
   onSave,
 }: {
   initial: Note | null;
+  allTags: string[];
   onClose: () => void;
   onSave: (d: { title: string; content: string; tags: string[] }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [content, setContent] = useState(initial?.content ?? "");
-  const [tagsStr, setTagsStr] = useState(initial?.tags.join(", ") ?? "");
+  const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     setBusy(true);
-    const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
     await onSave({ title: title.trim(), content, tags });
     setBusy(false);
   };
@@ -274,14 +309,10 @@ function NoteDialog({
           />
         </Field>
 
-        <Field label="Tags (separadas por vírgula)">
-          <input
-            value={tagsStr} maxLength={300}
-            onChange={(e) => setTagsStr(e.target.value)}
-            placeholder="ideia, trabalho, urgente"
-            className={inputCls}
-          />
+        <Field label="Tags">
+          <TagInput value={tags} onChange={setTags} suggestions={allTags} placeholder="ideia, trabalho, urgente" />
         </Field>
+
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">

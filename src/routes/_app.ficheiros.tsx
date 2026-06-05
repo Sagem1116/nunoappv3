@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { TagInput } from "@/components/tag-input";
 
 const BUCKET_NAME = "user-files";
 const ACCEPTED_TYPES = "application/pdf,image/*,video/*,.doc,.docx,.xls,.xlsx,.ppt,.pptx";
@@ -55,7 +56,8 @@ function FilesRoute() {
   const [message, setMessage] = useState<string | null>(null);
   const [folder, setFolder] = useState("");
   const [project, setProject] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [editingTagsFile, setEditingTagsFile] = useState<StoredFile | null>(null);
   const [search, setSearch] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("all");
   const [selectedProject, setSelectedProject] = useState("all");
@@ -131,10 +133,7 @@ function FilesRoute() {
       setUploading(true);
       setMessage(null);
 
-      const tagList = tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean);
+      const tagList = tags.map((t) => t.trim()).filter(Boolean);
       const metadata: FileMetadata = {
         user_id: user.id,
         folder: folder.trim() || "Sem pasta",
@@ -192,7 +191,7 @@ function FilesRoute() {
         setMessage("Upload concluído com sucesso.");
         setFolder("");
         setProject("");
-        setTags("");
+        setTags([]);
       }
 
       await fetchFiles();
@@ -252,6 +251,23 @@ function FilesRoute() {
     setMessage("Ficheiro eliminado.");
     await fetchFiles();
   };
+
+  const updateFileTags = async (file: StoredFile, nextTags: string[]) => {
+    const { error } = await (supabase as any)
+      .from("file_metadata")
+      .update({ tags: nextTags })
+      .eq("path", file.path);
+    if (error) {
+      console.error(error);
+      setMessage("Não foi possível guardar as tags.");
+      return;
+    }
+    setFiles((prev) =>
+      prev.map((f) => (f.path === file.path ? { ...f, metadata: { ...f.metadata, tags: nextTags } } : f)),
+    );
+    setEditingTagsFile(null);
+  };
+
 
   const folderOptions = useMemo(
     () => Array.from(new Set(files.map((file) => file.metadata.folder || "Sem pasta"))).sort(),
@@ -411,15 +427,11 @@ function FilesRoute() {
                 className="input-style w-full"
               />
             </label>
-            <label className="sm:col-span-2 grid gap-1 text-sm text-muted-foreground">
-              Tags
-              <input
-                value={tags}
-                onChange={(event) => setTags(event.target.value)}
-                placeholder="separa com vírgulas"
-                className="input-style w-full"
-              />
-            </label>
+            <div className="sm:col-span-2 grid gap-1 text-sm text-muted-foreground">
+              <span>Tags</span>
+              <TagInput value={tags} onChange={setTags} suggestions={tagOptions} placeholder="Adicionar tag e Enter" />
+            </div>
+
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -647,12 +659,21 @@ function FilesRoute() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setEditingTagsFile(file)}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm text-muted-foreground transition hover:border-primary hover:text-primary"
+                  >
+                    <Tag className="h-4 w-4" />
+                    Editar tags
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleDelete(file)}
                     className="inline-flex items-center gap-2 rounded-full border border-destructive/70 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive/20"
                   >
                     <Trash2 className="h-4 w-4" />
                     Eliminar
                   </button>
+
                 </div>
               </div>
             ))}
@@ -690,9 +711,11 @@ function FilesRoute() {
                       <div className="inline-flex items-center gap-2">
                         <button onClick={() => handlePreview(file)} className="text-muted-foreground hover:text-primary">Ver</button>
                         <button onClick={() => handleDownload(file)} className="text-primary font-semibold">Download</button>
+                        <button onClick={() => setEditingTagsFile(file)} className="text-muted-foreground hover:text-primary">Tags</button>
                         <button onClick={() => handleDelete(file)} className="text-destructive">Eliminar</button>
                       </div>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
@@ -751,6 +774,60 @@ function FilesRoute() {
           </div>
         </div>
       ) : null}
+
+      {editingTagsFile && (
+        <EditFileTagsDialog
+          file={editingTagsFile}
+          suggestions={tagOptions}
+          onClose={() => setEditingTagsFile(null)}
+          onSave={(next) => updateFileTags(editingTagsFile, next)}
+        />
+      )}
     </div>
   );
 }
+
+function EditFileTagsDialog({
+  file,
+  suggestions,
+  onClose,
+  onSave,
+}: {
+  file: StoredFile;
+  suggestions: string[];
+  onClose: () => void;
+  onSave: (tags: string[]) => Promise<void> | void;
+}) {
+  const [tags, setTags] = useState<string[]>(file.metadata.tags ?? []);
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    await onSave(tags);
+    setBusy(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
+      <div className="glass-card neon-border w-full max-w-md p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold neon-text">Editar tags</h3>
+          <button onClick={onClose} className="p-1 hover:text-primary">✕</button>
+        </div>
+        <p className="text-xs text-muted-foreground truncate">{file.metadata.original_name || file.name}</p>
+        <TagInput value={tags} onChange={setTags} suggestions={suggestions} />
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Cancelar</button>
+          <button
+            onClick={save}
+            disabled={busy}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-glow-strong disabled:opacity-50"
+          >
+            {busy ? "A guardar..." : "Guardar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
