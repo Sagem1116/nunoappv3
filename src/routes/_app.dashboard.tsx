@@ -183,7 +183,7 @@ function Dashboard() {
           label="Próxima viagem"
           value={tripStats.upcoming[0]?.destination ?? tripStats.active?.destination ?? "—"}
           sub={tripStats.upcoming[0]?.start_date
-            ? `em ${differenceInCalendarDays(parseISO(tripStats.upcoming[0].start_date!), today)} dias`
+            ? `em ${differenceInCalendarDays(parseValidDate(tripStats.upcoming[0].start_date)!, today)} dias`
             : tripStats.active ? "Em curso" : `${tripStats.total} no total`}
         />
         <Kpi
