@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { TagInput } from "@/components/tag-input";
 
 const BUCKET_NAME = "user-files";
 const ACCEPTED_TYPES = "application/pdf,image/*,video/*,.doc,.docx,.xls,.xlsx,.ppt,.pptx";
@@ -55,7 +56,8 @@ function FilesRoute() {
   const [message, setMessage] = useState<string | null>(null);
   const [folder, setFolder] = useState("");
   const [project, setProject] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [editingTagsFile, setEditingTagsFile] = useState<StoredFile | null>(null);
   const [search, setSearch] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("all");
   const [selectedProject, setSelectedProject] = useState("all");
