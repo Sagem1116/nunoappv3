@@ -410,15 +410,11 @@ function FilesRoute() {
                 className="input-style w-full"
               />
             </label>
-            <label className="sm:col-span-2 grid gap-1 text-sm text-muted-foreground">
-              Tags
-              <input
-                value={tags}
-                onChange={(event) => setTags(event.target.value)}
-                placeholder="separa com vírgulas"
-                className="input-style w-full"
-              />
-            </label>
+            <div className="sm:col-span-2 grid gap-1 text-sm text-muted-foreground">
+              <span>Tags</span>
+              <TagInput value={tags} onChange={setTags} suggestions={tagOptions} placeholder="Adicionar tag e Enter" />
+            </div>
+
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
