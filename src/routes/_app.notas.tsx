@@ -259,23 +259,24 @@ function NotesPage() {
 
 function NoteDialog({
   initial,
+  allTags,
   onClose,
   onSave,
 }: {
   initial: Note | null;
+  allTags: string[];
   onClose: () => void;
   onSave: (d: { title: string; content: string; tags: string[] }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [content, setContent] = useState(initial?.content ?? "");
-  const [tagsStr, setTagsStr] = useState(initial?.tags.join(", ") ?? "");
+  const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     setBusy(true);
-    const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
     await onSave({ title: title.trim(), content, tags });
     setBusy(false);
   };
@@ -308,14 +309,10 @@ function NoteDialog({
           />
         </Field>
 
-        <Field label="Tags (separadas por vírgula)">
-          <input
-            value={tagsStr} maxLength={300}
-            onChange={(e) => setTagsStr(e.target.value)}
-            placeholder="ideia, trabalho, urgente"
-            className={inputCls}
-          />
+        <Field label="Tags">
+          <TagInput value={tags} onChange={setTags} suggestions={allTags} placeholder="ideia, trabalho, urgente" />
         </Field>
+
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">
