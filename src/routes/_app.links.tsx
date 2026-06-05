@@ -8,6 +8,7 @@ import {
   Pagination, TagManagerDialog, sortItems, tagCounts,
   type ViewMode, type SortBy,
 } from "./_app.notas";
+import { TagInput } from "@/components/tag-input";
 
 export const Route = createFileRoute("/_app/links")({
   component: LinksPage,
@@ -253,10 +254,12 @@ function LinksPage() {
       {open && (
         <LinkDialog
           initial={editing}
+          allTags={allTags}
           onClose={() => setOpen(false)}
           onSave={handleSave}
         />
       )}
+
 
       {tagManagerOpen && (
         <TagManagerDialog
@@ -272,16 +275,17 @@ function LinksPage() {
 }
 
 function LinkDialog({
-  initial, onClose, onSave,
+  initial, allTags, onClose, onSave,
 }: {
   initial: LinkRow | null;
+  allTags: string[];
   onClose: () => void;
   onSave: (d: { title: string; url: string; description: string; tags: string[] }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [tagsStr, setTagsStr] = useState(initial?.tags.join(", ") ?? "");
+  const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -291,7 +295,6 @@ function LinkDialog({
     if (!title.trim() || !url.trim()) return;
     try { new URL(url); } catch { setError("URL inválido (inclui https://)"); return; }
     setBusy(true);
-    const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
     await onSave({ title: title.trim(), url: url.trim(), description, tags });
     setBusy(false);
   };
@@ -316,9 +319,10 @@ function LinkDialog({
           <textarea value={description} maxLength={2000} rows={3} onChange={(e) => setDescription(e.target.value)} className={inputCls + " resize-none"} />
         </Field>
 
-        <Field label="Tags (separadas por vírgula)">
-          <input value={tagsStr} maxLength={300} onChange={(e) => setTagsStr(e.target.value)} placeholder="dev, design, inspiração" className={inputCls} />
+        <Field label="Tags">
+          <TagInput value={tags} onChange={setTags} suggestions={allTags} placeholder="dev, design, inspiração" />
         </Field>
+
 
         {error && <div className="text-sm text-destructive">{error}</div>}
 
