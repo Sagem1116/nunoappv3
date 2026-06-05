@@ -50,6 +50,7 @@ export const Route = createFileRoute("/_app/ficheiros")({
 function FilesRoute() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const folderInputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<StoredFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -67,6 +68,8 @@ function FilesRoute() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -122,13 +125,27 @@ function FilesRoute() {
     setLoading(false);
   }, [user]);
 
+  const sanitizeSegment = (s: string) => s.replace(/[^a-zA-Z0-9._-]/g, "-");
+
   const createFilePath = (file: File) => {
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-    return `${user?.id}/${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`;
+    // Preserve subfolder structure when available (e.g., from webkitRelativePath)
+    const rawRelative = (file as any).webkitRelativePath || "";
+    const dir = rawRelative ? rawRelative.replace(/\/[^/]+$/, "") : "";
+    const safeName = sanitizeSegment(file.name);
+
+    const dirPart = dir
+      ? dir
+          .split("/")
+          .map(sanitizeSegment)
+          .filter(Boolean)
+          .join("/") + "/"
+      : "";
+
+    return `${user?.id}/${dirPart}${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`;
   };
 
   const uploadFiles = useCallback(
-    async (selectedFiles: FileList | File[]) => {
+    async (selectedFiles: FileList | File[], rootFolderOverride?: string) => {
       if (!user || selectedFiles.length === 0) return;
       setUploading(true);
       setMessage(null);
@@ -143,6 +160,15 @@ function FilesRoute() {
 
       const uploadResults = await Promise.all(
         Array.from(selectedFiles).map(async (file) => {
+          // If the file comes from a folder input it may contain webkitRelativePath.
+          // We optionally accept a rootFolderOverride (the selected folder name)
+          // which will be used as the metadata.folder value for all files in that upload.
+          const rawRelative = (file as any).webkitRelativePath || "";
+          const relativeDir = rawRelative ? rawRelative.replace(/\/[^/]+$/, "") : "";
+          const metadataFolder = rootFolderOverride
+            ? rootFolderOverride
+            : relativeDir || (metadata.folder?.trim() || "Sem pasta");
+
           const path = createFilePath(file);
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from(BUCKET_NAME)
@@ -160,7 +186,7 @@ function FilesRoute() {
                   user_id: user.id,
                   path,
                   original_name: file.name,
-                  folder: metadata.folder ?? "",
+                  folder: metadataFolder ?? "",
                   project: metadata.project ?? "",
                   tags: tagList,
                 })
@@ -207,6 +233,18 @@ function FilesRoute() {
     event.target.value = "";
   };
 
+  const handleFolderInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (!selectedFiles) return;
+    // Derive the root folder name from webkitRelativePath of the first file
+    const first = selectedFiles[0];
+    const rawRelativeFirst = (first as any).webkitRelativePath || "";
+    const rootCandidate = rawRelativeFirst ? rawRelativeFirst.split("/")[0] : "";
+    const rootFolderName = sanitizeSegment(rootCandidate || folder || "");
+    uploadFiles(selectedFiles, rootFolderName || undefined);
+    event.target.value = "";
+  };
+
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragActive(false);
@@ -230,6 +268,52 @@ function FilesRoute() {
     const url = await getSignedUrl(file.path);
     setPreviewUrl(url);
     setPreviewLoading(false);
+  };
+
+  const toggleSelect = (path: string) => {
+    setSelectedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    setSelectedPaths(new Set(filteredFiles.map((f) => f.path)));
+  };
+
+  const clearSelection = () => {
+    setSelectedPaths(new Set());
+    setSelectionMode(false);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPaths.size === 0) return;
+    const confirmDelete = window.confirm(`Eliminar ${selectedPaths.size} ficheiro(s)?`);
+    if (!confirmDelete) return;
+    setUploading(true);
+    try {
+      const paths = Array.from(selectedPaths);
+      const { error } = await supabase.storage.from(BUCKET_NAME).remove(paths);
+      if (error) {
+        console.error('bulk remove error', error);
+        setMessage('Erro ao eliminar alguns ficheiros.');
+        return;
+      }
+      // remove metadata rows
+      const { error: metaErr } = await (supabase as any).from('file_metadata').delete().in('path', paths);
+      if (metaErr) {
+        console.error('bulk metadata delete error', metaErr);
+        setMessage('Ficheiros eliminados, mas ocorreu um erro a remover metadados.');
+      } else {
+        setMessage('Ficheiros eliminados com sucesso.');
+      }
+      await fetchFiles();
+      clearSelection();
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDownload = async (file: StoredFile) => {
@@ -290,6 +374,115 @@ function FilesRoute() {
       ).sort(),
     [files],
   );
+
+  interface FolderNode {
+    name: string;
+    path: string;
+    children: FolderNode[];
+    count: number;
+  }
+
+  const totalStorageUsed = useMemo(
+    () => files.reduce((sum, file) => sum + file.size, 0),
+    [files],
+  );
+
+  const folderTree = useMemo<FolderNode[]>(() => {
+    const nodes = new Map<string, FolderNode>();
+    const rootPaths = new Set<string>();
+
+    const ensureNode = (path: string, name: string) => {
+      let node = nodes.get(path);
+      if (!node) {
+        node = { name, path, children: [], count: 0 };
+        nodes.set(path, node);
+      }
+      return node;
+    };
+
+    for (const file of files) {
+      const folder = file.metadata.folder || "Sem pasta";
+      const segments = folder.split("/");
+      let currentPath = "";
+
+      for (const segment of segments) {
+        const path = currentPath ? `${currentPath}/${segment}` : segment;
+        const node = ensureNode(path, segment);
+        node.count += 1;
+
+        if (!currentPath) {
+          rootPaths.add(path);
+        } else {
+          const parent = nodes.get(currentPath);
+          if (parent && !parent.children.some((child) => child.path === node.path)) {
+            parent.children.push(node);
+          }
+        }
+        currentPath = path;
+      }
+    }
+
+    return Array.from(rootPaths)
+      .map((path) => nodes.get(path)!)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [files]);
+
+  const renderFolderTree = (nodes: FolderNode[], depth = 0) => (
+    <div className="space-y-1">
+      {nodes.map((node) => (
+        <div key={node.path} style={{ paddingLeft: depth * 14 }}>
+          <button
+            type="button"
+            className={[
+              'w-full text-left rounded-xl px-3 py-2 text-sm transition',
+              selectedFolder === node.path
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-accent/20 hover:text-foreground',
+            ].join(' ')}
+            onClick={() => setSelectedFolder(node.path)}
+          >
+            {node.name} <span className="text-[11px] text-muted-foreground">({node.count})</span>
+          </button>
+          {node.children.length > 0 && renderFolderTree(node.children, depth + 1)}
+        </div>
+      ))}
+    </div>
+  );
+
+  const FileCardThumbnail = ({ file }: { file: StoredFile }) => {
+    const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+      if (!file.mimeType.startsWith("image/")) return;
+
+      let cancelled = false;
+      const load = async () => {
+        const url = await getSignedUrl(file.path);
+        if (!cancelled) {
+          setThumbUrl(url);
+        }
+      };
+
+      load();
+      return () => {
+        cancelled = true;
+      };
+    }, [file.path, file.mimeType]);
+
+    if (file.mimeType.startsWith("image/")) {
+      return thumbUrl ? (
+        <img
+          src={thumbUrl}
+          alt={getDisplayName(file)}
+          className="h-14 w-14 rounded-3xl object-cover"
+        />
+      ) : (
+        <div className="h-14 w-14 rounded-3xl bg-muted-foreground/10" />
+      );
+    }
+
+    return getIconByType(file.mimeType);
+  };
 
   const filteredFiles = useMemo(() => {
     return files.filter((file) => {
@@ -364,22 +557,46 @@ function FilesRoute() {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow"
-          >
-            <UploadCloud className="h-4 w-4" />
-            Upload de ficheiros
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept={ACCEPTED_TYPES}
-            className="sr-only"
-            onChange={handleFileInputChange}
-          />
+          <div className="inline-flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow"
+            >
+              <UploadCloud className="h-4 w-4" />
+              Upload de ficheiros
+            </button>
+
+            <button
+              type="button"
+              onClick={() => folderInputRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-full bg-background/60 px-4 py-3 text-sm font-semibold text-muted-foreground transition hover:bg-accent/20"
+            >
+              <Folder className="h-4 w-4" />
+              Upload de pasta
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPTED_TYPES}
+              className="sr-only"
+              onChange={handleFileInputChange}
+            />
+
+            <input
+              // webkitdirectory is a non-standard attribute but supported in major browsers
+              ref={folderInputRef}
+              type="file"
+              multiple
+              // @ts-ignore allow non-standard attribute
+              webkitdirectory
+              directory
+              className="sr-only"
+              onChange={handleFolderInputChange}
+            />
+          </div>
         </div>
       </div>
 
@@ -517,6 +734,31 @@ function FilesRoute() {
           </div>
 
           <div className="rounded-3xl border border-border bg-background/50 p-4 text-sm text-muted-foreground">
+            <p className="font-medium">Quota / Uso de armazenamento</p>
+            <p className="mt-2">{formatSize(totalStorageUsed)} usados em {files.length} ficheiro(s).</p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, files.length * 8)}%` }} />
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">A barra é ilustrativa para ajudar a controlar o volume de ficheiros.</p>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-background/50 p-4 text-sm text-muted-foreground">
+            <p className="font-medium">Árvore de pastas</p>
+            <div className="mt-3 space-y-1">
+              <button
+                type="button"
+                className={['w-full text-left rounded-xl px-3 py-2 text-sm transition', selectedFolder === 'all' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/20 hover:text-foreground'].join(' ')}
+                onClick={() => setSelectedFolder('all')}
+              >
+                Todas as pastas
+              </button>
+            </div>
+            <div className="mt-3">
+              {folderTree.length > 0 ? renderFolderTree(folderTree) : <p className="text-sm text-muted-foreground">Nenhuma pasta carregada ainda.</p>}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-background/50 p-4 text-sm text-muted-foreground">
             <p className="font-medium">Dica</p>
             <p className="mt-2">Os ficheiros são guardados no teu bucket Supabase e cada utilizador só vê os seus próprios conteúdos.</p>
           </div>
@@ -554,6 +796,29 @@ function FilesRoute() {
             >
               Lista
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectionMode((s) => !s);
+                if (selectionMode) setSelectedPaths(new Set());
+              }}
+              className={[
+                'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
+                selectionMode ? 'bg-destructive text-destructive-foreground' : 'bg-background/60 text-muted-foreground',
+              ].join(' ')}
+            >
+              {selectionMode ? `Cancelar (${selectedPaths.size})` : 'Selecionar'}
+            </button>
+            {selectionMode && (
+              <button
+                type="button"
+                onClick={handleDeleteSelected}
+                disabled={selectedPaths.size === 0 || uploading}
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm bg-destructive/10 text-destructive disabled:opacity-50"
+              >
+                Eliminar selecionados
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -610,11 +875,19 @@ function FilesRoute() {
         ) : viewMode === 'grid' ? (
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {filteredFiles.map((file) => (
-              <div key={file.id} className="glass-card glass-card-hover overflow-hidden rounded-3xl p-4 transition hover:-translate-y-1">
+                <div key={file.id} className="glass-card glass-card-hover overflow-hidden rounded-3xl p-4 transition hover:-translate-y-1 relative">
+                  {selectionMode && (
+                    <input
+                      type="checkbox"
+                      className="absolute left-4 top-4 z-10 h-4 w-4"
+                      checked={selectedPaths.has(file.path)}
+                      onChange={() => toggleSelect(file.path)}
+                    />
+                  )}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-accent text-primary shadow-glow">
-                      {getIconByType(file.mimeType)}
+                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-3xl bg-accent text-primary shadow-glow">
+                      <FileCardThumbnail file={file} />
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-sm truncate">{getDisplayName(file)}</p>
@@ -681,19 +954,40 @@ function FilesRoute() {
         ) : (
           <div className="glass-card p-4">
             <table className="w-full table-auto text-sm">
-              <thead>
-                <tr className="text-muted-foreground text-left">
-                  <th className="py-3">Ficheiro</th>
-                  <th className="py-3">Pasta</th>
-                  <th className="py-3">Projeto</th>
-                  <th className="py-3">Tags</th>
-                  <th className="py-3">Tamanho</th>
-                  <th className="py-3">Ações</th>
-                </tr>
-              </thead>
+                <thead>
+                  <tr className="text-muted-foreground text-left">
+                    {selectionMode ? (
+                      <th className="py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedPaths.size === filteredFiles.length && filteredFiles.length > 0}
+                          onChange={(e) => {
+                            if (e.currentTarget.checked) selectAllVisible();
+                            else setSelectedPaths(new Set());
+                          }}
+                        />
+                      </th>
+                    ) : null}
+                    <th className="py-3">Ficheiro</th>
+                    <th className="py-3">Pasta</th>
+                    <th className="py-3">Projeto</th>
+                    <th className="py-3">Tags</th>
+                    <th className="py-3">Tamanho</th>
+                    <th className="py-3">Ações</th>
+                  </tr>
+                </thead>
               <tbody>
                 {filteredFiles.map((file) => (
                   <tr key={file.id} className="border-t border-border">
+                    {selectionMode ? (
+                      <td className="py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedPaths.has(file.path)}
+                          onChange={() => toggleSelect(file.path)}
+                        />
+                      </td>
+                    ) : null}
                     <td className="py-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-primary">{getIconByType(file.mimeType)}</div>

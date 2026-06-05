@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   StickyNote, Link2, CheckSquare, Wallet, Plane, Ticket,
-  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight,
+  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight, Search,
 } from "lucide-react";
 import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -59,6 +59,10 @@ function Dashboard() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [newsQuery, setNewsQuery] = useState("");
+  const [newsResults, setNewsResults] = useState<any[]>([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [newsError, setNewsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -145,6 +149,37 @@ function Dashboard() {
     const next = t.status === "done" ? "pending" : "done";
     setTasks((prev) => prev.map((x) => x.id === t.id ? { ...x, status: next } : x));
     await supabase.from("tasks").update({ status: next }).eq("id", t.id);
+  };
+
+  const fetchNews = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    const query = newsQuery.trim();
+    if (!query) {
+      setNewsError("Insere palavras-chave para pesquisar.");
+      setNewsResults([]);
+      return;
+    }
+
+    setNewsLoading(true);
+    setNewsError(null);
+    setNewsResults([]);
+
+    try {
+      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5`);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || response.statusText);
+      }
+      const data = await response.json();
+      setNewsResults(data.articles ?? []);
+      if (!data.articles?.length) {
+        setNewsError("Nenhuma notícia encontrada para estes temas.");
+      }
+    } catch (error: any) {
+      setNewsError(error?.message || "Erro ao buscar notícias.");
+    } finally {
+      setNewsLoading(false);
+    }
   };
 
   if (loading) {
@@ -272,6 +307,67 @@ function Dashboard() {
               })}
             </div>
           )}
+        </Panel>
+
+        <Panel title="Resumo de notícias" icon={Search} to="/dashboard" className="lg:col-span-3">
+          <form onSubmit={fetchNews} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+            <label className="grid gap-2 text-sm text-muted-foreground">
+              Temas de interesse
+              <input
+                type="text"
+                value={newsQuery}
+                onChange={(event) => setNewsQuery(event.target.value)}
+                placeholder="Ex.: tecnologia, economia, futebol"
+                className="input-style w-full"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={newsLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
+            >
+              <Search className="h-4 w-4" />
+              {newsLoading ? "A pesquisar..." : "Pesquisar"}
+            </button>
+          </form>
+          {newsError ? (
+            <div className="mt-3 rounded-3xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">{newsError}</div>
+          ) : null}
+          {newsLoading ? (
+            <div className="mt-3 text-sm text-muted-foreground">A carregar notícias...</div>
+          ) : null}
+          {!newsLoading && newsResults.length > 0 ? (
+            <div className="mt-4 grid gap-3">
+              {newsResults.map((article) => (
+                <a
+                  key={article.url}
+                  href={article.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-3xl border border-border p-4 transition hover:border-primary/60 hover:shadow-glow"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                    {article.urlToImage ? (
+                      <img
+                        src={article.urlToImage}
+                        alt={article.title}
+                        className="h-24 w-full rounded-2xl object-cover sm:w-40"
+                      />
+                    ) : (
+                      <div className="h-24 w-full rounded-2xl bg-muted-foreground/10 sm:w-40" />
+                    )}
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-foreground transition group-hover:text-primary">{article.title}</div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        {article.source?.name} · {article.publishedAt ? format(new Date(article.publishedAt), "d MMM", { locale: pt }) : ""}
+                      </div>
+                      <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{article.description || article.content || "Sem descrição."}</p>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : null}
         </Panel>
 
         {/* Viagens */}
