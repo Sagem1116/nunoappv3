@@ -3,12 +3,13 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Search, Trash2, Pencil, X, StickyNote, Tag,
   LayoutGrid, List as ListIcon, ArrowUpDown, ChevronLeft, ChevronRight, Settings2,
-  Download,
+  Download, Upload,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
+import { exportTable, importTable } from "@/lib/data-io";
 
 export const Route = createFileRoute("/_app/notas")({
   component: NotesPage,
