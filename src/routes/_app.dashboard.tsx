@@ -331,6 +331,17 @@ function Dashboard() {
               {newsLoading ? "A pesquisar..." : "Pesquisar"}
             </button>
           </form>
+          {newsResults.length > 0 && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => exportData(`noticias-${newsQuery.trim() || "resultados"}`, { query: newsQuery, exported_at: new Date().toISOString(), articles: newsResults })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+              >
+                <Download className="h-3.5 w-3.5" /> Exportar JSON
+              </button>
+            </div>
+          )}
           {newsError ? (
             <div className="mt-3 rounded-3xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">{newsError}</div>
           ) : null}
