@@ -420,6 +420,18 @@ export function Toolbar({
             <Download className="h-3.5 w-3.5" /> Exportar .txt
           </button>
         )}
+        {onExportJson && (
+          <button onClick={onExportJson}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50">
+            <Download className="h-3.5 w-3.5" /> Exportar JSON
+          </button>
+        )}
+        {onImportJson && (
+          <button onClick={onImportJson}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50">
+            <Upload className="h-3.5 w-3.5" /> Importar JSON
+          </button>
+        )}
         <button
           onClick={onNew}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all"
