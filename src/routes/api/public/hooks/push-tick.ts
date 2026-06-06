@@ -65,7 +65,6 @@ async function markSent(client: ReturnType<typeof supa>, user_id: string, key: s
 }
 
 async function sendToUser(
-  admin: ReturnType<typeof getAdmin>,
   client: ReturnType<typeof supa>,
   tokens: string[],
   user_id: string,
@@ -73,28 +72,18 @@ async function sendToUser(
   key: string,
 ) {
   if (await alreadySent(client, user_id, key)) return;
-  const messages: Message[] = tokens.map((token) => ({
-    token,
-    notification: { title: notif.title, body: notif.body },
-    data: { url: notif.url, tag: notif.tag },
-    webpush: {
-      fcmOptions: { link: notif.url },
-      notification: { icon: "/icon-192.png", badge: "/icon-192.png", tag: notif.tag },
-    },
-  }));
   const invalid: string[] = [];
-  await Promise.all(messages.map(async (m, i) => {
-    try {
-      await admin.send(m);
-    } catch (e: any) {
-      const code = e?.errorInfo?.code || e?.code || "";
-      if (code.includes("registration-token-not-registered") || code.includes("invalid-argument")) {
-        invalid.push(tokens[i]);
-      } else {
-        console.warn("[push-tick] send error", code, e?.message);
-      }
+  const results = await Promise.all(
+    tokens.map((token) =>
+      sendFcm({ token, title: notif.title, body: notif.body, link: notif.url, tag: notif.tag, data: { url: notif.url, tag: notif.tag } }),
+    ),
+  );
+  for (const r of results) {
+    if (!r.ok) {
+      if (r.invalid) invalid.push(r.token);
+      else console.warn("[push-tick] send error", r.error);
     }
-  }));
+  }
   if (invalid.length) {
     await client.from("push_subscriptions").delete().eq("user_id", user_id).in("fcm_token", invalid);
   }
