@@ -80,8 +80,8 @@ export function TripDialog({ initial, onClose, onSave, error }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
-      <form onSubmit={submit} className="glass-card neon-border w-full max-w-2xl p-6 space-y-4 page-enter">
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4 overflow-y-auto">
+      <form onSubmit={submit} className="glass-card neon-border w-full max-w-2xl p-6 space-y-4 page-enter max-h-[90vh] overflow-y-auto my-auto">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold neon-text">{initial ? "Editar viagem" : "Nova viagem"}</h3>

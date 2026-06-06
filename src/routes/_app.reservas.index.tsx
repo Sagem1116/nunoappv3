@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Plus, Trash2, FileUp, AlertCircle, Loader } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { inputCls } from "./_app.notas";
+import { extractReservation } from "@/lib/reservations.functions";
 
 export const Route = createFileRoute("/_app/reservas/")({
   component: ReservasPage,
@@ -49,6 +51,7 @@ function ReservasPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const extract = useServerFn(extractReservation);
 
   const load = async () => {
     if (!user) return;
@@ -75,45 +78,17 @@ function ReservasPage() {
   }, [user]);
 
   const processDocument = async (file: File): Promise<any> => {
-    try {
+    const base64 = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
-      
-      return new Promise((resolve, reject) => {
-        reader.onload = async (e) => {
-          try {
-            const base64 = (e.target?.result as string).split(",")[1];
-            const documentType = file.type.startsWith("image") ? "image" : "pdf";
-
-            // Call Edge Function for OCR and extraction
-            const projectUrl = "https://wqiidfzjyffillwsbibd.supabase.co";
-            const response = await fetch(
-              `${projectUrl}/functions/v1/extract-reservation`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  imageBase64: base64,
-                  documentType,
-                }),
-              }
-            );
-
-            if (!response.ok) throw new Error("Failed to extract document");
-            const extracted = await response.json();
-            resolve(extracted);
-          } catch (err) {
-            reject(err);
-          }
-        };
-        reader.onerror = () => reject(new Error("Failed to read file"));
-        reader.readAsDataURL(file);
-      });
-    } catch (err) {
-      console.error("Error processing document:", err);
-      return null;
-    }
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        resolve(result.split(",")[1]);
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+    const documentType: "image" | "pdf" = file.type.startsWith("image") ? "image" : "pdf";
+    return await extract({ data: { base64, mimeType: file.type || "application/octet-stream", documentType } });
   };
 
   const addReservation = async (e: React.FormEvent) => {
