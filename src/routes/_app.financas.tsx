@@ -145,6 +145,7 @@ function FinancasPage() {
           >
             <Upload className="h-3.5 w-3.5" /> Importar JSON
           </button>
+          <AutoExportMenu table="transactions" label="Finanças" />
           <button
             onClick={() => { setEditing(null); setOpen(true); }}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all"
