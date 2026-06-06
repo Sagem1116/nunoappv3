@@ -503,17 +503,24 @@ function ItemMenu({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ListView({ folders, files, favFileIds, favFolderIds, tagsForFile, tagsForFolder, onEditTags, onClickTag, trashed, onOpenFile, onOpenFolder, onRename, mut }: any) {
+function ListView({ folders, files, favFileIds, favFolderIds, tagsForFile, tagsForFolder, isSelected, toggleSelect, onEditTags, onClickTag, trashed, onOpenFile, onOpenFolder, onRename, mut }: any) {
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card">
-      <div className="grid grid-cols-[1fr_140px_120px_60px] gap-4 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground border-b border-border bg-muted/30">
-        <div>Nome</div><div>Modificado</div><div>Tamanho</div><div></div>
+      <div className="grid grid-cols-[32px_1fr_140px_120px_60px] gap-4 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground border-b border-border bg-muted/30">
+        <div></div><div>Nome</div><div>Modificado</div><div>Tamanho</div><div></div>
       </div>
       {folders.map((f: FolderRow) => {
         const starred = favFolderIds.has(f.id);
         const tags = tagsForFolder?.(f.id) ?? [];
+        const sel = isSelected?.("folder", f.id);
         return (
-          <div key={f.id} onDoubleClick={() => onOpenFolder(f)} className="grid grid-cols-[1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition">
+          <div key={f.id} onDoubleClick={() => onOpenFolder(f)} className={cn(
+            "grid grid-cols-[32px_1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition",
+            sel && "bg-primary/10",
+          )}>
+            <button onClick={(e) => { e.stopPropagation(); toggleSelect?.("folder", f.id); }} className="grid place-items-center">
+              {sel ? <CheckCircle2 className="size-4 text-primary fill-primary/20" /> : <Circle className="size-4 text-muted-foreground" />}
+            </button>
             <div className="flex items-center gap-3 min-w-0">
               <Folder className="size-4 text-primary fill-primary/20 shrink-0" />
               <span className="truncate text-sm">{f.name}</span>
