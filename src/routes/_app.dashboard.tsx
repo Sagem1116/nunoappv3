@@ -291,7 +291,57 @@ function Dashboard() {
         />
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Panel title="Notas favoritas" icon={Star} to="/notas">
+          {favNotes.length === 0 ? (
+            <Empty text="Sem notas nos favoritos" />
+          ) : (
+            <ul className="space-y-1">
+              {favNotes.map((n) => (
+                <li key={n.id}>
+                  <button
+                    onClick={() => setViewingNote(n)}
+                    className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent/40"
+                  >
+                    <StickyNote className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-sm truncate flex-1">{n.title || "Sem título"}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{fmtDate(n.created_at, "d MMM")}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Links favoritos" icon={Star} to="/links">
+          {favLinks.length === 0 ? (
+            <Empty text="Sem links nos favoritos" />
+          ) : (
+            <ul className="space-y-1">
+              {favLinks.map((l) => (
+                <li key={l.id}>
+                  <a
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent/40"
+                  >
+                    <Link2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm truncate">{l.title || l.url}</div>
+                      <div className="text-xs text-muted-foreground truncate">{safeHost(l.url)}</div>
+                    </div>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
       <NotificationsSettings />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Tasks panel - spans 2 */}
