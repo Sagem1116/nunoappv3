@@ -22,6 +22,7 @@ interface LinkRow {
   description: string;
   tags: string[];
   created_at: string;
+  is_favorite: boolean;
 }
 
 function LinksPage() {
@@ -36,6 +37,7 @@ function LinksPage() {
   const [sortBy, setSortBy] = useState<SortBy>("created_desc");
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [tab, setTab] = useState<"all" | "favorites">("all");
   const pageSize = 12;
 
   const load = async () => {
