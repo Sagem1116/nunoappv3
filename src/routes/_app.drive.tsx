@@ -15,14 +15,13 @@ export const Route = createFileRoute("/_app/drive")({
   component: DriveLayout,
 });
 
-type Tab = { url: string; label: string; icon: typeof FolderOpen; match?: (p: string) => boolean };
-const tabs: Tab[] = [
-  { url: "/drive", label: "Meu Espaço", icon: FolderOpen, match: (p) => p === "/drive" || p.startsWith("/drive/folder") },
-  { url: "/drive/recent", label: "Recentes", icon: Clock },
-  { url: "/drive/starred", label: "Favoritos", icon: Star },
-  { url: "/drive/tags", label: "Etiquetas", icon: Tag },
-  { url: "/drive/trash", label: "Reciclagem", icon: Trash2 },
-];
+const tabs = [
+  { url: "/drive", label: "Meu Espaço", icon: FolderOpen, match: (p: string) => p === "/drive" || p.startsWith("/drive/folder") },
+  { url: "/drive/recent", label: "Recentes", icon: Clock, match: (p: string) => p === "/drive/recent" },
+  { url: "/drive/starred", label: "Favoritos", icon: Star, match: (p: string) => p === "/drive/starred" },
+  { url: "/drive/tags", label: "Etiquetas", icon: Tag, match: (p: string) => p === "/drive/tags" },
+  { url: "/drive/trash", label: "Reciclagem", icon: Trash2, match: (p: string) => p === "/drive/trash" },
+] as const;
 
 function DriveLayout() {
   const uploadRef = useRef<HTMLInputElement | null>(null);
