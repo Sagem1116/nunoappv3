@@ -44,7 +44,7 @@ export const extractReservation = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("LOVABLE_API_KEY não configurada");
 
     const provider = createLovableAiGatewayProvider(apiKey);
-    const model = provider.chatModel("google/gemini-2.5-flash");
+    const model = provider("google/gemini-2.5-flash");
 
     const dataUrl = `data:${data.mimeType};base64,${data.base64}`;
 
