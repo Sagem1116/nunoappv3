@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
 import { exportTable, importTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 
 export const Route = createFileRoute("/_app/notas")({
   component: NotesPage,
@@ -147,6 +148,8 @@ function NotesPage() {
         onExport={exportAll}
         onExportJson={() => exportTable("notes")}
         onImportJson={async () => { if (user) { await importTable("notes", user.id); await load(); } }}
+        autoExportTable="notes"
+        autoExportLabel="Notas"
       />
 
       {loading ? (
@@ -357,7 +360,7 @@ export function EmptyState({ icon: Icon, label }: { icon: typeof StickyNote; lab
 export function Toolbar({
   search, onSearch, tags, activeTag, onTag, onNew, newLabel,
   viewMode, onViewMode, sortBy, onSortBy, onManageTags, onExport,
-  onExportJson, onImportJson,
+  onExportJson, onImportJson, autoExportTable, autoExportLabel,
 }: {
   search: string;
   onSearch: (v: string) => void;
@@ -374,6 +377,8 @@ export function Toolbar({
   onExport?: () => void;
   onExportJson?: () => void;
   onImportJson?: () => void;
+  autoExportTable?: import("@/lib/data-io").Table;
+  autoExportLabel?: string;
 }) {
   return (
     <div className="space-y-3">
@@ -433,6 +438,9 @@ export function Toolbar({
             className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50">
             <Upload className="h-3.5 w-3.5" /> Importar JSON
           </button>
+        )}
+        {autoExportTable && (
+          <AutoExportMenu table={autoExportTable} label={autoExportLabel} />
         )}
         <button
           onClick={onNew}

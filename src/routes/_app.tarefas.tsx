@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, X, Trash2, Pencil, CheckSquare, Calendar as CalIcon,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Download, Upload,
 } from "lucide-react";
 import {
   format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO,
@@ -13,6 +13,8 @@ import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Field, inputCls, EmptyState } from "./_app.notas";
+import { exportTable, importTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 
 export const Route = createFileRoute("/_app/tarefas")({
   component: TasksPage,
@@ -156,10 +158,25 @@ function TasksPage() {
             </button>
           ))}
         </div>
-        <button onClick={() => { setEditing(null); setOpen(true); }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all">
-          <Plus className="h-4 w-4" /> Nova tarefa
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => exportTable("tasks")}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+          >
+            <Download className="h-3.5 w-3.5" /> Exportar JSON
+          </button>
+          <button
+            onClick={async () => { if (user) { await importTable("tasks", user.id); await load(); } }}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+          >
+            <Upload className="h-3.5 w-3.5" /> Importar JSON
+          </button>
+          <AutoExportMenu table="tasks" label="Tarefas" />
+          <button onClick={() => { setEditing(null); setOpen(true); }}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all">
+            <Plus className="h-4 w-4" /> Nova tarefa
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
