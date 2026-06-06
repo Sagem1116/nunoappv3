@@ -1,54 +1,67 @@
-# Plano — Horas em tarefas + notificações início/fim
+# Notificações Push com Firebase Cloud Messaging
 
-## 1. Horas nas tarefas
+Vais receber notificações no telemóvel mesmo com a app fechada, replicando o que o scheduler local já faz (pré-aviso/início de tarefas, prazos a chegar, resumo diário).
 
-`tasks.due_date` é `DATE`. Adiciono duas colunas opcionais via migração:
+## O que precisas fazer (manual, antes de eu começar)
 
-- `start_time TIME NULL`
-- `end_time TIME NULL`
+1. **Criar projeto Firebase** em https://console.firebase.google.com (gratuito).
+2. Em *Project Settings → Cloud Messaging*: gerar **VAPID key pair** (Web Push certificates).
+3. Em *Project Settings → Service Accounts*: gerar **private key** (JSON).
+4. Copiar a config web (apiKey, authDomain, projectId, messagingSenderId, appId).
+5. **Instalar a app no telemóvel** (Add to Home Screen). iOS exige 16.4+ e instalação como PWA.
 
-**UI (`_app.tarefas.tsx`, diálogo):**
-- Dois `<input type="time">` ("Início" e "Fim"), só ativos se houver `due_date`.
-- Validação: se ambos preenchidos, `end_time > start_time`.
-- Cartões/listas mostram `09:00–10:30` ao lado da data.
+Depois pedes-me os secrets — eu peço-tos via formulário seguro:
+- `FIREBASE_SERVICE_ACCOUNT_JSON` (server)
+- `VITE_FIREBASE_CONFIG` (client, JSON)
+- `VITE_FIREBASE_VAPID_KEY` (client)
 
-## 2. Notificações de início e fim
+## O que eu construo
 
-Estender `notification-scheduler.ts`:
+### 1. Cliente / PWA
+- `public/firebase-messaging-sw.js` — service worker dedicado ao FCM (não interfere com o resto, sem cache app-shell).
+- `src/lib/push.ts` — pede permissão, regista token FCM, guarda em BD.
+- Botão "Ativar notificações no telemóvel" nas *Definições de Notificações*, ao lado do toggle atual.
+- Listener `onMessage` para mostrar notificações quando a app está aberta em foreground no telemóvel.
 
-- **Pré-aviso de início** — dispara 5 min antes de `due_date + start_time` (configurável: 0/5/10/15). Key `task-pre:{id}`.
-- **Início** — dispara em `due_date + start_time` (±5 min de tolerância). Key `task-start:{id}`.
-- **Fim** — dispara em `due_date + end_time`. Key `task-end:{id}`.
-- Só `status = pending`. Ignora se já passou >1h.
-- Adiciono listener `visibilitychange` em `_app.tsx` para correr o check quando a aba volta ao foco.
+### 2. Base de dados (migration)
+- Tabela `push_subscriptions` (user_id, fcm_token, platform, user_agent, last_seen).
+- Tabela `push_sent_log` (idempotência server-side, equivalente ao `markSent` do localStorage, para não duplicar push).
+- RLS: cada user só vê/gere os próprios tokens.
 
-**Settings (`notifications.ts` + `notifications-settings.tsx`):**
-- Toggle "Avisar ao começar tarefa" (default on)
-- Toggle "Avisar ao terminar tarefa" (default on)
-- Selector "Pré-aviso antes de começar": 0 / **5 (default)** / 10 / 15 min
-- Mantém o existente "Prazo a chegar".
+### 3. Server route `/api/public/hooks/push-tick`
+- Corre a cada minuto (pg_cron).
+- Autenticada via `apikey` header (anon key) — bypass de /api/public/.
+- Lê tarefas pending de todos os users com tokens registados, replica a lógica do `notification-scheduler.ts`:
+  - pré-aviso (lead time por tarefa ou global)
+  - início / fim
+  - prazos a chegar (janela 1h/24h/72h)
+  - resumo diário à hora configurada
+- Respeita as `notifications:settings` por user → migro essas settings para uma coluna JSON em `profiles` ou nova tabela `notification_preferences` para o server conseguir lê-las.
+- Envia via Firebase Admin SDK (`firebase-admin`) com service account.
+- Marca enviadas em `push_sent_log` (idempotência).
+- Remove tokens inválidos (erro `messaging/registration-token-not-registered`).
 
-## 3. Melhorias adicionais aprovadas (a + c + d)
+### 4. Cron job
+- `pg_cron` a cada minuto a chamar o endpoint acima.
 
-**a. Filtro por prioridade** — opção "Notificar só tarefas de prioridade alta". Aplica-se aos avisos de prazo, início e fim.
+## Considerações
 
-**c. Snooze ao clicar** — botões de acção nativos não são fiáveis em todos os browsers, por isso ao **clicar na notificação** abre `/tarefas` com um toast a oferecer "Adiar 10 min". O snooze remove a key `notifications:sent` correspondente e agenda re-disparo daqui a 10 min (guardado em `localStorage` `notifications:snooze`).
+- **iOS**: só funciona se a app for instalada como PWA (Add to Home Screen) em iOS 16.4+. Em Safari mobile sem instalar, não há push.
+- **Android Chrome**: funciona instalado ou não.
+- O scheduler local atual mantém-se para desktop com app aberta — não removo nada.
+- As preferências de notificação precisam de ir para a BD (hoje estão em localStorage do browser). Caso contrário o servidor não sabe quando avisar.
 
-**d. Pré-aviso configurável** — já coberto acima (selector 0/5/10/15 min, default 5).
+## Estrutura técnica resumida
 
-## Ficheiros afectados
+```text
+public/firebase-messaging-sw.js     ← SW dedicado FCM
+src/lib/push.ts                     ← getToken, request permission
+src/lib/firebase.ts                 ← init client SDK
+src/components/notifications-settings.tsx  ← + secção "Telemóvel"
+supabase/migrations/*.sql           ← push_subscriptions, push_sent_log,
+                                      notification_preferences
+src/routes/api/public/hooks/push-tick.ts   ← cron endpoint, firebase-admin
++ pg_cron schedule via supabase--insert
+```
 
-**Migração:**
-- `ALTER TABLE public.tasks ADD COLUMN start_time TIME, ADD COLUMN end_time TIME;`
-
-**Frontend:**
-- `src/routes/_app.tarefas.tsx` — inputs de hora + render.
-- `src/lib/notifications.ts` — novas chaves: `taskStartEnabled`, `taskEndEnabled`, `startLeadMinutes`, `priorityHighOnly`; helpers `snooze(key, minutes)`.
-- `src/lib/notification-scheduler.ts` — `checkTaskStart`, `checkTaskEnd`, processar snoozes pendentes, filtrar por prioridade.
-- `src/components/notifications-settings.tsx` — novos toggles + selectors.
-- `src/routes/_app.tsx` — listener `visibilitychange`.
-
-## Limitações honestas
-
-- Notificações só com a PWA aberta (mesmo minimizada). App fechada requer Web Push — fica para mais tarde.
-- Precisão ±5 min (intervalo do scheduler). Suficiente para começar/acabar tarefas; se quiseres precisão ao segundo posso usar `setTimeout` por tarefa.
+Confirma e avanço para build.
