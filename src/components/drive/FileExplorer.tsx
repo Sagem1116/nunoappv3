@@ -552,8 +552,15 @@ function ListView({ folders, files, favFileIds, favFolderIds, tagsForFile, tagsF
       {files.map((f: FileRow) => {
         const starred = favFileIds.has(f.id);
         const tags = tagsForFile?.(f.id) ?? [];
+        const sel = isSelected?.("file", f.id);
         return (
-          <div key={f.id} onDoubleClick={() => onOpenFile(f)} className="grid grid-cols-[1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition">
+          <div key={f.id} onDoubleClick={() => onOpenFile(f)} className={cn(
+            "grid grid-cols-[32px_1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition",
+            sel && "bg-primary/10",
+          )}>
+            <button onClick={(e) => { e.stopPropagation(); toggleSelect?.("file", f.id, f.storage_path); }} className="grid place-items-center">
+              {sel ? <CheckCircle2 className="size-4 text-primary fill-primary/20" /> : <Circle className="size-4 text-muted-foreground" />}
+            </button>
             <div className="flex items-center gap-3 min-w-0">
               <FileIcon mime={f.mime_type} ext={f.extension} className="size-4 shrink-0" />
               <span className="truncate text-sm">{f.name}</span>
