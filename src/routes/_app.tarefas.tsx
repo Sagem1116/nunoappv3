@@ -30,6 +30,8 @@ interface Task {
   description: string;
   priority: Priority;
   due_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
   status: Status;
   created_at: string;
 }
