@@ -85,6 +85,12 @@ function NotesPage() {
     setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const toggleFavorite = async (n: Note) => {
+    const next = !n.is_favorite;
+    setNotes((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_favorite: next } : x)));
+    await (supabase as any).from("notes").update({ is_favorite: next }).eq("id", n.id);
+  };
+
   const startNew = () => { setEditing(null); setOpen(true); };
   const startEdit = (n: Note) => { setEditing(n); setOpen(true); };
   const openViewer = (n: Note) => setViewing(n);
