@@ -637,6 +637,22 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
         {timesDisabled && (
           <p className="text-[11px] text-muted-foreground -mt-2">Define primeiro uma data limite para usar horas.</p>
         )}
+        <Field label="Pré-aviso (esta tarefa)">
+          <select
+            value={leadMin}
+            onChange={(e) => setLeadMin(e.target.value)}
+            disabled={timesDisabled || !startTime}
+            className={inputCls + ((timesDisabled || !startTime) ? " opacity-50" : "")}
+          >
+            <option value="">Usar definição global</option>
+            <option value="0">No momento</option>
+            <option value="5">5 minutos antes</option>
+            <option value="10">10 minutos antes</option>
+            <option value="15">15 minutos antes</option>
+            <option value="30">30 minutos antes</option>
+            <option value="60">1 hora antes</option>
+          </select>
+        </Field>
         {err && <p className="text-xs text-destructive">{err}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Cancelar</button>
