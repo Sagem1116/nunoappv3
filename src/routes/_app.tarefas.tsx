@@ -32,6 +32,7 @@ interface Task {
   due_date: string | null;
   start_time: string | null;
   end_time: string | null;
+  notify_lead_minutes: number | null;
   status: Status;
   created_at: string;
 }
