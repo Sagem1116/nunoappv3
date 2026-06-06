@@ -539,26 +539,41 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
   initial: Task | null;
   prefillDate: string | null;
   onClose: () => void;
-  onSave: (d: { title: string; description: string; priority: Priority; due_date: string | null }) => Promise<void>;
+  onSave: (d: {
+    title: string; description: string; priority: Priority; due_date: string | null;
+    start_time: string | null; end_time: string | null;
+  }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [priority, setPriority] = useState<Priority>(initial?.priority ?? "medium");
   const [dueDate, setDueDate] = useState(initial?.due_date ?? prefillDate ?? "");
+  const [startTime, setStartTime] = useState((initial?.start_time ?? "").slice(0, 5));
+  const [endTime, setEndTime] = useState((initial?.end_time ?? "").slice(0, 5));
+  const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (startTime && endTime && endTime <= startTime) {
+      setErr("A hora de fim deve ser depois da hora de início.");
+      return;
+    }
+    setErr(null);
     setBusy(true);
     await onSave({
       title: title.trim(),
       description,
       priority,
       due_date: dueDate || null,
+      start_time: dueDate && startTime ? startTime : null,
+      end_time: dueDate && endTime ? endTime : null,
     });
     setBusy(false);
   };
+
+  const timesDisabled = !dueDate;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
@@ -585,6 +600,30 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
             <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={inputCls} />
           </Field>
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Hora de início">
+            <input
+              type="time"
+              value={startTime}
+              disabled={timesDisabled}
+              onChange={(e) => setStartTime(e.target.value)}
+              className={inputCls + (timesDisabled ? " opacity-50" : "")}
+            />
+          </Field>
+          <Field label="Hora de fim">
+            <input
+              type="time"
+              value={endTime}
+              disabled={timesDisabled}
+              onChange={(e) => setEndTime(e.target.value)}
+              className={inputCls + (timesDisabled ? " opacity-50" : "")}
+            />
+          </Field>
+        </div>
+        {timesDisabled && (
+          <p className="text-[11px] text-muted-foreground -mt-2">Define primeiro uma data limite para usar horas.</p>
+        )}
+        {err && <p className="text-xs text-destructive">{err}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Cancelar</button>
           <button type="submit" disabled={busy || !title.trim()}
