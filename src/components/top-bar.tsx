@@ -6,7 +6,7 @@ import { Menu } from "lucide-react";
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/notas": "Notas",
-  "/ficheiros": "Ficheiros",
+  "/drive": "Drive",
   "/links": "Links",
   "/tarefas": "Tarefas",
   "/financas": "Finanças",
