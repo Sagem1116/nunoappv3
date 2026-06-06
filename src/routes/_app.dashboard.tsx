@@ -347,7 +347,7 @@ function Dashboard() {
         </Panel>
 
         <Panel title="Resumo de notícias" icon={Search} to="/dashboard" className="lg:col-span-3">
-          <form onSubmit={fetchNews} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <form onSubmit={fetchNews} className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
             <label className="grid gap-2 text-sm text-muted-foreground">
               Temas de interesse
               <input
@@ -358,26 +358,54 @@ function Dashboard() {
                 className="input-style w-full"
               />
             </label>
+            <label className="grid gap-2 text-sm text-muted-foreground">
+              Intervalo
+              <select
+                value={newsDays}
+                onChange={(e) => setNewsDays(Number(e.target.value))}
+                className="input-style"
+              >
+                <option value={1}>Últimas 24h</option>
+                <option value={3}>Últimos 3 dias</option>
+                <option value={7}>Últimos 7 dias</option>
+                <option value={14}>Últimos 14 dias</option>
+                <option value={30}>Últimos 30 dias</option>
+              </select>
+            </label>
             <button
               type="submit"
               disabled={newsLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
+              className="self-end inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
             >
               <Search className="h-4 w-4" />
               {newsLoading ? "A pesquisar..." : "Pesquisar"}
             </button>
+            <button
+              type="button"
+              onClick={() => fetchNews()}
+              disabled={newsLoading || !newsQuery.trim()}
+              title="Atualizar agora"
+              className="self-end inline-flex items-center justify-center gap-2 rounded-full border border-border bg-input px-4 py-3 text-sm font-semibold transition hover:border-primary/60 disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${newsLoading ? "animate-spin" : ""}`} />
+              Atualizar
+            </button>
           </form>
-          {newsResults.length > 0 && (
-            <div className="mt-3 flex justify-end">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>
+              Intervalo ativo: <span className="text-foreground">últimos {newsDays} {newsDays === 1 ? "dia" : "dias"}</span>
+              {newsLastUpdated && <> · atualizado às {format(newsLastUpdated, "HH:mm")} de {format(newsLastUpdated, "d MMM", { locale: pt })}</>}
+            </span>
+            {newsResults.length > 0 && (
               <button
                 type="button"
-                onClick={() => exportData(`noticias-${newsQuery.trim() || "resultados"}`, { query: newsQuery, exported_at: new Date().toISOString(), articles: newsResults })}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+                onClick={() => exportData(`noticias-${newsQuery.trim() || "resultados"}`, { query: newsQuery, days: newsDays, exported_at: new Date().toISOString(), articles: newsResults })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-input border border-border hover:border-primary/50"
               >
                 <Download className="h-3.5 w-3.5" /> Exportar JSON
               </button>
-            </div>
-          )}
+            )}
+          </div>
           {newsError ? (
             <div className="mt-3 rounded-3xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">{newsError}</div>
           ) : null}
