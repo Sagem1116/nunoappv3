@@ -35,6 +35,7 @@ import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
 import { Route as AppDriveStarredRouteImport } from './routes/_app.drive.starred'
 import { Route as AppDriveRecentRouteImport } from './routes/_app.drive.recent'
 import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
+import { Route as ApiPublicHooksPushTickRouteImport } from './routes/api/public/hooks/push-tick'
 import { Route as AppDriveFolderFolderIdRouteImport } from './routes/_app.drive.folder.$folderId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -166,6 +167,11 @@ const AppAiThreadIdRoute = AppAiThreadIdRouteImport.update({
   path: '/$threadId',
   getParentRoute: () => AppAiRoute,
 } as any)
+const ApiPublicHooksPushTickRoute = ApiPublicHooksPushTickRouteImport.update({
+  id: '/api/public/hooks/push-tick',
+  path: '/api/public/hooks/push-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppDriveFolderFolderIdRoute = AppDriveFolderFolderIdRouteImport.update({
   id: '/folder/$folderId',
   path: '/folder/$folderId',
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/reservas/': typeof AppReservasIndexRoute
   '/viagens/': typeof AppViagensIndexRoute
   '/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
+  '/api/public/hooks/push-tick': typeof ApiPublicHooksPushTickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/reservas': typeof AppReservasIndexRoute
   '/viagens': typeof AppViagensIndexRoute
   '/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
+  '/api/public/hooks/push-tick': typeof ApiPublicHooksPushTickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/_app/reservas/': typeof AppReservasIndexRoute
   '/_app/viagens/': typeof AppViagensIndexRoute
   '/_app/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
+  '/api/public/hooks/push-tick': typeof ApiPublicHooksPushTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/reservas/'
     | '/viagens/'
     | '/drive/folder/$folderId'
+    | '/api/public/hooks/push-tick'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/viagens'
     | '/drive/folder/$folderId'
+    | '/api/public/hooks/push-tick'
   id:
     | '__root__'
     | '/'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/_app/reservas/'
     | '/_app/viagens/'
     | '/_app/drive/folder/$folderId'
+    | '/api/public/hooks/push-tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -345,6 +357,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiChatTravelRoute: typeof ApiChatTravelRoute
   ApiNewsRoute: typeof ApiNewsRoute
+  ApiPublicHooksPushTickRoute: typeof ApiPublicHooksPushTickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAiThreadIdRouteImport
       parentRoute: typeof AppAiRoute
     }
+    '/api/public/hooks/push-tick': {
+      id: '/api/public/hooks/push-tick'
+      path: '/api/public/hooks/push-tick'
+      fullPath: '/api/public/hooks/push-tick'
+      preLoaderRoute: typeof ApiPublicHooksPushTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/drive/folder/$folderId': {
       id: '/_app/drive/folder/$folderId'
       path: '/folder/$folderId'
@@ -636,7 +656,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiChatTravelRoute: ApiChatTravelRoute,
   ApiNewsRoute: ApiNewsRoute,
+  ApiPublicHooksPushTickRoute: ApiPublicHooksPushTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
