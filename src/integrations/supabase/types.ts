@@ -462,6 +462,7 @@ export type Database = {
           due_date: string | null
           end_time: string | null
           id: string
+          notify_lead_minutes: number | null
           priority: string
           start_time: string | null
           status: string
@@ -475,6 +476,7 @@ export type Database = {
           due_date?: string | null
           end_time?: string | null
           id?: string
+          notify_lead_minutes?: number | null
           priority?: string
           start_time?: string | null
           status?: string
@@ -488,6 +490,7 @@ export type Database = {
           due_date?: string | null
           end_time?: string | null
           id?: string
+          notify_lead_minutes?: number | null
           priority?: string
           start_time?: string | null
           status?: string
