@@ -179,6 +179,8 @@ function LinksPage() {
         onExport={exportAll}
         onExportJson={() => exportTable("links")}
         onImportJson={async () => { if (user) { await importTable("links", user.id); await load(); } }}
+        autoExportTable="links"
+        autoExportLabel="Links"
       />
 
       {loading ? (
