@@ -436,6 +436,9 @@ export function Toolbar({
             <Upload className="h-3.5 w-3.5" /> Importar JSON
           </button>
         )}
+        {autoExportTable && (
+          <AutoExportMenu table={autoExportTable} label={autoExportLabel} />
+        )}
         <button
           onClick={onNew}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all"
