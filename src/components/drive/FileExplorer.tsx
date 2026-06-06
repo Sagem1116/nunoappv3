@@ -1,9 +1,9 @@
-import { useMemo, useState, useRef, useCallback } from "react";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   Folder, MoreVertical, Star, Download, Trash2, Pencil, ArrowUpRight, Grid3x3, List, Search,
-  Undo2, X, Upload as UploadIcon, Tag as TagIcon,
+  Undo2, X, Upload as UploadIcon, Tag as TagIcon, CheckCircle2, Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,7 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
   const [renaming, setRenaming] = useState<{ kind: "file" | "folder"; id: string; name: string } | null>(null);
   const [tagTarget, setTagTarget] = useState<{ kind: "file" | "folder"; id: string; name: string } | null>(null);
   const [isDragging, setDragging] = useState(false);
+  const [selected, setSelected] = useState<Map<string, { kind: "file" | "folder"; id: string; storagePath?: string }>>(new Map());
   const dragCounter = useRef(0);
   const navigate = useNavigate();
   const { tagFilter, setTagFilter } = useDriveCtx();
@@ -58,6 +59,21 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
   const { data: fileTags = [] } = useFileTags();
   const { data: folderTags = [] } = useFolderTags();
   const mut = useDriveMutations();
+
+  const scopeKey = scope.kind === "folder" ? `folder:${scope.folderId ?? ""}` : scope.kind;
+  useEffect(() => { setSelected(new Map()); }, [scopeKey, tagFilter]);
+
+  const selKey = (kind: "file" | "folder", id: string) => `${kind}:${id}`;
+  const isSelected = (kind: "file" | "folder", id: string) => selected.has(selKey(kind, id));
+  const toggleSelect = (kind: "file" | "folder", id: string, storagePath?: string) => {
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const k = selKey(kind, id);
+      if (next.has(k)) next.delete(k); else next.set(k, { kind, id, storagePath });
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Map());
 
   const tagById = useMemo(() => new Map(allTags.map((t) => [t.id, t])), [allTags]);
   const tagsForFile = (id: string) => fileTags.filter((l) => l.file_id === id).map((l) => tagById.get(l.tag_id)).filter(Boolean) as typeof allTags;
