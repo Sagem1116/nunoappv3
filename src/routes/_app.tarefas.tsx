@@ -494,7 +494,10 @@ function MiniTask({ task, onToggle, onEdit, onDelete }: {
       <button onClick={() => onEdit(task)} className={[
         "flex-1 text-left text-[11px] leading-tight truncate",
         done ? "line-through text-muted-foreground" : "",
-      ].join(" ")}>{task.title}</button>
+      ].join(" ")}>
+        {task.start_time && <span className="text-primary mr-1">{task.start_time.slice(0, 5)}</span>}
+        {task.title}
+      </button>
       <span className={[
         "w-1.5 h-1.5 rounded-full mt-1 shrink-0",
         task.priority === "high" ? "bg-red-500" :
