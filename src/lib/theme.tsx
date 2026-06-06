@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type ThemeId = "orange" | "purple" | "cyan" | "emerald" | "beige";
+export type ThemeId = "orange" | "purple" | "cyan" | "emerald" | "slate" | "beige";
 
 export const themes: { id: ThemeId; label: string; swatch: string; className: string }[] = [
   { id: "orange", label: "Tema Laranja", swatch: "oklch(0.74 0.19 50)", className: "" },
   { id: "purple", label: "Tema Roxo", swatch: "oklch(0.65 0.25 295)", className: "theme-purple" },
   { id: "cyan", label: "Tema Ciano", swatch: "oklch(0.78 0.15 200)", className: "theme-cyan" },
   { id: "emerald", label: "Tema Esmeralda", swatch: "oklch(0.72 0.18 155)", className: "theme-emerald" },
+  { id: "slate", label: "Tema Cinzento", swatch: "oklch(0.55 0.03 250)", className: "theme-slate" },
   { id: "beige", label: "Tema Suave (claro)", swatch: "oklch(0.85 0.08 65)", className: "theme-beige" },
 ];
 
