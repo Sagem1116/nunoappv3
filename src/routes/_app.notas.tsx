@@ -357,7 +357,7 @@ export function EmptyState({ icon: Icon, label }: { icon: typeof StickyNote; lab
 export function Toolbar({
   search, onSearch, tags, activeTag, onTag, onNew, newLabel,
   viewMode, onViewMode, sortBy, onSortBy, onManageTags, onExport,
-  onExportJson, onImportJson,
+  onExportJson, onImportJson, autoExportTable, autoExportLabel,
 }: {
   search: string;
   onSearch: (v: string) => void;
@@ -374,6 +374,8 @@ export function Toolbar({
   onExport?: () => void;
   onExportJson?: () => void;
   onImportJson?: () => void;
+  autoExportTable?: import("@/lib/data-io").Table;
+  autoExportLabel?: string;
 }) {
   return (
     <div className="space-y-3">
