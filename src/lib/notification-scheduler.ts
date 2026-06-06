@@ -38,7 +38,7 @@ async function fetchPendingWithTimes(userId: string): Promise<TaskRow[]> {
   const inTwoDays = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const { data } = await (supabase as any)
     .from("tasks")
-    .select("id,title,due_date,start_time,end_time,priority,status")
+    .select("id,title,due_date,start_time,end_time,priority,status,notify_lead_minutes")
     .eq("user_id", userId)
     .eq("status", "pending")
     .gte("due_date", today)
