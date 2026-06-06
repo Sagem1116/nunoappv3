@@ -22,14 +22,20 @@ import { Route as AppProjetosRouteImport } from './routes/_app.projetos'
 import { Route as AppNotasRouteImport } from './routes/_app.notas'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
-import { Route as AppFicheirosRouteImport } from './routes/_app.ficheiros'
+import { Route as AppDriveRouteImport } from './routes/_app.drive'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
 import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index'
 import { Route as AppReservasIndexRouteImport } from './routes/_app.reservas.index'
+import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
 import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
+import { Route as AppDriveTrashRouteImport } from './routes/_app.drive.trash'
+import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
+import { Route as AppDriveStarredRouteImport } from './routes/_app.drive.starred'
+import { Route as AppDriveRecentRouteImport } from './routes/_app.drive.recent'
 import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
+import { Route as AppDriveFolderFolderIdRouteImport } from './routes/_app.drive.folder.$folderId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -95,9 +101,9 @@ const AppFinancasRoute = AppFinancasRouteImport.update({
   path: '/financas',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFicheirosRoute = AppFicheirosRouteImport.update({
-  id: '/ficheiros',
-  path: '/ficheiros',
+const AppDriveRoute = AppDriveRouteImport.update({
+  id: '/drive',
+  path: '/drive',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -120,6 +126,11 @@ const AppReservasIndexRoute = AppReservasIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppReservasRoute,
 } as any)
+const AppDriveIndexRoute = AppDriveIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppDriveRoute,
+} as any)
 const AppAiIndexRoute = AppAiIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -130,10 +141,35 @@ const AppViagensTripIdRoute = AppViagensTripIdRouteImport.update({
   path: '/$tripId',
   getParentRoute: () => AppViagensRoute,
 } as any)
+const AppDriveTrashRoute = AppDriveTrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => AppDriveRoute,
+} as any)
+const AppDriveTagsRoute = AppDriveTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => AppDriveRoute,
+} as any)
+const AppDriveStarredRoute = AppDriveStarredRouteImport.update({
+  id: '/starred',
+  path: '/starred',
+  getParentRoute: () => AppDriveRoute,
+} as any)
+const AppDriveRecentRoute = AppDriveRecentRouteImport.update({
+  id: '/recent',
+  path: '/recent',
+  getParentRoute: () => AppDriveRoute,
+} as any)
 const AppAiThreadIdRoute = AppAiThreadIdRouteImport.update({
   id: '/$threadId',
   path: '/$threadId',
   getParentRoute: () => AppAiRoute,
+} as any)
+const AppDriveFolderFolderIdRoute = AppDriveFolderFolderIdRouteImport.update({
+  id: '/folder/$folderId',
+  path: '/folder/$folderId',
+  getParentRoute: () => AppDriveRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -141,7 +177,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/ai': typeof AppAiRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
-  '/ficheiros': typeof AppFicheirosRoute
+  '/drive': typeof AppDriveRouteWithChildren
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
   '/notas': typeof AppNotasRoute
@@ -153,16 +189,21 @@ export interface FileRoutesByFullPath {
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
+  '/drive/recent': typeof AppDriveRecentRoute
+  '/drive/starred': typeof AppDriveStarredRoute
+  '/drive/tags': typeof AppDriveTagsRoute
+  '/drive/trash': typeof AppDriveTrashRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/ai/': typeof AppAiIndexRoute
+  '/drive/': typeof AppDriveIndexRoute
   '/reservas/': typeof AppReservasIndexRoute
   '/viagens/': typeof AppViagensIndexRoute
+  '/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AppDashboardRoute
-  '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
   '/notas': typeof AppNotasRoute
@@ -172,10 +213,16 @@ export interface FileRoutesByTo {
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
+  '/drive/recent': typeof AppDriveRecentRoute
+  '/drive/starred': typeof AppDriveStarredRoute
+  '/drive/tags': typeof AppDriveTagsRoute
+  '/drive/trash': typeof AppDriveTrashRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/ai': typeof AppAiIndexRoute
+  '/drive': typeof AppDriveIndexRoute
   '/reservas': typeof AppReservasIndexRoute
   '/viagens': typeof AppViagensIndexRoute
+  '/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -184,7 +231,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_app/ai': typeof AppAiRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
-  '/_app/ficheiros': typeof AppFicheirosRoute
+  '/_app/drive': typeof AppDriveRouteWithChildren
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
   '/_app/notas': typeof AppNotasRoute
@@ -196,10 +243,16 @@ export interface FileRoutesById {
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
+  '/_app/drive/recent': typeof AppDriveRecentRoute
+  '/_app/drive/starred': typeof AppDriveStarredRoute
+  '/_app/drive/tags': typeof AppDriveTagsRoute
+  '/_app/drive/trash': typeof AppDriveTrashRoute
   '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
   '/_app/ai/': typeof AppAiIndexRoute
+  '/_app/drive/': typeof AppDriveIndexRoute
   '/_app/reservas/': typeof AppReservasIndexRoute
   '/_app/viagens/': typeof AppViagensIndexRoute
+  '/_app/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -208,7 +261,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/ai'
     | '/dashboard'
-    | '/ficheiros'
+    | '/drive'
     | '/financas'
     | '/links'
     | '/notas'
@@ -220,16 +273,21 @@ export interface FileRouteTypes {
     | '/api/chat-travel'
     | '/api/news'
     | '/ai/$threadId'
+    | '/drive/recent'
+    | '/drive/starred'
+    | '/drive/tags'
+    | '/drive/trash'
     | '/viagens/$tripId'
     | '/ai/'
+    | '/drive/'
     | '/reservas/'
     | '/viagens/'
+    | '/drive/folder/$folderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/dashboard'
-    | '/ficheiros'
     | '/financas'
     | '/links'
     | '/notas'
@@ -239,10 +297,16 @@ export interface FileRouteTypes {
     | '/api/chat-travel'
     | '/api/news'
     | '/ai/$threadId'
+    | '/drive/recent'
+    | '/drive/starred'
+    | '/drive/tags'
+    | '/drive/trash'
     | '/viagens/$tripId'
     | '/ai'
+    | '/drive'
     | '/reservas'
     | '/viagens'
+    | '/drive/folder/$folderId'
   id:
     | '__root__'
     | '/'
@@ -250,7 +314,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_app/ai'
     | '/_app/dashboard'
-    | '/_app/ficheiros'
+    | '/_app/drive'
     | '/_app/financas'
     | '/_app/links'
     | '/_app/notas'
@@ -262,10 +326,16 @@ export interface FileRouteTypes {
     | '/api/chat-travel'
     | '/api/news'
     | '/_app/ai/$threadId'
+    | '/_app/drive/recent'
+    | '/_app/drive/starred'
+    | '/_app/drive/tags'
+    | '/_app/drive/trash'
     | '/_app/viagens/$tripId'
     | '/_app/ai/'
+    | '/_app/drive/'
     | '/_app/reservas/'
     | '/_app/viagens/'
+    | '/_app/drive/folder/$folderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -370,11 +440,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFinancasRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/ficheiros': {
-      id: '/_app/ficheiros'
-      path: '/ficheiros'
-      fullPath: '/ficheiros'
-      preLoaderRoute: typeof AppFicheirosRouteImport
+    '/_app/drive': {
+      id: '/_app/drive'
+      path: '/drive'
+      fullPath: '/drive'
+      preLoaderRoute: typeof AppDriveRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -405,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReservasIndexRouteImport
       parentRoute: typeof AppReservasRoute
     }
+    '/_app/drive/': {
+      id: '/_app/drive/'
+      path: '/'
+      fullPath: '/drive/'
+      preLoaderRoute: typeof AppDriveIndexRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
     '/_app/ai/': {
       id: '/_app/ai/'
       path: '/'
@@ -419,12 +496,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppViagensTripIdRouteImport
       parentRoute: typeof AppViagensRoute
     }
+    '/_app/drive/trash': {
+      id: '/_app/drive/trash'
+      path: '/trash'
+      fullPath: '/drive/trash'
+      preLoaderRoute: typeof AppDriveTrashRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
+    '/_app/drive/tags': {
+      id: '/_app/drive/tags'
+      path: '/tags'
+      fullPath: '/drive/tags'
+      preLoaderRoute: typeof AppDriveTagsRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
+    '/_app/drive/starred': {
+      id: '/_app/drive/starred'
+      path: '/starred'
+      fullPath: '/drive/starred'
+      preLoaderRoute: typeof AppDriveStarredRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
+    '/_app/drive/recent': {
+      id: '/_app/drive/recent'
+      path: '/recent'
+      fullPath: '/drive/recent'
+      preLoaderRoute: typeof AppDriveRecentRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
     '/_app/ai/$threadId': {
       id: '/_app/ai/$threadId'
       path: '/$threadId'
       fullPath: '/ai/$threadId'
       preLoaderRoute: typeof AppAiThreadIdRouteImport
       parentRoute: typeof AppAiRoute
+    }
+    '/_app/drive/folder/$folderId': {
+      id: '/_app/drive/folder/$folderId'
+      path: '/folder/$folderId'
+      fullPath: '/drive/folder/$folderId'
+      preLoaderRoute: typeof AppDriveFolderFolderIdRouteImport
+      parentRoute: typeof AppDriveRoute
     }
   }
 }
@@ -440,6 +552,28 @@ const AppAiRouteChildren: AppAiRouteChildren = {
 }
 
 const AppAiRouteWithChildren = AppAiRoute._addFileChildren(AppAiRouteChildren)
+
+interface AppDriveRouteChildren {
+  AppDriveRecentRoute: typeof AppDriveRecentRoute
+  AppDriveStarredRoute: typeof AppDriveStarredRoute
+  AppDriveTagsRoute: typeof AppDriveTagsRoute
+  AppDriveTrashRoute: typeof AppDriveTrashRoute
+  AppDriveIndexRoute: typeof AppDriveIndexRoute
+  AppDriveFolderFolderIdRoute: typeof AppDriveFolderFolderIdRoute
+}
+
+const AppDriveRouteChildren: AppDriveRouteChildren = {
+  AppDriveRecentRoute: AppDriveRecentRoute,
+  AppDriveStarredRoute: AppDriveStarredRoute,
+  AppDriveTagsRoute: AppDriveTagsRoute,
+  AppDriveTrashRoute: AppDriveTrashRoute,
+  AppDriveIndexRoute: AppDriveIndexRoute,
+  AppDriveFolderFolderIdRoute: AppDriveFolderFolderIdRoute,
+}
+
+const AppDriveRouteWithChildren = AppDriveRoute._addFileChildren(
+  AppDriveRouteChildren,
+)
 
 interface AppReservasRouteChildren {
   AppReservasIndexRoute: typeof AppReservasIndexRoute
@@ -470,7 +604,7 @@ const AppViagensRouteWithChildren = AppViagensRoute._addFileChildren(
 interface AppRouteChildren {
   AppAiRoute: typeof AppAiRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
-  AppFicheirosRoute: typeof AppFicheirosRoute
+  AppDriveRoute: typeof AppDriveRouteWithChildren
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
   AppNotasRoute: typeof AppNotasRoute
@@ -483,7 +617,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
-  AppFicheirosRoute: AppFicheirosRoute,
+  AppDriveRoute: AppDriveRouteWithChildren,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
   AppNotasRoute: AppNotasRoute,

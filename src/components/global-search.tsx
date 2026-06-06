@@ -22,7 +22,7 @@ const KIND_META: Record<Hit["kind"], { label: string; icon: typeof StickyNote; r
   tarefa: { label: "Tarefa", icon: CheckSquare, route: "/tarefas" },
   viagem: { label: "Viagem", icon: Plane, route: "/viagens" },
   transacao: { label: "Finanças", icon: Wallet, route: "/financas" },
-  ficheiro: { label: "Ficheiro", icon: FileText, route: "/ficheiros" },
+  ficheiro: { label: "Ficheiro", icon: FileText, route: "/drive" },
 };
 
 export function GlobalSearch() {
@@ -88,7 +88,7 @@ export function GlobalSearch() {
       }));
       (fmeta.data ?? []).forEach((r: any) => out.push({
         id: `f-${r.path}`, kind: "ficheiro", title: r.original_name || r.path,
-        subtitle: r.folder || "", to: "/ficheiros",
+        subtitle: r.folder || "", to: "/drive",
       }));
       setHits(out);
       setLoading(false);
