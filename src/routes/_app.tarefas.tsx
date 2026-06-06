@@ -79,6 +79,22 @@ function TasksPage() {
   };
   useEffect(() => { load(); }, []);
 
+  // Snooze prompt — set when the user clicks a desktop notification.
+  useEffect(() => {
+    const check = () => {
+      const p = takePendingSnoozePrompt();
+      if (!p) return;
+      if (confirm(`Adiar "${p.label}" 10 minutos?`)) {
+        snooze(p.key, 10);
+        setMessage("Notificação adiada por 10 minutos.");
+      }
+    };
+    check();
+    const onVis = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
   const filteredAll = useMemo(() => tasks.filter((t) => {
     if (filterPriority !== "all" && t.priority !== filterPriority) return false;
     if (filterStatus !== "all" && t.status !== filterStatus) return false;
