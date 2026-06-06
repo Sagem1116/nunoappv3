@@ -9,6 +9,7 @@ import { UploadProgress, UploadItem } from "@/components/drive/UploadProgress";
 import { RenameDialog } from "@/components/drive/RenameDialog";
 import { useDriveMutations } from "@/hooks/useDrive";
 import { DriveCtx } from "@/components/drive/DriveContext";
+import { StorageBar } from "@/components/drive/StorageBar";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/drive")({
