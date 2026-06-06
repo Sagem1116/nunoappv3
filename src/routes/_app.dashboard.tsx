@@ -64,6 +64,8 @@ function Dashboard() {
   const [newsResults, setNewsResults] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsError, setNewsError] = useState<string | null>(null);
+  const [newsDays, setNewsDays] = useState<number>(7);
+  const [newsLastUpdated, setNewsLastUpdated] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
