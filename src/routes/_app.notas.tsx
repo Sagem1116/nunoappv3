@@ -22,6 +22,7 @@ interface Note {
   content: string;
   tags: string[];
   created_at: string;
+  is_favorite: boolean;
 }
 
 function NotesPage() {
@@ -37,6 +38,7 @@ function NotesPage() {
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [viewing, setViewing] = useState<Note | null>(null);
+  const [tab, setTab] = useState<"all" | "favorites">("all");
   const pageSize = 12;
 
   const load = async () => {
