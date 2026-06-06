@@ -598,6 +598,15 @@ function Dashboard() {
           )}
         </Panel>
       </div>
+
+      {viewingNote && (
+        <NotepadViewer
+          title={viewingNote.title}
+          initialContent={viewingNote.content}
+          onSave={(c) => saveNoteContent(viewingNote.id, c)}
+          onClose={() => setViewingNote(null)}
+        />
+      )}
     </div>
   );
 }
