@@ -1,6 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import { GlobalSearch } from "./global-search";
 import { ThemeSwitcher } from "./theme-switcher";
+import { InstallPwaButton } from "./install-pwa-button";
 import { Menu } from "lucide-react";
 
 const titles: Record<string, string> = {
@@ -38,6 +39,7 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
         <GlobalSearch />
       </div>
       <div className="flex items-center gap-3">
+        <InstallPwaButton />
         <ThemeSwitcher />
         <div className="text-xs text-muted-foreground hidden md:block">Life OS</div>
       </div>

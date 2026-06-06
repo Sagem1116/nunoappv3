@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
 import { runWeeklyAutoExports } from "@/lib/data-io";
+import { runScheduledChecks } from "@/lib/notification-scheduler";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -30,6 +31,14 @@ function AppLayout() {
       return () => clearInterval(t);
     }
   }, [session]);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return;
+    void runScheduledChecks(uid);
+    const t = setInterval(() => { void runScheduledChecks(uid); }, 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [session?.user?.id]);
 
   if (loading || !session) {
     return (
