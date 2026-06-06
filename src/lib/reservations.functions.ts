@@ -64,7 +64,7 @@ export const extractReservation = createServerFn({ method: "POST" })
       });
 
       const cleaned = text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
-      let parsed: { type: string; confidence: number; data: Record<string, unknown> };
+      let parsed: { type: string; confidence: number; data: Record<string, any> };
       try {
         parsed = JSON.parse(cleaned);
       } catch {
