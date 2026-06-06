@@ -41,10 +41,11 @@ function DriveLayout() {
   const onUpload = async (files: FileList, folderIdArg?: string | null) => {
     const folderId = folderIdArg !== undefined ? folderIdArg : currentFolderId;
     const list = Array.from(files);
+    const preservePaths = list.some((f) => !!(f as File & { webkitRelativePath?: string }).webkitRelativePath);
     setItems((prev) => [...prev, ...list.map((f) => ({ name: f.name, pct: 0, done: false }))]);
     await mut.uploadFiles(list, folderId, (name, pct) => {
       setItems((prev) => prev.map((it) => it.name === name ? { ...it, pct, done: pct >= 100 } : it));
-    });
+    }, preservePaths);
   };
 
   return (

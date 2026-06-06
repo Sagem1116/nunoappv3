@@ -139,15 +139,43 @@ export function useDriveMutations() {
     files: File[],
     folderId: string | null,
     onItemProgress: (name: string, pct: number) => void,
+    preservePaths = false,
   ) => {
     const uid = await getCurrentUserId();
+    const folderCache = new Map<string, string | null>();
+    folderCache.set("", folderId);
+
+    const ensureFolder = async (relDir: string): Promise<string | null> => {
+      if (folderCache.has(relDir)) return folderCache.get(relDir)!;
+      const parts = relDir.split("/");
+      const name = parts[parts.length - 1];
+      const parentRel = parts.slice(0, -1).join("/");
+      const parentId = await ensureFolder(parentRel);
+      const { data, error } = await supabase
+        .from("folders")
+        .insert({ user_id: uid, name, parent_id: parentId })
+        .select("id")
+        .single();
+      if (error) throw error;
+      folderCache.set(relDir, data.id);
+      return data.id;
+    };
+
     for (const file of files) {
       try {
+        let parentId = folderId;
+        if (preservePaths) {
+          const rel = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
+          if (rel && rel.includes("/")) {
+            const dir = rel.split("/").slice(0, -1).join("/");
+            parentId = await ensureFolder(dir);
+          }
+        }
         const { path } = await uploadFileToStorage(uid, file, (p) => onItemProgress(file.name, p));
         const ext = getExtension(file.name);
         const { error } = await supabase.from("files").insert({
           user_id: uid,
-          folder_id: folderId,
+          folder_id: parentId,
           name: file.name,
           mime_type: file.type || null,
           extension: ext || null,
@@ -162,5 +190,42 @@ export function useDriveMutations() {
     invalidate();
   };
 
-  return { createFolder, rename, trash, restore, remove, move, toggleFavorite, uploadFiles };
+  const bulkTrash = useMutation({
+    mutationFn: async (items: { kind: "file" | "folder"; id: string }[]) => {
+      const now = new Date().toISOString();
+      const fileIds = items.filter((i) => i.kind === "file").map((i) => i.id);
+      const folderIds = items.filter((i) => i.kind === "folder").map((i) => i.id);
+      if (fileIds.length) {
+        const { error } = await supabase.from("files").update({ is_trashed: true, trashed_at: now }).in("id", fileIds);
+        if (error) throw error;
+      }
+      if (folderIds.length) {
+        const { error } = await supabase.from("folders").update({ is_trashed: true, trashed_at: now }).in("id", folderIds);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { invalidate(); toast.success("Itens movidos para a reciclagem"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkRemove = useMutation({
+    mutationFn: async (items: { kind: "file" | "folder"; id: string; storagePath?: string }[]) => {
+      const paths = items.filter((i) => i.kind === "file" && i.storagePath).map((i) => i.storagePath!);
+      if (paths.length) await supabase.storage.from(BUCKET).remove(paths);
+      const fileIds = items.filter((i) => i.kind === "file").map((i) => i.id);
+      const folderIds = items.filter((i) => i.kind === "folder").map((i) => i.id);
+      if (fileIds.length) {
+        const { error } = await supabase.from("files").delete().in("id", fileIds);
+        if (error) throw error;
+      }
+      if (folderIds.length) {
+        const { error } = await supabase.from("folders").delete().in("id", folderIds);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { invalidate(); toast.success("Itens eliminados"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return { createFolder, rename, trash, restore, remove, move, toggleFavorite, uploadFiles, bulkTrash, bulkRemove };
 }
