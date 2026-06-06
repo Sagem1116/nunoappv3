@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
+import { runWeeklyAutoExports } from "@/lib/data-io";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
