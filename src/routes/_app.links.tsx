@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Trash2, Pencil, X, Link2, ExternalLink, Download } from "lucide-react";
+import { Trash2, Pencil, X, Link2, ExternalLink, Download, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
   Toolbar, EmptyState, Field, inputCls,
-  Pagination, TagManagerDialog, sortItems, tagCounts,
+  Pagination, TagManagerDialog, sortItems, tagCounts, FavoritesTabs,
   type ViewMode, type SortBy,
 } from "./_app.notas";
 import { TagInput } from "@/components/tag-input";
@@ -22,6 +22,7 @@ interface LinkRow {
   description: string;
   tags: string[];
   created_at: string;
+  is_favorite: boolean;
 }
 
 function LinksPage() {
@@ -36,6 +37,7 @@ function LinksPage() {
   const [sortBy, setSortBy] = useState<SortBy>("created_desc");
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [tab, setTab] = useState<"all" | "favorites">("all");
   const pageSize = 12;
 
   const load = async () => {
@@ -57,6 +59,7 @@ function LinksPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     const list = links.filter((l) => {
+      if (tab === "favorites" && !l.is_favorite) return false;
       if (activeTag && !l.tags.includes(activeTag)) return false;
       if (!q) return true;
       return (
@@ -67,9 +70,9 @@ function LinksPage() {
       );
     });
     return sortItems(list, sortBy);
-  }, [links, search, activeTag, sortBy]);
+  }, [links, search, activeTag, sortBy, tab]);
 
-  useEffect(() => { setPage(1); }, [search, activeTag, sortBy]);
+  useEffect(() => { setPage(1); }, [search, activeTag, sortBy, tab]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -78,6 +81,13 @@ function LinksPage() {
     await supabase.from("links").delete().eq("id", id);
     setLinks((prev) => prev.filter((l) => l.id !== id));
   };
+
+  const toggleFavorite = async (l: LinkRow) => {
+    const next = !l.is_favorite;
+    setLinks((prev) => prev.map((x) => (x.id === l.id ? { ...x, is_favorite: next } : x)));
+    await (supabase as any).from("links").update({ is_favorite: next }).eq("id", l.id);
+  };
+
 
   const handleSave = async (data: { title: string; url: string; description: string; tags: string[] }) => {
     if (!user) return;
@@ -183,6 +193,15 @@ function LinksPage() {
         autoExportLabel="Links"
       />
 
+      <FavoritesTabs
+        tab={tab}
+        onTab={setTab}
+        allCount={links.length}
+        favCount={links.filter((l) => l.is_favorite).length}
+      />
+
+
+
       {loading ? (
         <div className="text-muted-foreground text-sm">A carregar...</div>
       ) : filtered.length === 0 ? (
@@ -196,6 +215,9 @@ function LinksPage() {
                 <a href={l.url} target="_blank" rel="noopener noreferrer" className="font-medium text-sm truncate block hover:text-primary">{l.title}</a>
                 <div className="text-xs text-muted-foreground truncate">{l.description || hostname(l.url)}</div>
               </div>
+              <button onClick={() => toggleFavorite(l)} className="p-1.5 rounded hover:bg-accent" title={l.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                <Star className={`h-3.5 w-3.5 ${l.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+              </button>
               <button onClick={() => exportLink(l)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar este link">
                 <Download className="h-3.5 w-3.5" />
               </button>
@@ -218,6 +240,9 @@ function LinksPage() {
                   <p className="text-xs text-primary/80 truncate">{hostname(l.url)}</p>
                 </div>
                 <div className="flex gap-1 shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+                  <button onClick={() => toggleFavorite(l)} className="p-1.5 rounded hover:bg-accent" title={l.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                    <Star className={`h-3.5 w-3.5 ${l.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                  </button>
                   <button onClick={() => exportLink(l)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar este link">
                     <Download className="h-3.5 w-3.5" />
                   </button>

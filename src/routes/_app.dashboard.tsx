@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   StickyNote, Link2, CheckSquare, Wallet, Plane, Ticket,
-  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight, Search, Download, RefreshCw,
+  TrendingUp, TrendingDown, AlertTriangle, ArrowRight, Search, Download, RefreshCw, Star, ExternalLink,
 } from "lucide-react";
 import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { exportData } from "@/lib/data-io";
 import { NotificationsSettings } from "@/components/notifications-settings";
+import { NotepadViewer } from "@/components/notepad-viewer";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -18,8 +19,8 @@ export const Route = createFileRoute("/_app/dashboard")({
 interface Task { id: string; title: string; status: "pending" | "done"; priority: "low"|"medium"|"high"; due_date: string | null; }
 interface Trip { id: string; name: string; destination: string; start_date: string | null; end_date: string | null; budget: number | null; }
 interface Tx { id: string; amount: number; type: "income" | "expense"; category: string; description: string; occurred_at: string; }
-interface Note { id: string; title: string; created_at: string; }
-interface LinkRow { id: string; title: string; url: string; created_at: string; }
+interface Note { id: string; title: string; content: string; created_at: string; is_favorite: boolean; }
+interface LinkRow { id: string; title: string; url: string; created_at: string; is_favorite: boolean; }
 interface Reservation { id: string; title: string; reservation_type: string; status: string; extracted_data: any; created_at: string; }
 
 const fmtEur = (v: number) =>
@@ -60,6 +61,9 @@ function Dashboard() {
   const [txs, setTxs] = useState<Tx[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [links, setLinks] = useState<LinkRow[]>([]);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
+  const [favNotes, setFavNotes] = useState<Note[]>([]);
+  const [favLinks, setFavLinks] = useState<LinkRow[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [newsQuery, setNewsQuery] = useState("");
   const [newsResults, setNewsResults] = useState<any[]>([]);
@@ -72,13 +76,15 @@ function Dashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const [t, tr, tx, n, l, r] = await Promise.all([
+      const [t, tr, tx, n, l, r, fn, fl] = await Promise.all([
         supabase.from("tasks").select("id,title,status,priority,due_date").order("due_date", { ascending: true, nullsFirst: false }),
         supabase.from("trips").select("id,name,destination,start_date,end_date,budget").order("start_date", { ascending: true, nullsFirst: false }),
         supabase.from("transactions").select("id,amount,type,category,description,occurred_at").order("occurred_at", { ascending: false }),
-        supabase.from("notes").select("id,title,created_at").order("created_at", { ascending: false }).limit(5),
-        supabase.from("links").select("id,title,url,created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("notes").select("id,title,content,created_at,is_favorite").order("created_at", { ascending: false }).limit(5),
+        supabase.from("links").select("id,title,url,created_at,is_favorite").order("created_at", { ascending: false }).limit(5),
         supabase.from("reservations").select("id,title,reservation_type,status,extracted_data,created_at").order("created_at", { ascending: false }),
+        (supabase as any).from("notes").select("id,title,content,created_at,is_favorite").eq("is_favorite", true).order("created_at", { ascending: false }).limit(12),
+        (supabase as any).from("links").select("id,title,url,created_at,is_favorite").eq("is_favorite", true).order("created_at", { ascending: false }).limit(12),
       ]);
       setTasks((t.data as any) ?? []);
       setTrips((tr.data as any) ?? []);
@@ -86,8 +92,20 @@ function Dashboard() {
       setNotes((n.data as any) ?? []);
       setLinks((l.data as any) ?? []);
       setReservations((r.data as any) ?? []);
+      setFavNotes((fn.data as any) ?? []);
+      setFavLinks((fl.data as any) ?? []);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveNoteContent = async (id: string, content: string) => {
+    const { data: upd } = await (supabase as any)
+      .from("notes").update({ content }).eq("id", id).select().single();
+    if (upd) {
+      setFavNotes((prev) => prev.map((n) => (n.id === id ? (upd as Note) : n)));
+      setNotes((prev) => prev.map((n) => (n.id === id ? (upd as Note) : n)));
+      setViewingNote((v) => (v && v.id === id ? (upd as Note) : v));
     }
   };
 
@@ -273,7 +291,57 @@ function Dashboard() {
         />
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Panel title="Notas favoritas" icon={Star} to="/notas">
+          {favNotes.length === 0 ? (
+            <Empty text="Sem notas nos favoritos" />
+          ) : (
+            <ul className="space-y-1">
+              {favNotes.map((n) => (
+                <li key={n.id}>
+                  <button
+                    onClick={() => setViewingNote(n)}
+                    className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent/40"
+                  >
+                    <StickyNote className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-sm truncate flex-1">{n.title || "Sem título"}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{fmtDate(n.created_at, "d MMM")}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Links favoritos" icon={Star} to="/links">
+          {favLinks.length === 0 ? (
+            <Empty text="Sem links nos favoritos" />
+          ) : (
+            <ul className="space-y-1">
+              {favLinks.map((l) => (
+                <li key={l.id}>
+                  <a
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent/40"
+                  >
+                    <Link2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm truncate">{l.title || l.url}</div>
+                      <div className="text-xs text-muted-foreground truncate">{safeHost(l.url)}</div>
+                    </div>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
       <NotificationsSettings />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Tasks panel - spans 2 */}
@@ -530,6 +598,15 @@ function Dashboard() {
           )}
         </Panel>
       </div>
+
+      {viewingNote && (
+        <NotepadViewer
+          title={viewingNote.title}
+          initialContent={viewingNote.content}
+          onSave={(c) => saveNoteContent(viewingNote.id, c)}
+          onClose={() => setViewingNote(null)}
+        />
+      )}
     </div>
   );
 }

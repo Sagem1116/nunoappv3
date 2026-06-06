@@ -328,6 +328,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          is_favorite: boolean
           tags: string[]
           title: string
           updated_at: string
@@ -338,6 +339,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_favorite?: boolean
           tags?: string[]
           title: string
           updated_at?: string
@@ -348,6 +350,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_favorite?: boolean
           tags?: string[]
           title?: string
           updated_at?: string
@@ -361,6 +364,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_favorite: boolean
           tags: string[]
           title: string
           updated_at: string
@@ -370,6 +374,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_favorite?: boolean
           tags?: string[]
           title: string
           updated_at?: string
@@ -379,6 +384,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_favorite?: boolean
           tags?: string[]
           title?: string
           updated_at?: string

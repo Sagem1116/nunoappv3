@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Search, Trash2, Pencil, X, StickyNote, Tag,
   LayoutGrid, List as ListIcon, ArrowUpDown, ChevronLeft, ChevronRight, Settings2,
-  Download, Upload,
+  Download, Upload, Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -22,6 +22,7 @@ interface Note {
   content: string;
   tags: string[];
   created_at: string;
+  is_favorite: boolean;
 }
 
 function NotesPage() {
@@ -37,6 +38,7 @@ function NotesPage() {
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [viewing, setViewing] = useState<Note | null>(null);
+  const [tab, setTab] = useState<"all" | "favorites">("all");
   const pageSize = 12;
 
   const load = async () => {
@@ -60,6 +62,7 @@ function NotesPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     const list = notes.filter((n) => {
+      if (tab === "favorites" && !n.is_favorite) return false;
       if (activeTag && !n.tags.includes(activeTag)) return false;
       if (!q) return true;
       return (
@@ -69,9 +72,9 @@ function NotesPage() {
       );
     });
     return sortItems(list, sortBy);
-  }, [notes, search, activeTag, sortBy]);
+  }, [notes, search, activeTag, sortBy, tab]);
 
-  useEffect(() => { setPage(1); }, [search, activeTag, sortBy]);
+  useEffect(() => { setPage(1); }, [search, activeTag, sortBy, tab]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -80,6 +83,12 @@ function NotesPage() {
     if (!confirm("Eliminar esta nota?")) return;
     await supabase.from("notes").delete().eq("id", id);
     setNotes((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const toggleFavorite = async (n: Note) => {
+    const next = !n.is_favorite;
+    setNotes((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_favorite: next } : x)));
+    await (supabase as any).from("notes").update({ is_favorite: next }).eq("id", n.id);
   };
 
   const startNew = () => { setEditing(null); setOpen(true); };
@@ -152,6 +161,15 @@ function NotesPage() {
         autoExportLabel="Notas"
       />
 
+      <FavoritesTabs
+        tab={tab}
+        onTab={setTab}
+        allCount={notes.length}
+        favCount={notes.filter((n) => n.is_favorite).length}
+      />
+
+
+
       {loading ? (
         <div className="text-muted-foreground text-sm">A carregar...</div>
       ) : filtered.length === 0 ? (
@@ -172,6 +190,9 @@ function NotesPage() {
               <span className="text-[10px] text-muted-foreground/70 uppercase shrink-0">
                 {new Date(n.created_at).toLocaleDateString("pt-PT")}
               </span>
+              <button onClick={() => toggleFavorite(n)} className="p-1.5 rounded hover:bg-accent" title={n.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                <Star className={`h-3.5 w-3.5 ${n.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+              </button>
               <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                 <Download className="h-3.5 w-3.5" />
               </button>
@@ -194,6 +215,9 @@ function NotesPage() {
                   <h3 className="font-semibold leading-tight hover:text-primary transition-colors">{n.title}</h3>
                 </button>
                 <div className="flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
+                  <button onClick={() => toggleFavorite(n)} className="p-1.5 rounded hover:bg-accent" title={n.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                    <Star className={`h-3.5 w-3.5 ${n.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                  </button>
                   <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                     <Download className="h-3.5 w-3.5" />
                   </button>
@@ -672,6 +696,33 @@ export function TagManagerDialog({ table, allTags, counts, onClose, onChanged }:
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Fechar</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function FavoritesTabs({
+  tab, onTab, allCount, favCount,
+}: {
+  tab: "all" | "favorites";
+  onTab: (t: "all" | "favorites") => void;
+  allCount: number;
+  favCount: number;
+}) {
+  const btn = (active: boolean) =>
+    [
+      "px-4 py-2 text-sm rounded-lg transition-all inline-flex items-center gap-2",
+      active
+        ? "bg-primary text-primary-foreground shadow-glow"
+        : "bg-input border border-border text-muted-foreground hover:text-foreground hover:border-primary/50",
+    ].join(" ");
+  return (
+    <div className="flex items-center gap-2">
+      <button onClick={() => onTab("all")} className={btn(tab === "all")}>
+        Todos <span className="text-[10px] opacity-70">({allCount})</span>
+      </button>
+      <button onClick={() => onTab("favorites")} className={btn(tab === "favorites")}>
+        ★ Favoritos <span className="text-[10px] opacity-70">({favCount})</span>
+      </button>
     </div>
   );
 }
