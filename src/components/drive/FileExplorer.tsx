@@ -212,6 +212,39 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
             <TagChip tag={activeTag} size="md" onRemove={() => setTagFilter(null)} />
           </div>
         )}
+        {selected.size > 0 && (
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2">
+            <CheckCircle2 className="size-4 text-primary" />
+            <span className="text-sm">{selected.size} selecionado{selected.size > 1 ? "s" : ""}</span>
+            <div className="ml-auto flex items-center gap-2">
+              {scope.kind === "trash" ? (
+                <>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    selected.forEach((it) => mut.restore.mutate({ kind: it.kind, id: it.id }));
+                    clearSelection();
+                  }}>
+                    <Undo2 className="size-4 mr-1" /> Restaurar
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => {
+                    if (!confirm(`Eliminar definitivamente ${selected.size} item(s)?`)) return;
+                    mut.bulkRemove.mutate(Array.from(selected.values()), { onSuccess: clearSelection });
+                  }}>
+                    <Trash2 className="size-4 mr-1" /> Eliminar
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" variant="destructive" onClick={() => {
+                  mut.bulkTrash.mutate(Array.from(selected.values()).map(({ kind, id }) => ({ kind, id })), { onSuccess: clearSelection });
+                }}>
+                  <Trash2 className="size-4 mr-1" /> Mover para reciclagem
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" onClick={clearSelection}>
+                <X className="size-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <ScrollArea className="flex-1 px-6 pb-6">
@@ -225,6 +258,8 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {visible.folders.map((f) => (
                     <FolderCard key={f.id} folder={f} starred={favFolderIds.has(f.id)} tags={tagsForFolder(f.id)}
+                      selected={isSelected("folder", f.id)}
+                      onToggleSelect={() => toggleSelect("folder", f.id)}
                       onOpen={() => scope.kind === "trash" ? null : navigate({ to: "/drive/folder/$folderId", params: { folderId: f.id } })}
                       onRename={() => setRenaming({ kind: "folder", id: f.id, name: f.name })}
                       onEditTags={() => setTagTarget({ kind: "folder", id: f.id, name: f.name })}
@@ -240,6 +275,8 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {visible.files.map((f) => (
                     <FileCard key={f.id} file={f} starred={favFileIds.has(f.id)} tags={tagsForFile(f.id)}
+                      selected={isSelected("file", f.id)}
+                      onToggleSelect={() => toggleSelect("file", f.id, f.storage_path)}
                       onOpen={() => scope.kind === "trash" ? null : setPreview(f)}
                       onRename={() => setRenaming({ kind: "file", id: f.id, name: f.name })}
                       onEditTags={() => setTagTarget({ kind: "file", id: f.id, name: f.name })}
@@ -255,6 +292,7 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
             folders={visible.folders} files={visible.files}
             favFileIds={favFileIds} favFolderIds={favFolderIds}
             tagsForFile={tagsForFile} tagsForFolder={tagsForFolder}
+            isSelected={isSelected} toggleSelect={toggleSelect}
             onEditTags={(kind: "file" | "folder", id: string, name: string) => setTagTarget({ kind, id, name })}
             onClickTag={(id: string) => setTagFilter(id)}
             trashed={scope.kind === "trash"}
