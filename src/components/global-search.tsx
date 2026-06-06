@@ -88,7 +88,7 @@ export function GlobalSearch() {
       }));
       (fmeta.data ?? []).forEach((r: any) => out.push({
         id: `f-${r.path}`, kind: "ficheiro", title: r.original_name || r.path,
-        subtitle: r.folder || "", to: "/ficheiros",
+        subtitle: r.folder || "", to: "/drive",
       }));
       setHits(out);
       setLoading(false);
