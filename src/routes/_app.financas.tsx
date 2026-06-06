@@ -131,12 +131,26 @@ function FinancasPage() {
           <h1 className="text-2xl font-bold neon-text">Finanças</h1>
           <p className="text-sm text-muted-foreground">Controla as tuas entradas e gastos.</p>
         </div>
-        <button
-          onClick={() => { setEditing(null); setOpen(true); }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all"
-        >
-          <Plus className="h-4 w-4" /> Nova transação
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => exportTable("transactions")}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+          >
+            <Download className="h-3.5 w-3.5" /> Exportar JSON
+          </button>
+          <button
+            onClick={async () => { if (user) { await importTable("transactions", user.id); await load(); } }}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+          >
+            <Upload className="h-3.5 w-3.5" /> Importar JSON
+          </button>
+          <button
+            onClick={() => { setEditing(null); setOpen(true); }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium text-sm hover:shadow-glow-strong transition-all"
+          >
+            <Plus className="h-4 w-4" /> Nova transação
+          </button>
+        </div>
       </div>
 
       {/* Summary cards */}
