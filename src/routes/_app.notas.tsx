@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Search, Trash2, Pencil, X, StickyNote, Tag,
   LayoutGrid, List as ListIcon, ArrowUpDown, ChevronLeft, ChevronRight, Settings2,
-  Download, Upload,
+  Download, Upload, Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
