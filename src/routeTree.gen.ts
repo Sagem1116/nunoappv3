@@ -28,6 +28,7 @@ import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
 import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index'
 import { Route as AppReservasIndexRouteImport } from './routes/_app.reservas.index'
+import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
 import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
 import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
@@ -126,6 +127,11 @@ const AppReservasIndexRoute = AppReservasIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppReservasRoute,
 } as any)
+const AppDriveIndexRoute = AppDriveIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppDriveRoute,
+} as any)
 const AppAiIndexRoute = AppAiIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -147,7 +153,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/ai': typeof AppAiRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
-  '/drive': typeof AppDriveRoute
+  '/drive': typeof AppDriveRouteWithChildren
   '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/ai/': typeof AppAiIndexRoute
+  '/drive/': typeof AppDriveIndexRoute
   '/reservas/': typeof AppReservasIndexRoute
   '/viagens/': typeof AppViagensIndexRoute
 }
@@ -169,7 +176,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AppDashboardRoute
-  '/drive': typeof AppDriveRoute
   '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
@@ -182,6 +188,7 @@ export interface FileRoutesByTo {
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/ai': typeof AppAiIndexRoute
+  '/drive': typeof AppDriveIndexRoute
   '/reservas': typeof AppReservasIndexRoute
   '/viagens': typeof AppViagensIndexRoute
 }
@@ -192,7 +199,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_app/ai': typeof AppAiRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
-  '/_app/drive': typeof AppDriveRoute
+  '/_app/drive': typeof AppDriveRouteWithChildren
   '/_app/ficheiros': typeof AppFicheirosRoute
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
@@ -207,6 +214,7 @@ export interface FileRoutesById {
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
   '/_app/ai/': typeof AppAiIndexRoute
+  '/_app/drive/': typeof AppDriveIndexRoute
   '/_app/reservas/': typeof AppReservasIndexRoute
   '/_app/viagens/': typeof AppViagensIndexRoute
 }
@@ -232,6 +240,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/viagens/$tripId'
     | '/ai/'
+    | '/drive/'
     | '/reservas/'
     | '/viagens/'
   fileRoutesByTo: FileRoutesByTo
@@ -239,7 +248,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
-    | '/drive'
     | '/ficheiros'
     | '/financas'
     | '/links'
@@ -252,6 +260,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/viagens/$tripId'
     | '/ai'
+    | '/drive'
     | '/reservas'
     | '/viagens'
   id:
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/_app/ai/$threadId'
     | '/_app/viagens/$tripId'
     | '/_app/ai/'
+    | '/_app/drive/'
     | '/_app/reservas/'
     | '/_app/viagens/'
   fileRoutesById: FileRoutesById
@@ -424,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReservasIndexRouteImport
       parentRoute: typeof AppReservasRoute
     }
+    '/_app/drive/': {
+      id: '/_app/drive/'
+      path: '/'
+      fullPath: '/drive/'
+      preLoaderRoute: typeof AppDriveIndexRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
     '/_app/ai/': {
       id: '/_app/ai/'
       path: '/'
@@ -460,6 +477,18 @@ const AppAiRouteChildren: AppAiRouteChildren = {
 
 const AppAiRouteWithChildren = AppAiRoute._addFileChildren(AppAiRouteChildren)
 
+interface AppDriveRouteChildren {
+  AppDriveIndexRoute: typeof AppDriveIndexRoute
+}
+
+const AppDriveRouteChildren: AppDriveRouteChildren = {
+  AppDriveIndexRoute: AppDriveIndexRoute,
+}
+
+const AppDriveRouteWithChildren = AppDriveRoute._addFileChildren(
+  AppDriveRouteChildren,
+)
+
 interface AppReservasRouteChildren {
   AppReservasIndexRoute: typeof AppReservasIndexRoute
 }
@@ -489,7 +518,7 @@ const AppViagensRouteWithChildren = AppViagensRoute._addFileChildren(
 interface AppRouteChildren {
   AppAiRoute: typeof AppAiRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
-  AppDriveRoute: typeof AppDriveRoute
+  AppDriveRoute: typeof AppDriveRouteWithChildren
   AppFicheirosRoute: typeof AppFicheirosRoute
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
@@ -503,7 +532,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
-  AppDriveRoute: AppDriveRoute,
+  AppDriveRoute: AppDriveRouteWithChildren,
   AppFicheirosRoute: AppFicheirosRoute,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
@@ -527,3 +556,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
