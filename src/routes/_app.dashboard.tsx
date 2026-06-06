@@ -154,27 +154,38 @@ function Dashboard() {
     await supabase.from("tasks").update({ status: next }).eq("id", t.id);
   };
 
-  const fetchNews = async (event?: FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
+  const fetchNews = async (eventOrOpts?: FormEvent<HTMLFormElement> | { days?: number; silent?: boolean }) => {
+    let daysOverride: number | undefined;
+    let silent = false;
+    if (eventOrOpts && "preventDefault" in eventOrOpts) {
+      eventOrOpts.preventDefault();
+    } else if (eventOrOpts) {
+      daysOverride = eventOrOpts.days;
+      silent = !!eventOrOpts.silent;
+    }
     const query = newsQuery.trim();
     if (!query) {
-      setNewsError("Insere palavras-chave para pesquisar.");
-      setNewsResults([]);
+      if (!silent) {
+        setNewsError("Insere palavras-chave para pesquisar.");
+        setNewsResults([]);
+      }
       return;
     }
+    const days = daysOverride ?? newsDays;
 
     setNewsLoading(true);
     setNewsError(null);
-    setNewsResults([]);
+    if (!silent) setNewsResults([]);
 
     try {
-      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5&days=7&_=${Date.now()}`, { cache: "no-store" });
+      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5&days=${days}&_=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) {
         const text = await response.text();
         throw new Error(text || response.statusText);
       }
       const data = await response.json();
       setNewsResults(data.articles ?? []);
+      setNewsLastUpdated(new Date());
       if (!data.articles?.length) {
         setNewsError("Nenhuma notícia encontrada para estes temas.");
       }
@@ -184,6 +195,29 @@ function Dashboard() {
       setNewsLoading(false);
     }
   };
+
+  // Auto-refresh news daily (and on day change while tab open)
+  useEffect(() => {
+    if (!newsQuery.trim()) return;
+    const lastKey = `news:lastAutoRefresh:${newsQuery.trim()}:${newsDays}`;
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    const last = typeof window !== "undefined" ? localStorage.getItem(lastKey) : null;
+    if (last !== todayStr) {
+      fetchNews({ silent: true });
+      if (typeof window !== "undefined") localStorage.setItem(lastKey, todayStr);
+    }
+    const interval = setInterval(() => {
+      const nowStr = format(new Date(), "yyyy-MM-dd");
+      const stored = localStorage.getItem(lastKey);
+      if (stored !== nowStr) {
+        fetchNews({ silent: true });
+        localStorage.setItem(lastKey, nowStr);
+      }
+    }, 60 * 60 * 1000); // hourly check
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newsQuery, newsDays]);
+
 
   if (loading) {
     return (
