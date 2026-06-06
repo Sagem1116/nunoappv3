@@ -459,6 +459,12 @@ function TaskRow({ task, onToggle, onEdit, onDelete }: {
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <CalIcon className="h-3 w-3" />
               {format(parseISO(task.due_date), "d MMM", { locale: pt })}
+              {(task.start_time || task.end_time) && (
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  {(task.start_time ?? "").slice(0, 5) || "—"}
+                  {task.end_time ? `–${task.end_time.slice(0, 5)}` : ""}
+                </span>
+              )}
             </span>
           )}
         </div>
