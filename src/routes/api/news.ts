@@ -38,12 +38,27 @@ export const Route = createFileRoute("/api/news")({
           "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0",
         };
 
-        const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`, { headers });
+        const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`, {
+          headers,
+          cache: "no-store",
+        });
         const data = await response.json();
+
+        // Sort defensively by publishedAt desc in case upstream order drifts
+        if (Array.isArray(data?.articles)) {
+          data.articles.sort((a: { publishedAt?: string }, b: { publishedAt?: string }) => {
+            const ta = a?.publishedAt ? Date.parse(a.publishedAt) : 0;
+            const tb = b?.publishedAt ? Date.parse(b.publishedAt) : 0;
+            return tb - ta;
+          });
+        }
 
         return new Response(JSON.stringify(data), {
           status: response.status,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store, max-age=0",
+          },
         });
       },
     },
