@@ -261,6 +261,63 @@ function TripDetailPage() {
     setFileSelection("");
   };
 
+  const docInputRef = useRef<HTMLInputElement | null>(null);
+
+  const uploadDocuments = async (fileList: FileList | null) => {
+    if (!user || !fileList || fileList.length === 0) return;
+    const newMetas: FileMetadata[] = [];
+    for (const file of Array.from(fileList)) {
+      try {
+        const id = crypto.randomUUID();
+        const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
+        const path = `${user.id}/trips/${tripId}/${id}${ext}`;
+        const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+          contentType: file.type || undefined, upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data: meta, error: mErr } = await (supabase as any).from("file_metadata").insert({
+          user_id: user.id, path, original_name: file.name, folder: `trips/${tripId}`, project: "viagens", tags: [],
+        }).select().single();
+        if (mErr) throw mErr;
+        newMetas.push(meta as FileMetadata);
+
+        const targetItem = planItems.find((p) => p.id === selectedAttachmentItemId);
+        if (targetItem) {
+          const { data: att } = await (supabase as any).from("trip_item_attachments").insert({
+            trip_id: tripId, day_id: targetItem.day_id, item_id: targetItem.id,
+            user_id: user.id, file_metadata_id: (meta as FileMetadata).id,
+          }).select("*, file_metadata(*)").single();
+          if (att) setAttachments((prev) => [...prev, att as TripItemAttachment]);
+        }
+      } catch (e) {
+        console.error("upload failed", e);
+      }
+    }
+    if (newMetas.length) setFiles((prev) => [...newMetas, ...prev]);
+  };
+
+  const downloadAttachment = async (att: TripItemAttachment) => {
+    const path = att.file_metadata?.path;
+    if (!path) return;
+    try {
+      const url = await getSignedUrl(path, 120);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = att.file_metadata?.original_name || "ficheiro";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const removeAttachment = async (att: TripItemAttachment) => {
+    if (!confirm("Remover documento da viagem?")) return;
+    await (supabase as any).from("trip_item_attachments").delete().eq("id", att.id);
+    setAttachments((prev) => prev.filter((a) => a.id !== att.id));
+  };
+
   const totalExpense = useMemo(() => planItems.reduce((sum, item) => sum + (item.amount || 0), 0), [planItems]);
   const reservationItems = useMemo(() => planItems.filter((item) => item.item_type === "transport" || item.item_type === "flight"), [planItems]);
   const itemsByDay = useMemo(() => {
