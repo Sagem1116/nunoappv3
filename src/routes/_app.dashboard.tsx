@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   StickyNote, Link2, CheckSquare, Wallet, Plane, Ticket,
-  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight, Search, Download,
+  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight, Search, Download, RefreshCw,
 } from "lucide-react";
 import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
