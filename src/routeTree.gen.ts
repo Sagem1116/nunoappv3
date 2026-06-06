@@ -32,6 +32,7 @@ import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
 import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
 import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
+import { Route as AppDriveFolderFolderIdRouteImport } from './routes/_app.drive.folder.$folderId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -147,6 +148,11 @@ const AppAiThreadIdRoute = AppAiThreadIdRouteImport.update({
   path: '/$threadId',
   getParentRoute: () => AppAiRoute,
 } as any)
+const AppDriveFolderFolderIdRoute = AppDriveFolderFolderIdRouteImport.update({
+  id: '/folder/$folderId',
+  path: '/folder/$folderId',
+  getParentRoute: () => AppDriveRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/drive/': typeof AppDriveIndexRoute
   '/reservas/': typeof AppReservasIndexRoute
   '/viagens/': typeof AppViagensIndexRoute
+  '/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/drive': typeof AppDriveIndexRoute
   '/reservas': typeof AppReservasIndexRoute
   '/viagens': typeof AppViagensIndexRoute
+  '/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/_app/drive/': typeof AppDriveIndexRoute
   '/_app/reservas/': typeof AppReservasIndexRoute
   '/_app/viagens/': typeof AppViagensIndexRoute
+  '/_app/drive/folder/$folderId': typeof AppDriveFolderFolderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/drive/'
     | '/reservas/'
     | '/viagens/'
+    | '/drive/folder/$folderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/drive'
     | '/reservas'
     | '/viagens'
+    | '/drive/folder/$folderId'
   id:
     | '__root__'
     | '/'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/_app/drive/'
     | '/_app/reservas/'
     | '/_app/viagens/'
+    | '/_app/drive/folder/$folderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -462,6 +474,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAiThreadIdRouteImport
       parentRoute: typeof AppAiRoute
     }
+    '/_app/drive/folder/$folderId': {
+      id: '/_app/drive/folder/$folderId'
+      path: '/folder/$folderId'
+      fullPath: '/drive/folder/$folderId'
+      preLoaderRoute: typeof AppDriveFolderFolderIdRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
   }
 }
 
@@ -479,10 +498,12 @@ const AppAiRouteWithChildren = AppAiRoute._addFileChildren(AppAiRouteChildren)
 
 interface AppDriveRouteChildren {
   AppDriveIndexRoute: typeof AppDriveIndexRoute
+  AppDriveFolderFolderIdRoute: typeof AppDriveFolderFolderIdRoute
 }
 
 const AppDriveRouteChildren: AppDriveRouteChildren = {
   AppDriveIndexRoute: AppDriveIndexRoute,
+  AppDriveFolderFolderIdRoute: AppDriveFolderFolderIdRoute,
 }
 
 const AppDriveRouteWithChildren = AppDriveRoute._addFileChildren(
