@@ -240,6 +240,9 @@ function LinksPage() {
                   <p className="text-xs text-primary/80 truncate">{hostname(l.url)}</p>
                 </div>
                 <div className="flex gap-1 shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+                  <button onClick={() => toggleFavorite(l)} className="p-1.5 rounded hover:bg-accent" title={l.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                    <Star className={`h-3.5 w-3.5 ${l.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                  </button>
                   <button onClick={() => exportLink(l)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar este link">
                     <Download className="h-3.5 w-3.5" />
                   </button>
