@@ -419,11 +419,15 @@ function FolderCard({ folder, starred, tags, selected, onToggleSelect, onOpen, o
   );
 }
 
-function FileCard({ file, starred, tags, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
+function FileCard({ file, starred, tags, selected, onToggleSelect, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div onDoubleClick={onOpen} className="group relative rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer overflow-hidden">
+        <div onDoubleClick={onOpen} className={cn(
+          "group relative rounded-xl border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer overflow-hidden",
+          selected ? "border-primary ring-2 ring-primary/30" : "border-border",
+        )}>
+          <SelectCheck selected={!!selected} onToggle={onToggleSelect} />
           <div className="aspect-[4/3] bg-gradient-to-br from-accent/30 to-card flex items-center justify-center">
             <FileIcon mime={file.mime_type} ext={file.extension} className="size-12" />
           </div>
