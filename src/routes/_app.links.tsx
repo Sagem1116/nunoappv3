@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Trash2, Pencil, X, Link2, ExternalLink, Download } from "lucide-react";
+import { Trash2, Pencil, X, Link2, ExternalLink, Download, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
   Toolbar, EmptyState, Field, inputCls,
-  Pagination, TagManagerDialog, sortItems, tagCounts,
+  Pagination, TagManagerDialog, sortItems, tagCounts, FavoritesTabs,
   type ViewMode, type SortBy,
 } from "./_app.notas";
 import { TagInput } from "@/components/tag-input";
