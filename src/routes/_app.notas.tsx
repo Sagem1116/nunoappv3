@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
 import { exportTable, importTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 
 export const Route = createFileRoute("/_app/notas")({
   component: NotesPage,
