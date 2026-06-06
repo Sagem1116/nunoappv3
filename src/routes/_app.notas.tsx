@@ -148,6 +148,8 @@ function NotesPage() {
         onExport={exportAll}
         onExportJson={() => exportTable("notes")}
         onImportJson={async () => { if (user) { await importTable("notes", user.id); await load(); } }}
+        autoExportTable="notes"
+        autoExportLabel="Notas"
       />
 
       {loading ? (
