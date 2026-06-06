@@ -13,6 +13,8 @@ import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Field, inputCls, EmptyState } from "./_app.notas";
+import { exportTable, importTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 
 export const Route = createFileRoute("/_app/tarefas")({
   component: TasksPage,
