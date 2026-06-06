@@ -189,7 +189,6 @@ export const Route = createFileRoute("/api/public/hooks/push-tick")({
       POST: async () => {
         try {
           const client = supa();
-          const admin = getAdmin();
 
           const { data: subs } = await client
             .from("push_subscriptions")
@@ -214,7 +213,7 @@ export const Route = createFileRoute("/api/public/hooks/push-tick")({
           for (const p of (prefs ?? []) as Pref[]) {
             const tokens = tokensByUser.get(p.user_id) ?? [];
             try {
-              await processUser(admin, client, p, tokens);
+              await processUser(client, p, tokens);
               processed++;
             } catch (e: any) {
               console.warn("[push-tick] user error", p.user_id, e?.message);
