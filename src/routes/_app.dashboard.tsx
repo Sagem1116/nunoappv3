@@ -9,6 +9,7 @@ import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { exportData } from "@/lib/data-io";
+import { NotificationsSettings } from "@/components/notifications-settings";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -271,6 +272,8 @@ function Dashboard() {
           sub={`${reservations.filter((r) => r.status === "confirmed").length} confirmadas`}
         />
       </div>
+
+      <NotificationsSettings />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Tasks panel - spans 2 */}
