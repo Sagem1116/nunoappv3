@@ -32,6 +32,7 @@ interface Task {
   due_date: string | null;
   start_time: string | null;
   end_time: string | null;
+  notify_lead_minutes: number | null;
   status: Status;
   created_at: string;
 }
@@ -129,7 +130,7 @@ function TasksPage() {
 
   const handleSave = async (data: {
     title: string; description: string; priority: Priority; due_date: string | null;
-    start_time: string | null; end_time: string | null;
+    start_time: string | null; end_time: string | null; notify_lead_minutes: number | null;
   }) => {
     if (!user) {
       setMessage("Precisas de iniciar sessão para guardar tarefas.");
@@ -550,7 +551,7 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
   onClose: () => void;
   onSave: (d: {
     title: string; description: string; priority: Priority; due_date: string | null;
-    start_time: string | null; end_time: string | null;
+    start_time: string | null; end_time: string | null; notify_lead_minutes: number | null;
   }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -559,6 +560,9 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
   const [dueDate, setDueDate] = useState(initial?.due_date ?? prefillDate ?? "");
   const [startTime, setStartTime] = useState((initial?.start_time ?? "").slice(0, 5));
   const [endTime, setEndTime] = useState((initial?.end_time ?? "").slice(0, 5));
+  const [leadMin, setLeadMin] = useState<string>(
+    initial?.notify_lead_minutes != null ? String(initial.notify_lead_minutes) : ""
+  );
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -578,6 +582,7 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
       due_date: dueDate || null,
       start_time: dueDate && startTime ? startTime : null,
       end_time: dueDate && endTime ? endTime : null,
+      notify_lead_minutes: leadMin === "" ? null : Number(leadMin),
     });
     setBusy(false);
   };
@@ -632,6 +637,22 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
         {timesDisabled && (
           <p className="text-[11px] text-muted-foreground -mt-2">Define primeiro uma data limite para usar horas.</p>
         )}
+        <Field label="Pré-aviso (esta tarefa)">
+          <select
+            value={leadMin}
+            onChange={(e) => setLeadMin(e.target.value)}
+            disabled={timesDisabled || !startTime}
+            className={inputCls + ((timesDisabled || !startTime) ? " opacity-50" : "")}
+          >
+            <option value="">Usar definição global</option>
+            <option value="0">No momento</option>
+            <option value="5">5 minutos antes</option>
+            <option value="10">10 minutos antes</option>
+            <option value="15">15 minutos antes</option>
+            <option value="30">30 minutos antes</option>
+            <option value="60">1 hora antes</option>
+          </select>
+        </Field>
         {err && <p className="text-xs text-destructive">{err}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Cancelar</button>
