@@ -209,6 +209,47 @@ export function NotificationsSettings() {
           </button>
         </>
       )}
+
+
+      <div className="pt-4 mt-2 border-t border-border/40 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-primary/15 grid place-items-center">
+            <Smartphone className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-medium">Notificações no telemóvel</h3>
+            <p className="text-xs text-muted-foreground">
+              Push via FCM — recebes avisos mesmo com a app fechada. iOS: instala a app (Adicionar ao Ecrã Principal) primeiro.
+            </p>
+          </div>
+        </div>
+
+        {!pushSupported && (
+          <p className="text-xs text-amber-500/90 flex items-center gap-2">
+            <BellOff className="h-3.5 w-3.5" /> Este browser/dispositivo não suporta push web.
+          </p>
+        )}
+
+        {pushSupported && (
+          <button
+            type="button"
+            onClick={togglePush}
+            disabled={pushBusy}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
+          >
+            {pushBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
+            {pushActive ? "Desativar push no telemóvel" : "Ativar push no telemóvel"}
+          </button>
+        )}
+
+        {pushActive && (
+          <div className="flex items-center gap-2 text-xs text-emerald-500">
+            <Check className="h-3.5 w-3.5" /> Push ativo neste dispositivo
+          </div>
+        )}
+
+        {pushMsg && <p className="text-xs text-muted-foreground">{pushMsg}</p>}
+      </div>
     </section>
   );
 }
