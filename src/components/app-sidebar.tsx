@@ -19,7 +19,7 @@ import { useAuth } from "@/lib/auth";
 const items = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Notas", url: "/notas", icon: StickyNote },
-  { title: "Ficheiros", url: "/ficheiros", icon: FolderOpen },
+  { title: "Drive", url: "/drive", icon: FolderOpen },
   { title: "Links", url: "/links", icon: Link2 },
   { title: "Tarefas", url: "/tarefas", icon: CheckSquare },
   { title: "Finanças", url: "/financas", icon: Wallet },

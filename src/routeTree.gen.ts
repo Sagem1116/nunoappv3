@@ -22,7 +22,6 @@ import { Route as AppProjetosRouteImport } from './routes/_app.projetos'
 import { Route as AppNotasRouteImport } from './routes/_app.notas'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
-import { Route as AppFicheirosRouteImport } from './routes/_app.ficheiros'
 import { Route as AppDriveRouteImport } from './routes/_app.drive'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
@@ -102,11 +101,6 @@ const AppFinancasRoute = AppFinancasRouteImport.update({
   path: '/financas',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFicheirosRoute = AppFicheirosRouteImport.update({
-  id: '/ficheiros',
-  path: '/ficheiros',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppDriveRoute = AppDriveRouteImport.update({
   id: '/drive',
   path: '/drive',
@@ -184,7 +178,6 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AppAiRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
   '/drive': typeof AppDriveRouteWithChildren
-  '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
   '/notas': typeof AppNotasRoute
@@ -211,7 +204,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AppDashboardRoute
-  '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
   '/notas': typeof AppNotasRoute
@@ -240,7 +232,6 @@ export interface FileRoutesById {
   '/_app/ai': typeof AppAiRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/drive': typeof AppDriveRouteWithChildren
-  '/_app/ficheiros': typeof AppFicheirosRoute
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
   '/_app/notas': typeof AppNotasRoute
@@ -271,7 +262,6 @@ export interface FileRouteTypes {
     | '/ai'
     | '/dashboard'
     | '/drive'
-    | '/ficheiros'
     | '/financas'
     | '/links'
     | '/notas'
@@ -298,7 +288,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
-    | '/ficheiros'
     | '/financas'
     | '/links'
     | '/notas'
@@ -326,7 +315,6 @@ export interface FileRouteTypes {
     | '/_app/ai'
     | '/_app/dashboard'
     | '/_app/drive'
-    | '/_app/ficheiros'
     | '/_app/financas'
     | '/_app/links'
     | '/_app/notas'
@@ -450,13 +438,6 @@ declare module '@tanstack/react-router' {
       path: '/financas'
       fullPath: '/financas'
       preLoaderRoute: typeof AppFinancasRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/ficheiros': {
-      id: '/_app/ficheiros'
-      path: '/ficheiros'
-      fullPath: '/ficheiros'
-      preLoaderRoute: typeof AppFicheirosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/drive': {
@@ -624,7 +605,6 @@ interface AppRouteChildren {
   AppAiRoute: typeof AppAiRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppDriveRoute: typeof AppDriveRouteWithChildren
-  AppFicheirosRoute: typeof AppFicheirosRoute
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
   AppNotasRoute: typeof AppNotasRoute
@@ -638,7 +618,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppDriveRoute: AppDriveRouteWithChildren,
-  AppFicheirosRoute: AppFicheirosRoute,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
   AppNotasRoute: AppNotasRoute,
@@ -661,3 +640,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
