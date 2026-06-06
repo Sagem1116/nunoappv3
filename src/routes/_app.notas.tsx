@@ -196,7 +196,6 @@ function NotesPage() {
               <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                 <Download className="h-3.5 w-3.5" />
               </button>
-              </button>
               <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
                 <Pencil className="h-3.5 w-3.5" />
               </button>
