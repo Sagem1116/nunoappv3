@@ -27,7 +27,6 @@ export type FolderRow = {
   updated_at: string;
 };
 
-// Reuses the existing user-files bucket (policies already in place).
 export const BUCKET = "user-files";
 
 export function getExtension(name: string): string {
