@@ -161,6 +161,15 @@ function NotesPage() {
         autoExportLabel="Notas"
       />
 
+      <FavoritesTabs
+        tab={tab}
+        onTab={setTab}
+        allCount={notes.length}
+        favCount={notes.filter((n) => n.is_favorite).length}
+      />
+
+
+
       {loading ? (
         <div className="text-muted-foreground text-sm">A carregar...</div>
       ) : filtered.length === 0 ? (
