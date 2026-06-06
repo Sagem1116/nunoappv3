@@ -9,6 +9,7 @@ import {
   type ViewMode, type SortBy,
 } from "./_app.notas";
 import { TagInput } from "@/components/tag-input";
+import { exportTable, importTable } from "@/lib/data-io";
 
 export const Route = createFileRoute("/_app/links")({
   component: LinksPage,
