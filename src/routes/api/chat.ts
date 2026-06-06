@@ -20,16 +20,25 @@ function fmt(label: string, items: any[], render: (i: any) => string) {
 }
 
 async function buildContext(supabase: any) {
-  const [notes, links, tasks, tx, trips, files] = await Promise.all([
+  const [notes, links, tasks, tx, trips, files, folders] = await Promise.all([
     supabase.from("notes").select("title,content,tags,created_at").order("created_at", { ascending: false }).limit(40),
     supabase.from("links").select("title,url,description,tags,created_at").order("created_at", { ascending: false }).limit(40),
     supabase.from("tasks").select("title,description,priority,status,due_date,created_at").order("created_at", { ascending: false }).limit(40),
     supabase.from("transactions").select("type,amount,category,description,occurred_at").order("occurred_at", { ascending: false }).limit(40),
     supabase.from("trips").select("destination,start_date,end_date,budget,notes").order("start_date", { ascending: false }).limit(20),
-    supabase.storage.from("user-files").list("", { limit: 50, sortBy: { column: "created_at", order: "desc" } }).catch(() => ({ data: [] })),
+    supabase.from("files").select("name,mime_type,size_bytes,folder_id,updated_at,is_trashed").eq("is_trashed", false).order("updated_at", { ascending: false }).limit(60),
+    supabase.from("folders").select("id,name,parent_id,is_trashed").eq("is_trashed", false).limit(80),
   ]);
 
   const truncate = (s: string | null | undefined, n = 400) => (s ?? "").slice(0, n);
+  const folderById = new Map<string, any>(((folders.data ?? []) as any[]).map((f) => [f.id, f]));
+  const folderPath = (id: string | null): string => {
+    if (!id) return "/";
+    const parts: string[] = [];
+    let cur = folderById.get(id);
+    while (cur) { parts.unshift(cur.name); cur = cur.parent_id ? folderById.get(cur.parent_id) : null; }
+    return "/" + parts.join("/");
+  };
 
   return [
     fmt("Notas", notes.data ?? [], (n) =>
@@ -42,8 +51,9 @@ async function buildContext(supabase: any) {
       `- ${t.occurred_at?.slice(0,10)} ${t.type} ${t.amount}€ — ${t.category} ${t.description ? "— " + truncate(t.description, 100) : ""}`),
     fmt("Viagens", trips.data ?? [], (t) =>
       `- **${t.destination}** ${t.start_date ?? "?"} → ${t.end_date ?? "?"} ${t.budget ? `(${t.budget}€)` : ""} — ${truncate(t.notes, 200)}`),
-    fmt("Ficheiros", (files as any).data ?? [], (f: any) =>
-      `- ${f.name} (${f.metadata?.size ?? "?"} bytes, ${f.created_at?.slice(0,10) ?? ""})`),
+    fmt("Pastas no Drive", folders.data ?? [], (f: any) => `- ${folderPath(f.id)}`),
+    fmt("Ficheiros no Drive", files.data ?? [], (f: any) =>
+      `- **${f.name}** (${f.mime_type ?? "?"}, ${f.size_bytes ?? "?"} bytes) em ${folderPath(f.folder_id)} _(${f.updated_at?.slice(0,10) ?? ""})_`),
   ].filter(Boolean).join("");
 }
 

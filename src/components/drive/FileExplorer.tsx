@@ -1,9 +1,9 @@
-import { useMemo, useState, useRef, useCallback } from "react";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   Folder, MoreVertical, Star, Download, Trash2, Pencil, ArrowUpRight, Grid3x3, List, Search,
-  Undo2, X, Upload as UploadIcon, Tag as TagIcon,
+  Undo2, X, Upload as UploadIcon, Tag as TagIcon, CheckCircle2, Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,7 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
   const [renaming, setRenaming] = useState<{ kind: "file" | "folder"; id: string; name: string } | null>(null);
   const [tagTarget, setTagTarget] = useState<{ kind: "file" | "folder"; id: string; name: string } | null>(null);
   const [isDragging, setDragging] = useState(false);
+  const [selected, setSelected] = useState<Map<string, { kind: "file" | "folder"; id: string; storagePath?: string }>>(new Map());
   const dragCounter = useRef(0);
   const navigate = useNavigate();
   const { tagFilter, setTagFilter } = useDriveCtx();
@@ -58,6 +59,21 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
   const { data: fileTags = [] } = useFileTags();
   const { data: folderTags = [] } = useFolderTags();
   const mut = useDriveMutations();
+
+  const scopeKey = scope.kind === "folder" ? `folder:${scope.folderId ?? ""}` : scope.kind;
+  useEffect(() => { setSelected(new Map()); }, [scopeKey, tagFilter]);
+
+  const selKey = (kind: "file" | "folder", id: string) => `${kind}:${id}`;
+  const isSelected = (kind: "file" | "folder", id: string) => selected.has(selKey(kind, id));
+  const toggleSelect = (kind: "file" | "folder", id: string, storagePath?: string) => {
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const k = selKey(kind, id);
+      if (next.has(k)) next.delete(k); else next.set(k, { kind, id, storagePath });
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Map());
 
   const tagById = useMemo(() => new Map(allTags.map((t) => [t.id, t])), [allTags]);
   const tagsForFile = (id: string) => fileTags.filter((l) => l.file_id === id).map((l) => tagById.get(l.tag_id)).filter(Boolean) as typeof allTags;
@@ -196,6 +212,39 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
             <TagChip tag={activeTag} size="md" onRemove={() => setTagFilter(null)} />
           </div>
         )}
+        {selected.size > 0 && (
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2">
+            <CheckCircle2 className="size-4 text-primary" />
+            <span className="text-sm">{selected.size} selecionado{selected.size > 1 ? "s" : ""}</span>
+            <div className="ml-auto flex items-center gap-2">
+              {scope.kind === "trash" ? (
+                <>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    selected.forEach((it) => mut.restore.mutate({ kind: it.kind, id: it.id }));
+                    clearSelection();
+                  }}>
+                    <Undo2 className="size-4 mr-1" /> Restaurar
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => {
+                    if (!confirm(`Eliminar definitivamente ${selected.size} item(s)?`)) return;
+                    mut.bulkRemove.mutate(Array.from(selected.values()), { onSuccess: clearSelection });
+                  }}>
+                    <Trash2 className="size-4 mr-1" /> Eliminar
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" variant="destructive" onClick={() => {
+                  mut.bulkTrash.mutate(Array.from(selected.values()).map(({ kind, id }) => ({ kind, id })), { onSuccess: clearSelection });
+                }}>
+                  <Trash2 className="size-4 mr-1" /> Mover para reciclagem
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" onClick={clearSelection}>
+                <X className="size-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <ScrollArea className="flex-1 px-6 pb-6">
@@ -209,6 +258,8 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {visible.folders.map((f) => (
                     <FolderCard key={f.id} folder={f} starred={favFolderIds.has(f.id)} tags={tagsForFolder(f.id)}
+                      selected={isSelected("folder", f.id)}
+                      onToggleSelect={() => toggleSelect("folder", f.id)}
                       onOpen={() => scope.kind === "trash" ? null : navigate({ to: "/drive/folder/$folderId", params: { folderId: f.id } })}
                       onRename={() => setRenaming({ kind: "folder", id: f.id, name: f.name })}
                       onEditTags={() => setTagTarget({ kind: "folder", id: f.id, name: f.name })}
@@ -224,6 +275,8 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                   {visible.files.map((f) => (
                     <FileCard key={f.id} file={f} starred={favFileIds.has(f.id)} tags={tagsForFile(f.id)}
+                      selected={isSelected("file", f.id)}
+                      onToggleSelect={() => toggleSelect("file", f.id, f.storage_path)}
                       onOpen={() => scope.kind === "trash" ? null : setPreview(f)}
                       onRename={() => setRenaming({ kind: "file", id: f.id, name: f.name })}
                       onEditTags={() => setTagTarget({ kind: "file", id: f.id, name: f.name })}
@@ -239,6 +292,7 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
             folders={visible.folders} files={visible.files}
             favFileIds={favFileIds} favFolderIds={favFolderIds}
             tagsForFile={tagsForFile} tagsForFolder={tagsForFolder}
+            isSelected={isSelected} toggleSelect={toggleSelect}
             onEditTags={(kind: "file" | "folder", id: string, name: string) => setTagTarget({ kind, id, name })}
             onClickTag={(id: string) => setTagFilter(id)}
             trashed={scope.kind === "trash"}
@@ -287,11 +341,32 @@ function EmptyState({ scope, tagFilter }: { scope: Scope; tagFilter?: boolean })
   );
 }
 
-function FolderCard({ folder, starred, tags, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
+function SelectCheck({ selected, onToggle }: { selected: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      className={cn(
+        "absolute top-2 left-2 z-10 rounded-full bg-background/90 backdrop-blur-sm transition",
+        selected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+      )}
+      aria-label={selected ? "Desmarcar" : "Selecionar"}
+    >
+      {selected
+        ? <CheckCircle2 className="size-5 text-primary fill-primary/20" />
+        : <Circle className="size-5 text-muted-foreground hover:text-foreground" />}
+    </button>
+  );
+}
+
+function FolderCard({ folder, starred, tags, selected, onToggleSelect, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div onDoubleClick={onOpen} className="group relative rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer p-3">
+        <div onDoubleClick={onOpen} className={cn(
+          "group relative rounded-xl border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer p-3",
+          selected ? "border-primary ring-2 ring-primary/30" : "border-border",
+        )}>
+          <SelectCheck selected={!!selected} onToggle={onToggleSelect} />
           <div className="flex items-center justify-between mb-2">
             <Folder className="size-5 text-primary fill-primary/20" />
             <ItemMenu>
@@ -344,11 +419,15 @@ function FolderCard({ folder, starred, tags, onOpen, onRename, onEditTags, onCli
   );
 }
 
-function FileCard({ file, starred, tags, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
+function FileCard({ file, starred, tags, selected, onToggleSelect, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div onDoubleClick={onOpen} className="group relative rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer overflow-hidden">
+        <div onDoubleClick={onOpen} className={cn(
+          "group relative rounded-xl border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer overflow-hidden",
+          selected ? "border-primary ring-2 ring-primary/30" : "border-border",
+        )}>
+          <SelectCheck selected={!!selected} onToggle={onToggleSelect} />
           <div className="aspect-[4/3] bg-gradient-to-br from-accent/30 to-card flex items-center justify-center">
             <FileIcon mime={file.mime_type} ext={file.extension} className="size-12" />
           </div>
@@ -424,17 +503,24 @@ function ItemMenu({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ListView({ folders, files, favFileIds, favFolderIds, tagsForFile, tagsForFolder, onEditTags, onClickTag, trashed, onOpenFile, onOpenFolder, onRename, mut }: any) {
+function ListView({ folders, files, favFileIds, favFolderIds, tagsForFile, tagsForFolder, isSelected, toggleSelect, onEditTags, onClickTag, trashed, onOpenFile, onOpenFolder, onRename, mut }: any) {
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card">
-      <div className="grid grid-cols-[1fr_140px_120px_60px] gap-4 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground border-b border-border bg-muted/30">
-        <div>Nome</div><div>Modificado</div><div>Tamanho</div><div></div>
+      <div className="grid grid-cols-[32px_1fr_140px_120px_60px] gap-4 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground border-b border-border bg-muted/30">
+        <div></div><div>Nome</div><div>Modificado</div><div>Tamanho</div><div></div>
       </div>
       {folders.map((f: FolderRow) => {
         const starred = favFolderIds.has(f.id);
         const tags = tagsForFolder?.(f.id) ?? [];
+        const sel = isSelected?.("folder", f.id);
         return (
-          <div key={f.id} onDoubleClick={() => onOpenFolder(f)} className="grid grid-cols-[1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition">
+          <div key={f.id} onDoubleClick={() => onOpenFolder(f)} className={cn(
+            "grid grid-cols-[32px_1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition",
+            sel && "bg-primary/10",
+          )}>
+            <button onClick={(e) => { e.stopPropagation(); toggleSelect?.("folder", f.id); }} className="grid place-items-center">
+              {sel ? <CheckCircle2 className="size-4 text-primary fill-primary/20" /> : <Circle className="size-4 text-muted-foreground" />}
+            </button>
             <div className="flex items-center gap-3 min-w-0">
               <Folder className="size-4 text-primary fill-primary/20 shrink-0" />
               <span className="truncate text-sm">{f.name}</span>
@@ -466,8 +552,15 @@ function ListView({ folders, files, favFileIds, favFolderIds, tagsForFile, tagsF
       {files.map((f: FileRow) => {
         const starred = favFileIds.has(f.id);
         const tags = tagsForFile?.(f.id) ?? [];
+        const sel = isSelected?.("file", f.id);
         return (
-          <div key={f.id} onDoubleClick={() => onOpenFile(f)} className="grid grid-cols-[1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition">
+          <div key={f.id} onDoubleClick={() => onOpenFile(f)} className={cn(
+            "grid grid-cols-[32px_1fr_140px_120px_60px] gap-4 px-4 py-2.5 items-center border-b border-border/50 hover:bg-accent/40 cursor-pointer transition",
+            sel && "bg-primary/10",
+          )}>
+            <button onClick={(e) => { e.stopPropagation(); toggleSelect?.("file", f.id, f.storage_path); }} className="grid place-items-center">
+              {sel ? <CheckCircle2 className="size-4 text-primary fill-primary/20" /> : <Circle className="size-4 text-muted-foreground" />}
+            </button>
             <div className="flex items-center gap-3 min-w-0">
               <FileIcon mime={f.mime_type} ext={f.extension} className="size-4 shrink-0" />
               <span className="truncate text-sm">{f.name}</span>

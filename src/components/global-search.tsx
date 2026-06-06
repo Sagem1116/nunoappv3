@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 
 type Hit = {
   id: string;
-  kind: "nota" | "link" | "tarefa" | "viagem" | "transacao" | "ficheiro";
+  kind: "nota" | "link" | "tarefa" | "viagem" | "transacao" | "ficheiro" | "pasta";
   title: string;
   subtitle?: string;
   to: string;
@@ -23,6 +23,7 @@ const KIND_META: Record<Hit["kind"], { label: string; icon: typeof StickyNote; r
   viagem: { label: "Viagem", icon: Plane, route: "/viagens" },
   transacao: { label: "Finanças", icon: Wallet, route: "/financas" },
   ficheiro: { label: "Ficheiro", icon: FileText, route: "/drive" },
+  pasta: { label: "Pasta", icon: FileText, route: "/drive" },
 };
 
 export function GlobalSearch() {
@@ -59,13 +60,14 @@ export function GlobalSearch() {
     const handle = setTimeout(async () => {
       const like = `%${term}%`;
       const sb: any = supabase;
-      const [notes, links, tasks, trips, tx, fmeta] = await Promise.all([
+      const [notes, links, tasks, trips, tx, driveFiles, driveFolders] = await Promise.all([
         sb.from("notes").select("id,title,content").or(`title.ilike.${like},content.ilike.${like}`).limit(6),
         sb.from("links").select("id,title,url,description").or(`title.ilike.${like},url.ilike.${like},description.ilike.${like}`).limit(6),
         sb.from("tasks").select("id,title,description").or(`title.ilike.${like},description.ilike.${like}`).limit(6),
         sb.from("trips").select("id,destination,notes").or(`destination.ilike.${like},notes.ilike.${like}`).limit(6),
         sb.from("transactions").select("id,description,category,amount").or(`description.ilike.${like},category.ilike.${like}`).limit(6),
-        sb.from("file_metadata").select("path,original_name,folder").or(`original_name.ilike.${like},folder.ilike.${like}`).limit(6),
+        sb.from("files").select("id,name,folder_id,mime_type,is_trashed").ilike("name", like).eq("is_trashed", false).limit(6),
+        sb.from("folders").select("id,name,is_trashed").ilike("name", like).eq("is_trashed", false).limit(6),
       ]);
       const out: Hit[] = [];
       (notes.data ?? []).forEach((r: any) => out.push({
@@ -86,9 +88,14 @@ export function GlobalSearch() {
         subtitle: r.amount != null ? `${Number(r.amount).toFixed(2)} €` : undefined,
         to: "/financas",
       }));
-      (fmeta.data ?? []).forEach((r: any) => out.push({
-        id: `f-${r.path}`, kind: "ficheiro", title: r.original_name || r.path,
-        subtitle: r.folder || "", to: "/drive",
+      (driveFolders.data ?? []).forEach((r: any) => out.push({
+        id: `df-${r.id}`, kind: "pasta", title: r.name, subtitle: "Pasta",
+        to: `/drive/folder/${r.id}`,
+      }));
+      (driveFiles.data ?? []).forEach((r: any) => out.push({
+        id: `f-${r.id}`, kind: "ficheiro", title: r.name,
+        subtitle: r.mime_type || "",
+        to: r.folder_id ? `/drive/folder/${r.folder_id}` : "/drive",
       }));
       setHits(out);
       setLoading(false);
