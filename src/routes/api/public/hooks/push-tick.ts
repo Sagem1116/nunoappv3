@@ -1,22 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getMessaging, type Message } from "firebase-admin/messaging";
+import { sendFcm } from "@/lib/fcm.server";
 
-// Server route: pg_cron pings this every minute. Replicates the local
-// notification-scheduler logic for all users with FCM tokens registered.
-
-function getAdmin() {
-  if (!getApps().length) {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON!;
-    const svc = JSON.parse(raw);
-    if (typeof svc.private_key === "string") {
-      svc.private_key = svc.private_key.replace(/\\n/g, "\n");
-    }
-    initializeApp({ credential: cert(svc) });
-  }
-  return getMessaging();
-}
 
 function supa() {
   return createClient(
