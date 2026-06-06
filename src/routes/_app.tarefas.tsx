@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, X, Trash2, Pencil, CheckSquare, Calendar as CalIcon,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Download, Upload,
 } from "lucide-react";
 import {
   format, startOfWeek, endOfWeek, addDays, isSameDay, parseISO,
