@@ -425,21 +425,49 @@ export function Toolbar({
         </button>
       </div>
       {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 items-center">
-          <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-          <button
-            onClick={() => onTag(null)}
-            className={chipCls(activeTag === null)}
-          >
-            Todas
-          </button>
-          {tags.map((t) => (
-            <button key={t} onClick={() => onTag(t === activeTag ? null : t)} className={chipCls(activeTag === t)}>
-              {t}
-            </button>
-          ))}
-        </div>
+        <TagFilter tags={tags} activeTag={activeTag} onTag={onTag} />
       )}
+    </div>
+  );
+}
+
+function TagFilter({ tags, activeTag, onTag }: { tags: string[]; activeTag: string | null; onTag: (t: string | null) => void }) {
+  const [q, setQ] = useState("");
+  const filtered = q.trim()
+    ? tags.filter((t) => t.toLowerCase().includes(q.trim().toLowerCase()))
+    : tags;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Pesquisar tags..."
+            className="w-full pl-7 pr-2 py-1 rounded-md bg-input border border-border text-xs focus:border-primary focus:outline-none"
+          />
+        </div>
+        {activeTag && (
+          <button onClick={() => onTag(null)} className="text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary">
+            Limpar
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1.5 items-center">
+        <button onClick={() => onTag(null)} className={chipCls(activeTag === null)}>
+          Todas
+        </button>
+        {filtered.map((t) => (
+          <button key={t} onClick={() => onTag(t === activeTag ? null : t)} className={chipCls(activeTag === t)}>
+            {t}
+          </button>
+        ))}
+        {filtered.length === 0 && (
+          <span className="text-[11px] text-muted-foreground">Sem tags para "{q}"</span>
+        )}
+      </div>
     </div>
   );
 }
