@@ -91,7 +91,6 @@ async function sendToUser(
 }
 
 async function processUser(
-  admin: ReturnType<typeof getAdmin>,
   client: ReturnType<typeof supa>,
   pref: Pref,
   tokens: string[],
