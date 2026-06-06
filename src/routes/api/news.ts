@@ -17,12 +17,19 @@ export const Route = createFileRoute("/api/news")({
           return new Response("Query de pesquisa em falta", { status: 400 });
         }
 
+        // Default: only return news from the last 7 days, sorted by most recent
+        const daysParam = Number(url.searchParams.get("days") ?? "7");
+        const fromDate = new Date(Date.now() - daysParam * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 10);
+
         const params = new URLSearchParams({
           apiKey: NEWS_API_KEY,
           q: query,
           language: "pt",
           sortBy: "publishedAt",
           pageSize,
+          from: fromDate,
         });
 
         const headers: Record<string, string> = {
