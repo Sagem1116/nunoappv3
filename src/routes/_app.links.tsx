@@ -215,6 +215,9 @@ function LinksPage() {
                 <a href={l.url} target="_blank" rel="noopener noreferrer" className="font-medium text-sm truncate block hover:text-primary">{l.title}</a>
                 <div className="text-xs text-muted-foreground truncate">{l.description || hostname(l.url)}</div>
               </div>
+              <button onClick={() => toggleFavorite(l)} className="p-1.5 rounded hover:bg-accent" title={l.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                <Star className={`h-3.5 w-3.5 ${l.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+              </button>
               <button onClick={() => exportLink(l)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar este link">
                 <Download className="h-3.5 w-3.5" />
               </button>
