@@ -215,6 +215,9 @@ function NotesPage() {
                   <h3 className="font-semibold leading-tight hover:text-primary transition-colors">{n.title}</h3>
                 </button>
                 <div className="flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
+                  <button onClick={() => toggleFavorite(n)} className="p-1.5 rounded hover:bg-accent" title={n.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                    <Star className={`h-3.5 w-3.5 ${n.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                  </button>
                   <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                     <Download className="h-3.5 w-3.5" />
                   </button>
