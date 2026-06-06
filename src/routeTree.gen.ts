@@ -32,6 +32,7 @@ import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
 import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
 import { Route as AppDriveTrashRouteImport } from './routes/_app.drive.trash'
+import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
 import { Route as AppDriveStarredRouteImport } from './routes/_app.drive.starred'
 import { Route as AppDriveRecentRouteImport } from './routes/_app.drive.recent'
 import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
@@ -151,6 +152,11 @@ const AppDriveTrashRoute = AppDriveTrashRouteImport.update({
   path: '/trash',
   getParentRoute: () => AppDriveRoute,
 } as any)
+const AppDriveTagsRoute = AppDriveTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => AppDriveRoute,
+} as any)
 const AppDriveStarredRoute = AppDriveStarredRouteImport.update({
   id: '/starred',
   path: '/starred',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
+  '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/ai/': typeof AppAiIndexRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
+  '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/ai': typeof AppAiIndexRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/drive/recent': typeof AppDriveRecentRoute
   '/_app/drive/starred': typeof AppDriveStarredRoute
+  '/_app/drive/tags': typeof AppDriveTagsRoute
   '/_app/drive/trash': typeof AppDriveTrashRoute
   '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
   '/_app/ai/': typeof AppAiIndexRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
+    | '/drive/tags'
     | '/drive/trash'
     | '/viagens/$tripId'
     | '/ai/'
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
+    | '/drive/tags'
     | '/drive/trash'
     | '/viagens/$tripId'
     | '/ai'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/_app/ai/$threadId'
     | '/_app/drive/recent'
     | '/_app/drive/starred'
+    | '/_app/drive/tags'
     | '/_app/drive/trash'
     | '/_app/viagens/$tripId'
     | '/_app/ai/'
@@ -510,6 +522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDriveTrashRouteImport
       parentRoute: typeof AppDriveRoute
     }
+    '/_app/drive/tags': {
+      id: '/_app/drive/tags'
+      path: '/tags'
+      fullPath: '/drive/tags'
+      preLoaderRoute: typeof AppDriveTagsRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
     '/_app/drive/starred': {
       id: '/_app/drive/starred'
       path: '/starred'
@@ -556,6 +575,7 @@ const AppAiRouteWithChildren = AppAiRoute._addFileChildren(AppAiRouteChildren)
 interface AppDriveRouteChildren {
   AppDriveRecentRoute: typeof AppDriveRecentRoute
   AppDriveStarredRoute: typeof AppDriveStarredRoute
+  AppDriveTagsRoute: typeof AppDriveTagsRoute
   AppDriveTrashRoute: typeof AppDriveTrashRoute
   AppDriveIndexRoute: typeof AppDriveIndexRoute
   AppDriveFolderFolderIdRoute: typeof AppDriveFolderFolderIdRoute
@@ -564,6 +584,7 @@ interface AppDriveRouteChildren {
 const AppDriveRouteChildren: AppDriveRouteChildren = {
   AppDriveRecentRoute: AppDriveRecentRoute,
   AppDriveStarredRoute: AppDriveStarredRoute,
+  AppDriveTagsRoute: AppDriveTagsRoute,
   AppDriveTrashRoute: AppDriveTrashRoute,
   AppDriveIndexRoute: AppDriveIndexRoute,
   AppDriveFolderFolderIdRoute: AppDriveFolderFolderIdRoute,
