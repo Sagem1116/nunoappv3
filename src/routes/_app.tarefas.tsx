@@ -130,7 +130,7 @@ function TasksPage() {
 
   const handleSave = async (data: {
     title: string; description: string; priority: Priority; due_date: string | null;
-    start_time: string | null; end_time: string | null;
+    start_time: string | null; end_time: string | null; notify_lead_minutes: number | null;
   }) => {
     if (!user) {
       setMessage("Precisas de iniciar sessão para guardar tarefas.");
