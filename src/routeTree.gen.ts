@@ -23,6 +23,7 @@ import { Route as AppNotasRouteImport } from './routes/_app.notas'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
 import { Route as AppFicheirosRouteImport } from './routes/_app.ficheiros'
+import { Route as AppDriveRouteImport } from './routes/_app.drive'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
 import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index'
@@ -100,6 +101,11 @@ const AppFicheirosRoute = AppFicheirosRouteImport.update({
   path: '/ficheiros',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDriveRoute = AppDriveRouteImport.update({
+  id: '/drive',
+  path: '/drive',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/ai': typeof AppAiRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
+  '/drive': typeof AppDriveRoute
   '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AppDashboardRoute
+  '/drive': typeof AppDriveRoute
   '/ficheiros': typeof AppFicheirosRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_app/ai': typeof AppAiRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/drive': typeof AppDriveRoute
   '/_app/ficheiros': typeof AppFicheirosRoute
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/ai'
     | '/dashboard'
+    | '/drive'
     | '/ficheiros'
     | '/financas'
     | '/links'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/drive'
     | '/ficheiros'
     | '/financas'
     | '/links'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_app/ai'
     | '/_app/dashboard'
+    | '/_app/drive'
     | '/_app/ficheiros'
     | '/_app/financas'
     | '/_app/links'
@@ -377,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFicheirosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/drive': {
+      id: '/_app/drive'
+      path: '/drive'
+      fullPath: '/drive'
+      preLoaderRoute: typeof AppDriveRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -470,6 +489,7 @@ const AppViagensRouteWithChildren = AppViagensRoute._addFileChildren(
 interface AppRouteChildren {
   AppAiRoute: typeof AppAiRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDriveRoute: typeof AppDriveRoute
   AppFicheirosRoute: typeof AppFicheirosRoute
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
@@ -483,6 +503,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
+  AppDriveRoute: AppDriveRoute,
   AppFicheirosRoute: AppFicheirosRoute,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
@@ -506,3 +527,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
