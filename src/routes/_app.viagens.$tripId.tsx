@@ -639,34 +639,59 @@ function TripDetailPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Documentos</h3>
-                <p className="text-xs text-muted-foreground">Anexe ficheiros existentes ao itinerário.</p>
+                <p className="text-xs text-muted-foreground">Carregue ficheiros para a viagem ou anexe ficheiros existentes ao itinerário.</p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <select value={selectedAttachmentItemId ?? ""} onChange={(e) => setSelectedAttachmentItemId(e.target.value || null)} className={inputCls}>
-                  <option value="">Selecione item do itinerário</option>
+                  <option value="">(Opcional) Ligar a item do itinerário</option>
                   {planItems.map((item) => (
                     <option key={item.id} value={item.id}>{item.title || `${item.item_type} ${item.id.slice(0, 6)}`}</option>
                   ))}
                 </select>
-                <select value={fileSelection} onChange={(e) => setFileSelection(e.target.value)} className={inputCls}>
-                  <option value="">Selecione um ficheiro</option>
-                  {files.map((file) => (
-                    <option key={file.id} value={file.id}>{file.original_name || file.path}</option>
-                  ))}
-                </select>
-                <button onClick={attachFile} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:shadow-glow">Adicionar</button>
+                <div className="flex gap-2">
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => { void uploadDocuments(e.target.files); e.currentTarget.value = ""; }}
+                  />
+                  <button
+                    onClick={() => docInputRef.current?.click()}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-primary-glow px-3 py-2 text-sm text-primary-foreground hover:shadow-glow"
+                  >
+                    Carregar ficheiro(s)
+                  </button>
+                </div>
               </div>
             </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <select value={fileSelection} onChange={(e) => setFileSelection(e.target.value)} className={inputCls + " flex-1"}>
+                <option value="">Anexar ficheiro existente…</option>
+                {files.map((file) => (
+                  <option key={file.id} value={file.id}>{file.original_name || file.path}</option>
+                ))}
+              </select>
+              <button onClick={attachFile} disabled={!fileSelection || !selectedAttachmentItemId}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-input border border-border px-3 py-2 text-sm hover:border-primary/50 disabled:opacity-50">
+                Anexar ao item
+              </button>
+            </div>
+
             <div className="space-y-3">
               {attachments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum documento anexado ainda.</p>
               ) : attachments.map((attachment) => (
                 <div key={attachment.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 bg-background/80">
                   <div className="min-w-0">
-                    <p className="font-medium text-sm">{attachment.file_metadata?.original_name || "Ficheiro ligado"}</p>
+                    <p className="font-medium text-sm truncate">{attachment.file_metadata?.original_name || "Ficheiro ligado"}</p>
                     <p className="text-[11px] text-muted-foreground truncate">{attachment.file_metadata?.path}</p>
                   </div>
-                  <a href={`/storage/v1/object/public/${attachment.file_metadata?.path}`} target="_blank" rel="noreferrer" className="text-primary text-xs">Abrir</a>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => downloadAttachment(attachment)} className="text-primary text-xs hover:underline">Download</button>
+                    <button onClick={() => removeAttachment(attachment)} className="text-destructive text-xs hover:underline">Remover</button>
+                  </div>
                 </div>
               ))}
             </div>
