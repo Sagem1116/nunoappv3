@@ -19,8 +19,8 @@ export const Route = createFileRoute("/_app/dashboard")({
 interface Task { id: string; title: string; status: "pending" | "done"; priority: "low"|"medium"|"high"; due_date: string | null; }
 interface Trip { id: string; name: string; destination: string; start_date: string | null; end_date: string | null; budget: number | null; }
 interface Tx { id: string; amount: number; type: "income" | "expense"; category: string; description: string; occurred_at: string; }
-interface Note { id: string; title: string; created_at: string; }
-interface LinkRow { id: string; title: string; url: string; created_at: string; }
+interface Note { id: string; title: string; content: string; created_at: string; is_favorite: boolean; }
+interface LinkRow { id: string; title: string; url: string; created_at: string; is_favorite: boolean; }
 interface Reservation { id: string; title: string; reservation_type: string; status: string; extracted_data: any; created_at: string; }
 
 const fmtEur = (v: number) =>
