@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Field, inputCls } from "@/routes/_app.notas";
 import { exportTable, importTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 
 export const Route = createFileRoute("/_app/financas")({
   component: FinancasPage,
