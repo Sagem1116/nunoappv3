@@ -193,6 +193,15 @@ function LinksPage() {
         autoExportLabel="Links"
       />
 
+      <FavoritesTabs
+        tab={tab}
+        onTab={setTab}
+        allCount={links.length}
+        favCount={links.filter((l) => l.is_favorite).length}
+      />
+
+
+
       {loading ? (
         <div className="text-muted-foreground text-sm">A carregar...</div>
       ) : filtered.length === 0 ? (
