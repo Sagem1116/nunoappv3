@@ -62,6 +62,7 @@ function NotesPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     const list = notes.filter((n) => {
+      if (tab === "favorites" && !n.is_favorite) return false;
       if (activeTag && !n.tags.includes(activeTag)) return false;
       if (!q) return true;
       return (
@@ -71,9 +72,9 @@ function NotesPage() {
       );
     });
     return sortItems(list, sortBy);
-  }, [notes, search, activeTag, sortBy]);
+  }, [notes, search, activeTag, sortBy, tab]);
 
-  useEffect(() => { setPage(1); }, [search, activeTag, sortBy]);
+  useEffect(() => { setPage(1); }, [search, activeTag, sortBy, tab]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
