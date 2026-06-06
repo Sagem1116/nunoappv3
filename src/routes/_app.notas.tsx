@@ -190,8 +190,12 @@ function NotesPage() {
               <span className="text-[10px] text-muted-foreground/70 uppercase shrink-0">
                 {new Date(n.created_at).toLocaleDateString("pt-PT")}
               </span>
+              <button onClick={() => toggleFavorite(n)} className="p-1.5 rounded hover:bg-accent" title={n.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                <Star className={`h-3.5 w-3.5 ${n.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+              </button>
               <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
                 <Download className="h-3.5 w-3.5" />
+              </button>
               </button>
               <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
                 <Pencil className="h-3.5 w-3.5" />
