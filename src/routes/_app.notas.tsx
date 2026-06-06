@@ -145,6 +145,8 @@ function NotesPage() {
         onSortBy={setSortBy}
         onManageTags={() => setTagManagerOpen(true)}
         onExport={exportAll}
+        onExportJson={() => exportTable("notes")}
+        onImportJson={async () => { if (user) { await importTable("notes", user.id); await load(); } }}
       />
 
       {loading ? (
