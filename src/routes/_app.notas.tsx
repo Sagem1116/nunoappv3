@@ -699,3 +699,30 @@ export function TagManagerDialog({ table, allTags, counts, onClose, onChanged }:
     </div>
   );
 }
+
+export function FavoritesTabs({
+  tab, onTab, allCount, favCount,
+}: {
+  tab: "all" | "favorites";
+  onTab: (t: "all" | "favorites") => void;
+  allCount: number;
+  favCount: number;
+}) {
+  const btn = (active: boolean) =>
+    [
+      "px-4 py-2 text-sm rounded-lg transition-all inline-flex items-center gap-2",
+      active
+        ? "bg-primary text-primary-foreground shadow-glow"
+        : "bg-input border border-border text-muted-foreground hover:text-foreground hover:border-primary/50",
+    ].join(" ");
+  return (
+    <div className="flex items-center gap-2">
+      <button onClick={() => onTab("all")} className={btn(tab === "all")}>
+        Todos <span className="text-[10px] opacity-70">({allCount})</span>
+      </button>
+      <button onClick={() => onTab("favorites")} className={btn(tab === "favorites")}>
+        ★ Favoritos <span className="text-[10px] opacity-70">({favCount})</span>
+      </button>
+    </div>
+  );
+}
