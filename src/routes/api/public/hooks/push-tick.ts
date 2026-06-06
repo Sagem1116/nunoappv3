@@ -116,7 +116,7 @@ async function processUser(
     for (const t of (due ?? []) as Task[]) {
       if (pref.priority_high_only && t.priority !== "high") continue;
       const key = `task:${t.id}:${pref.tasks_window_hours}`;
-      await sendToUser(admin, client, tokens, pref.user_id,
+      await sendToUser(client, tokens, pref.user_id,
         { title: "Tarefa com prazo a chegar", body: `${t.title} — ${t.due_date}`, url: "/tarefas", tag: key }, key);
     }
   }
@@ -142,13 +142,13 @@ async function processUser(
           const preMs = startMs - lead * 60 * 1000;
           const preKey = `task-pre:${t.id}:${lead}`;
           if (now >= preMs && now < startMs) {
-            await sendToUser(admin, client, tokens, pref.user_id,
+            await sendToUser(client, tokens, pref.user_id,
               { title: `Daqui a ${lead} min: ${t.title}`, body: `Começa às ${t.start_time.slice(0,5)}`, url: "/tarefas", tag: preKey }, preKey);
           }
         }
         const startKey = `task-start:${t.id}`;
         if (now >= startMs && now < startMs + TOL) {
-          await sendToUser(admin, client, tokens, pref.user_id,
+          await sendToUser(client, tokens, pref.user_id,
             { title: `A começar: ${t.title}`, body: `Hora de início ${t.start_time.slice(0,5)}`, url: "/tarefas", tag: startKey }, startKey);
         }
       }
@@ -156,7 +156,7 @@ async function processUser(
         const endMs = combine(t.due_date, t.end_time);
         const endKey = `task-end:${t.id}`;
         if (now >= endMs && now < endMs + TOL) {
-          await sendToUser(admin, client, tokens, pref.user_id,
+          await sendToUser(client, tokens, pref.user_id,
             { title: `A terminar: ${t.title}`, body: `Hora de fim ${t.end_time.slice(0,5)}`, url: "/tarefas", tag: endKey }, endKey);
         }
       }
@@ -178,7 +178,7 @@ async function processUser(
       ]);
       const parts = [`${tc ?? 0} tarefa(s) hoje`];
       if ((trc ?? 0) > 0) parts.push(`${trc} viagem(ns) próximas`);
-      await sendToUser(admin, client, tokens, pref.user_id,
+      await sendToUser(client, tokens, pref.user_id,
         { title: "Bom dia! O teu resumo de hoje", body: parts.join(" · "), url: "/dashboard", tag: key }, key);
     }
   }
