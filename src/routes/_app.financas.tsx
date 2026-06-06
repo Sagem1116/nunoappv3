@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Trash2, Pencil, X, Wallet, TrendingUp, TrendingDown, Search,
+  Download, Upload,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -10,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Field, inputCls } from "@/routes/_app.notas";
+import { exportTable, importTable } from "@/lib/data-io";
 
 export const Route = createFileRoute("/_app/financas")({
   component: FinancasPage,
