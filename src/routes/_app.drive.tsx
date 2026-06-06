@@ -73,7 +73,7 @@ function DriveLayout() {
 
           <nav className="flex items-center gap-1 overflow-x-auto">
             {tabs.map((t) => {
-              const active = t.match ? t.match(pathname) : pathname === t.url;
+              const active = t.match(pathname);
               return (
                 <Link
                   key={t.url}
