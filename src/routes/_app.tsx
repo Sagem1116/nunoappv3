@@ -23,6 +23,14 @@ function AppLayout() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (session) {
+      void runWeeklyAutoExports();
+      const t = setInterval(() => { void runWeeklyAutoExports(); }, 60 * 60 * 1000);
+      return () => clearInterval(t);
+    }
+  }, [session]);
+
   if (loading || !session) {
     return (
       <div className="min-h-screen grid place-items-center">
