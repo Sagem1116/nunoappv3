@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   StickyNote, Link2, CheckSquare, Wallet, Plane, Ticket,
-  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight, Search, Download,
+  TrendingUp, TrendingDown, AlertTriangle, CalendarDays, ArrowRight, Search, Download, RefreshCw,
 } from "lucide-react";
 import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -64,6 +64,8 @@ function Dashboard() {
   const [newsResults, setNewsResults] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [newsError, setNewsError] = useState<string | null>(null);
+  const [newsDays, setNewsDays] = useState<number>(7);
+  const [newsLastUpdated, setNewsLastUpdated] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -152,27 +154,38 @@ function Dashboard() {
     await supabase.from("tasks").update({ status: next }).eq("id", t.id);
   };
 
-  const fetchNews = async (event?: FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
+  const fetchNews = async (eventOrOpts?: FormEvent<HTMLFormElement> | { days?: number; silent?: boolean }) => {
+    let daysOverride: number | undefined;
+    let silent = false;
+    if (eventOrOpts && "preventDefault" in eventOrOpts) {
+      eventOrOpts.preventDefault();
+    } else if (eventOrOpts) {
+      daysOverride = eventOrOpts.days;
+      silent = !!eventOrOpts.silent;
+    }
     const query = newsQuery.trim();
     if (!query) {
-      setNewsError("Insere palavras-chave para pesquisar.");
-      setNewsResults([]);
+      if (!silent) {
+        setNewsError("Insere palavras-chave para pesquisar.");
+        setNewsResults([]);
+      }
       return;
     }
+    const days = daysOverride ?? newsDays;
 
     setNewsLoading(true);
     setNewsError(null);
-    setNewsResults([]);
+    if (!silent) setNewsResults([]);
 
     try {
-      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5&days=7&_=${Date.now()}`, { cache: "no-store" });
+      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5&days=${days}&_=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) {
         const text = await response.text();
         throw new Error(text || response.statusText);
       }
       const data = await response.json();
       setNewsResults(data.articles ?? []);
+      setNewsLastUpdated(new Date());
       if (!data.articles?.length) {
         setNewsError("Nenhuma notícia encontrada para estes temas.");
       }
@@ -182,6 +195,29 @@ function Dashboard() {
       setNewsLoading(false);
     }
   };
+
+  // Auto-refresh news daily (and on day change while tab open)
+  useEffect(() => {
+    if (!newsQuery.trim()) return;
+    const lastKey = `news:lastAutoRefresh:${newsQuery.trim()}:${newsDays}`;
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    const last = typeof window !== "undefined" ? localStorage.getItem(lastKey) : null;
+    if (last !== todayStr) {
+      fetchNews({ silent: true });
+      if (typeof window !== "undefined") localStorage.setItem(lastKey, todayStr);
+    }
+    const interval = setInterval(() => {
+      const nowStr = format(new Date(), "yyyy-MM-dd");
+      const stored = localStorage.getItem(lastKey);
+      if (stored !== nowStr) {
+        fetchNews({ silent: true });
+        localStorage.setItem(lastKey, nowStr);
+      }
+    }, 60 * 60 * 1000); // hourly check
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newsQuery, newsDays]);
+
 
   if (loading) {
     return (
@@ -311,7 +347,7 @@ function Dashboard() {
         </Panel>
 
         <Panel title="Resumo de notícias" icon={Search} to="/dashboard" className="lg:col-span-3">
-          <form onSubmit={fetchNews} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <form onSubmit={fetchNews} className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
             <label className="grid gap-2 text-sm text-muted-foreground">
               Temas de interesse
               <input
@@ -322,26 +358,54 @@ function Dashboard() {
                 className="input-style w-full"
               />
             </label>
+            <label className="grid gap-2 text-sm text-muted-foreground">
+              Intervalo
+              <select
+                value={newsDays}
+                onChange={(e) => setNewsDays(Number(e.target.value))}
+                className="input-style"
+              >
+                <option value={1}>Últimas 24h</option>
+                <option value={3}>Últimos 3 dias</option>
+                <option value={7}>Últimos 7 dias</option>
+                <option value={14}>Últimos 14 dias</option>
+                <option value={30}>Últimos 30 dias</option>
+              </select>
+            </label>
             <button
               type="submit"
               disabled={newsLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
+              className="self-end inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:shadow-glow disabled:opacity-60"
             >
               <Search className="h-4 w-4" />
               {newsLoading ? "A pesquisar..." : "Pesquisar"}
             </button>
+            <button
+              type="button"
+              onClick={() => fetchNews()}
+              disabled={newsLoading || !newsQuery.trim()}
+              title="Atualizar agora"
+              className="self-end inline-flex items-center justify-center gap-2 rounded-full border border-border bg-input px-4 py-3 text-sm font-semibold transition hover:border-primary/60 disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${newsLoading ? "animate-spin" : ""}`} />
+              Atualizar
+            </button>
           </form>
-          {newsResults.length > 0 && (
-            <div className="mt-3 flex justify-end">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>
+              Intervalo ativo: <span className="text-foreground">últimos {newsDays} {newsDays === 1 ? "dia" : "dias"}</span>
+              {newsLastUpdated && <> · atualizado às {format(newsLastUpdated, "HH:mm")} de {format(newsLastUpdated, "d MMM", { locale: pt })}</>}
+            </span>
+            {newsResults.length > 0 && (
               <button
                 type="button"
-                onClick={() => exportData(`noticias-${newsQuery.trim() || "resultados"}`, { query: newsQuery, exported_at: new Date().toISOString(), articles: newsResults })}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+                onClick={() => exportData(`noticias-${newsQuery.trim() || "resultados"}`, { query: newsQuery, days: newsDays, exported_at: new Date().toISOString(), articles: newsResults })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-input border border-border hover:border-primary/50"
               >
                 <Download className="h-3.5 w-3.5" /> Exportar JSON
               </button>
-            </div>
-          )}
+            )}
+          </div>
           {newsError ? (
             <div className="mt-3 rounded-3xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">{newsError}</div>
           ) : null}
