@@ -51,6 +51,7 @@ function ReservasPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const extract = useServerFn(extractReservation);
 
   const load = async () => {
     if (!user) return;
