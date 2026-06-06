@@ -87,13 +87,14 @@ function processStartEnd(
 
     if (startEnabled && t.start_time) {
       const startMs = combineDateTime(t.due_date, t.start_time);
+      const effectiveLead = t.notify_lead_minutes != null ? t.notify_lead_minutes : leadMinutes;
 
       // Pré-aviso
-      if (leadMinutes > 0) {
-        const preMs = startMs - leadMinutes * 60 * 1000;
-        const preKey = `task-pre:${t.id}`;
+      if (effectiveLead > 0) {
+        const preMs = startMs - effectiveLead * 60 * 1000;
+        const preKey = `task-pre:${t.id}:${effectiveLead}`;
         if (now >= preMs && now < startMs && !hasSent(preKey)) {
-          notify(`Daqui a ${leadMinutes} min: ${t.title}`, {
+          notify(`Daqui a ${effectiveLead} min: ${t.title}`, {
             body: `Começa às ${t.start_time.slice(0, 5)}`,
             tag: preKey,
             url: "/tarefas",
