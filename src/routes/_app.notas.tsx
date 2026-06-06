@@ -3,12 +3,13 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Search, Trash2, Pencil, X, StickyNote, Tag,
   LayoutGrid, List as ListIcon, ArrowUpDown, ChevronLeft, ChevronRight, Settings2,
-  Download,
+  Download, Upload,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
+import { exportTable, importTable } from "@/lib/data-io";
 
 export const Route = createFileRoute("/_app/notas")({
   component: NotesPage,
@@ -144,6 +145,8 @@ function NotesPage() {
         onSortBy={setSortBy}
         onManageTags={() => setTagManagerOpen(true)}
         onExport={exportAll}
+        onExportJson={() => exportTable("notes")}
+        onImportJson={async () => { if (user) { await importTable("notes", user.id); await load(); } }}
       />
 
       {loading ? (
@@ -354,6 +357,7 @@ export function EmptyState({ icon: Icon, label }: { icon: typeof StickyNote; lab
 export function Toolbar({
   search, onSearch, tags, activeTag, onTag, onNew, newLabel,
   viewMode, onViewMode, sortBy, onSortBy, onManageTags, onExport,
+  onExportJson, onImportJson,
 }: {
   search: string;
   onSearch: (v: string) => void;
@@ -368,6 +372,8 @@ export function Toolbar({
   onSortBy?: (s: SortBy) => void;
   onManageTags?: () => void;
   onExport?: () => void;
+  onExportJson?: () => void;
+  onImportJson?: () => void;
 }) {
   return (
     <div className="space-y-3">
@@ -414,6 +420,18 @@ export function Toolbar({
           <button onClick={onExport}
             className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50">
             <Download className="h-3.5 w-3.5" /> Exportar .txt
+          </button>
+        )}
+        {onExportJson && (
+          <button onClick={onExportJson}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50">
+            <Download className="h-3.5 w-3.5" /> Exportar JSON
+          </button>
+        )}
+        {onImportJson && (
+          <button onClick={onImportJson}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50">
+            <Upload className="h-3.5 w-3.5" /> Importar JSON
           </button>
         )}
         <button

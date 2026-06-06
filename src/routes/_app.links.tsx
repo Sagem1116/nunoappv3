@@ -9,6 +9,7 @@ import {
   type ViewMode, type SortBy,
 } from "./_app.notas";
 import { TagInput } from "@/components/tag-input";
+import { exportTable, importTable } from "@/lib/data-io";
 
 export const Route = createFileRoute("/_app/links")({
   component: LinksPage,
@@ -176,6 +177,8 @@ function LinksPage() {
         onSortBy={setSortBy}
         onManageTags={() => setTagManagerOpen(true)}
         onExport={exportAll}
+        onExportJson={() => exportTable("links")}
+        onImportJson={async () => { if (user) { await importTable("links", user.id); await load(); } }}
       />
 
       {loading ? (
