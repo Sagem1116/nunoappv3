@@ -71,34 +71,27 @@ export function NotificationsSettings() {
             <Check className="h-3.5 w-3.5" /> Notificações ativas neste dispositivo
           </div>
 
-          <label className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
-            <div>
-              <div className="text-sm font-medium">Mestre — receber notificações</div>
-              <div className="text-xs text-muted-foreground">Desliga tudo de uma vez.</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.enabled}
-              onChange={(e) => update({ enabled: e.target.checked })}
-              className="h-4 w-4 accent-primary"
-            />
-          </label>
+          <Toggle
+            label="Mestre — receber notificações"
+            hint="Desliga tudo de uma vez."
+            checked={settings.enabled}
+            onChange={(v) => update({ enabled: v })}
+          />
 
-          <label className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
-            <div>
-              <div className="text-sm font-medium">Tarefas com prazo a chegar</div>
-              <div className="text-xs text-muted-foreground">Aviso uma vez por tarefa.</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.tasksEnabled}
-              onChange={(e) => update({ tasksEnabled: e.target.checked })}
-              className="h-4 w-4 accent-primary"
-            />
-          </label>
+          <Toggle
+            label="Só prioridade alta"
+            hint="Ignora tarefas de prioridade baixa e média."
+            checked={settings.priorityHighOnly}
+            onChange={(v) => update({ priorityHighOnly: v })}
+          />
 
-          <div className="flex items-center justify-between gap-3 pl-1">
-            <span className="text-xs text-muted-foreground">Antecedência</span>
+          <Toggle
+            label="Tarefas com prazo a chegar"
+            hint="Aviso uma vez por tarefa."
+            checked={settings.tasksEnabled}
+            onChange={(v) => update({ tasksEnabled: v })}
+          />
+          <Row label="Antecedência" disabled={!settings.tasksEnabled}>
             <select
               value={settings.tasksWindowHours}
               onChange={(e) => update({ tasksWindowHours: Number(e.target.value) })}
@@ -109,23 +102,42 @@ export function NotificationsSettings() {
               <option value={24}>1 dia antes</option>
               <option value={72}>3 dias antes</option>
             </select>
-          </div>
+          </Row>
 
-          <label className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
-            <div>
-              <div className="text-sm font-medium">Resumo diário</div>
-              <div className="text-xs text-muted-foreground">Uma notificação por dia.</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.dailyEnabled}
-              onChange={(e) => update({ dailyEnabled: e.target.checked })}
-              className="h-4 w-4 accent-primary"
-            />
-          </label>
+          <Toggle
+            label="Avisar ao começar tarefa"
+            hint="Quando bate a hora de início definida."
+            checked={settings.taskStartEnabled}
+            onChange={(v) => update({ taskStartEnabled: v })}
+          />
+          <Row label="Pré-aviso antes de começar" disabled={!settings.taskStartEnabled}>
+            <select
+              value={settings.startLeadMinutes}
+              onChange={(e) => update({ startLeadMinutes: Number(e.target.value) })}
+              className="text-xs rounded-md bg-input/60 border border-border/60 px-2 py-1"
+              disabled={!settings.taskStartEnabled}
+            >
+              <option value={0}>No momento</option>
+              <option value={5}>5 minutos antes</option>
+              <option value={10}>10 minutos antes</option>
+              <option value={15}>15 minutos antes</option>
+            </select>
+          </Row>
 
-          <div className="flex items-center justify-between gap-3 pl-1">
-            <span className="text-xs text-muted-foreground">Hora</span>
+          <Toggle
+            label="Avisar ao terminar tarefa"
+            hint="Quando bate a hora de fim definida."
+            checked={settings.taskEndEnabled}
+            onChange={(v) => update({ taskEndEnabled: v })}
+          />
+
+          <Toggle
+            label="Resumo diário"
+            hint="Uma notificação por dia."
+            checked={settings.dailyEnabled}
+            onChange={(v) => update({ dailyEnabled: v })}
+          />
+          <Row label="Hora" disabled={!settings.dailyEnabled}>
             <select
               value={settings.dailyHour}
               onChange={(e) => update({ dailyHour: Number(e.target.value) })}
@@ -136,7 +148,11 @@ export function NotificationsSettings() {
                 <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
               ))}
             </select>
-          </div>
+          </Row>
+
+          <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+            Dica: clica numa notificação para abrir as tarefas — a app oferece-te adiar 10 min.
+          </p>
 
           <button
             type="button"
@@ -154,5 +170,33 @@ export function NotificationsSettings() {
         </>
       )}
     </section>
+  );
+}
+
+function Toggle({ label, hint, checked, onChange }: {
+  label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
+      <div>
+        <div className="text-sm font-medium">{label}</div>
+        {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
+      </div>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-4 w-4 accent-primary"
+      />
+    </label>
+  );
+}
+
+function Row({ label, disabled, children }: { label: string; disabled?: boolean; children: React.ReactNode }) {
+  return (
+    <div className={["flex items-center justify-between gap-3 pl-1", disabled ? "opacity-50" : ""].join(" ")}>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      {children}
+    </div>
   );
 }
