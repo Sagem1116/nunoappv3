@@ -166,7 +166,7 @@ function Dashboard() {
     setNewsResults([]);
 
     try {
-      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5`);
+      const response = await fetch(`/api/news?q=${encodeURIComponent(query)}&pageSize=5&days=7&_=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) {
         const text = await response.text();
         throw new Error(text || response.statusText);
