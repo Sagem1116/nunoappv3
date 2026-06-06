@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { Field, inputCls, EmptyState } from "./_app.notas";
 import { exportTable, importTable } from "@/lib/data-io";
 import { AutoExportMenu } from "@/components/auto-export-menu";
+import { snooze, takePendingSnoozePrompt } from "@/lib/notifications";
 
 export const Route = createFileRoute("/_app/tarefas")({
   component: TasksPage,
@@ -29,6 +30,8 @@ interface Task {
   description: string;
   priority: Priority;
   due_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
   status: Status;
   created_at: string;
 }
@@ -76,6 +79,22 @@ function TasksPage() {
   };
   useEffect(() => { load(); }, []);
 
+  // Snooze prompt — set when the user clicks a desktop notification.
+  useEffect(() => {
+    const check = () => {
+      const p = takePendingSnoozePrompt();
+      if (!p) return;
+      if (confirm(`Adiar "${p.label}" 10 minutos?`)) {
+        snooze(p.key, 10);
+        setMessage("Notificação adiada por 10 minutos.");
+      }
+    };
+    check();
+    const onVis = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
   const filteredAll = useMemo(() => tasks.filter((t) => {
     if (filterPriority !== "all" && t.priority !== filterPriority) return false;
     if (filterStatus !== "all" && t.status !== filterStatus) return false;
@@ -110,6 +129,7 @@ function TasksPage() {
 
   const handleSave = async (data: {
     title: string; description: string; priority: Priority; due_date: string | null;
+    start_time: string | null; end_time: string | null;
   }) => {
     if (!user) {
       setMessage("Precisas de iniciar sessão para guardar tarefas.");
@@ -439,6 +459,12 @@ function TaskRow({ task, onToggle, onEdit, onDelete }: {
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <CalIcon className="h-3 w-3" />
               {format(parseISO(task.due_date), "d MMM", { locale: pt })}
+              {(task.start_time || task.end_time) && (
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  {(task.start_time ?? "").slice(0, 5) || "—"}
+                  {task.end_time ? `–${task.end_time.slice(0, 5)}` : ""}
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -468,7 +494,10 @@ function MiniTask({ task, onToggle, onEdit, onDelete }: {
       <button onClick={() => onEdit(task)} className={[
         "flex-1 text-left text-[11px] leading-tight truncate",
         done ? "line-through text-muted-foreground" : "",
-      ].join(" ")}>{task.title}</button>
+      ].join(" ")}>
+        {task.start_time && <span className="text-primary mr-1">{task.start_time.slice(0, 5)}</span>}
+        {task.title}
+      </button>
       <span className={[
         "w-1.5 h-1.5 rounded-full mt-1 shrink-0",
         task.priority === "high" ? "bg-red-500" :
@@ -519,26 +548,41 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
   initial: Task | null;
   prefillDate: string | null;
   onClose: () => void;
-  onSave: (d: { title: string; description: string; priority: Priority; due_date: string | null }) => Promise<void>;
+  onSave: (d: {
+    title: string; description: string; priority: Priority; due_date: string | null;
+    start_time: string | null; end_time: string | null;
+  }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [priority, setPriority] = useState<Priority>(initial?.priority ?? "medium");
   const [dueDate, setDueDate] = useState(initial?.due_date ?? prefillDate ?? "");
+  const [startTime, setStartTime] = useState((initial?.start_time ?? "").slice(0, 5));
+  const [endTime, setEndTime] = useState((initial?.end_time ?? "").slice(0, 5));
+  const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (startTime && endTime && endTime <= startTime) {
+      setErr("A hora de fim deve ser depois da hora de início.");
+      return;
+    }
+    setErr(null);
     setBusy(true);
     await onSave({
       title: title.trim(),
       description,
       priority,
       due_date: dueDate || null,
+      start_time: dueDate && startTime ? startTime : null,
+      end_time: dueDate && endTime ? endTime : null,
     });
     setBusy(false);
   };
+
+  const timesDisabled = !dueDate;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
@@ -565,6 +609,30 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
             <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={inputCls} />
           </Field>
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Hora de início">
+            <input
+              type="time"
+              value={startTime}
+              disabled={timesDisabled}
+              onChange={(e) => setStartTime(e.target.value)}
+              className={inputCls + (timesDisabled ? " opacity-50" : "")}
+            />
+          </Field>
+          <Field label="Hora de fim">
+            <input
+              type="time"
+              value={endTime}
+              disabled={timesDisabled}
+              onChange={(e) => setEndTime(e.target.value)}
+              className={inputCls + (timesDisabled ? " opacity-50" : "")}
+            />
+          </Field>
+        </div>
+        {timesDisabled && (
+          <p className="text-[11px] text-muted-foreground -mt-2">Define primeiro uma data limite para usar horas.</p>
+        )}
+        {err && <p className="text-xs text-destructive">{err}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">Cancelar</button>
           <button type="submit" disabled={busy || !title.trim()}

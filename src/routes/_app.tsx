@@ -37,7 +37,12 @@ function AppLayout() {
     if (!uid) return;
     void runScheduledChecks(uid);
     const t = setInterval(() => { void runScheduledChecks(uid); }, 5 * 60 * 1000);
-    return () => clearInterval(t);
+    const onVis = () => { if (document.visibilityState === "visible") void runScheduledChecks(uid); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [session?.user?.id]);
 
   if (loading || !session) {
