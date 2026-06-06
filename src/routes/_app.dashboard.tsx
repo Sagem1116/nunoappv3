@@ -76,13 +76,15 @@ function Dashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const [t, tr, tx, n, l, r] = await Promise.all([
+      const [t, tr, tx, n, l, r, fn, fl] = await Promise.all([
         supabase.from("tasks").select("id,title,status,priority,due_date").order("due_date", { ascending: true, nullsFirst: false }),
         supabase.from("trips").select("id,name,destination,start_date,end_date,budget").order("start_date", { ascending: true, nullsFirst: false }),
         supabase.from("transactions").select("id,amount,type,category,description,occurred_at").order("occurred_at", { ascending: false }),
-        supabase.from("notes").select("id,title,created_at").order("created_at", { ascending: false }).limit(5),
-        supabase.from("links").select("id,title,url,created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("notes").select("id,title,content,created_at,is_favorite").order("created_at", { ascending: false }).limit(5),
+        supabase.from("links").select("id,title,url,created_at,is_favorite").order("created_at", { ascending: false }).limit(5),
         supabase.from("reservations").select("id,title,reservation_type,status,extracted_data,created_at").order("created_at", { ascending: false }),
+        (supabase as any).from("notes").select("id,title,content,created_at,is_favorite").eq("is_favorite", true).order("created_at", { ascending: false }).limit(12),
+        (supabase as any).from("links").select("id,title,url,created_at,is_favorite").eq("is_favorite", true).order("created_at", { ascending: false }).limit(12),
       ]);
       setTasks((t.data as any) ?? []);
       setTrips((tr.data as any) ?? []);
@@ -90,8 +92,20 @@ function Dashboard() {
       setNotes((n.data as any) ?? []);
       setLinks((l.data as any) ?? []);
       setReservations((r.data as any) ?? []);
+      setFavNotes((fn.data as any) ?? []);
+      setFavLinks((fl.data as any) ?? []);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveNoteContent = async (id: string, content: string) => {
+    const { data: upd } = await (supabase as any)
+      .from("notes").update({ content }).eq("id", id).select().single();
+    if (upd) {
+      setFavNotes((prev) => prev.map((n) => (n.id === id ? (upd as Note) : n)));
+      setNotes((prev) => prev.map((n) => (n.id === id ? (upd as Note) : n)));
+      setViewingNote((v) => (v && v.id === id ? (upd as Note) : v));
     }
   };
 
