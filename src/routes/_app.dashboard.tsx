@@ -61,6 +61,9 @@ function Dashboard() {
   const [txs, setTxs] = useState<Tx[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [links, setLinks] = useState<LinkRow[]>([]);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
+  const [favNotes, setFavNotes] = useState<Note[]>([]);
+  const [favLinks, setFavLinks] = useState<LinkRow[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [newsQuery, setNewsQuery] = useState("");
   const [newsResults, setNewsResults] = useState<any[]>([]);
