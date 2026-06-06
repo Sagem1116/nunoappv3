@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { Field, inputCls, EmptyState } from "./_app.notas";
 import { exportTable, importTable } from "@/lib/data-io";
 import { AutoExportMenu } from "@/components/auto-export-menu";
+import { snooze, takePendingSnoozePrompt } from "@/lib/notifications";
 
 export const Route = createFileRoute("/_app/tarefas")({
   component: TasksPage,
