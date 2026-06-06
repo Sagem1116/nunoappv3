@@ -341,11 +341,32 @@ function EmptyState({ scope, tagFilter }: { scope: Scope; tagFilter?: boolean })
   );
 }
 
-function FolderCard({ folder, starred, tags, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
+function SelectCheck({ selected, onToggle }: { selected: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      className={cn(
+        "absolute top-2 left-2 z-10 rounded-full bg-background/90 backdrop-blur-sm transition",
+        selected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+      )}
+      aria-label={selected ? "Desmarcar" : "Selecionar"}
+    >
+      {selected
+        ? <CheckCircle2 className="size-5 text-primary fill-primary/20" />
+        : <Circle className="size-5 text-muted-foreground hover:text-foreground" />}
+    </button>
+  );
+}
+
+function FolderCard({ folder, starred, tags, selected, onToggleSelect, onOpen, onRename, onEditTags, onClickTag, mut, trashed }: any) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div onDoubleClick={onOpen} className="group relative rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer p-3">
+        <div onDoubleClick={onOpen} className={cn(
+          "group relative rounded-xl border bg-card hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition cursor-pointer p-3",
+          selected ? "border-primary ring-2 ring-primary/30" : "border-border",
+        )}>
+          <SelectCheck selected={!!selected} onToggle={onToggleSelect} />
           <div className="flex items-center justify-between mb-2">
             <Folder className="size-5 text-primary fill-primary/20" />
             <ItemMenu>
