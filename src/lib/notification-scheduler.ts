@@ -16,6 +16,7 @@ interface TaskRow {
   end_time: string | null;
   priority: "low" | "medium" | "high";
   status: string;
+  notify_lead_minutes: number | null;
 }
 
 function todayKey() {
