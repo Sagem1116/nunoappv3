@@ -551,7 +551,7 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
   onClose: () => void;
   onSave: (d: {
     title: string; description: string; priority: Priority; due_date: string | null;
-    start_time: string | null; end_time: string | null;
+    start_time: string | null; end_time: string | null; notify_lead_minutes: number | null;
   }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -560,6 +560,9 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
   const [dueDate, setDueDate] = useState(initial?.due_date ?? prefillDate ?? "");
   const [startTime, setStartTime] = useState((initial?.start_time ?? "").slice(0, 5));
   const [endTime, setEndTime] = useState((initial?.end_time ?? "").slice(0, 5));
+  const [leadMin, setLeadMin] = useState<string>(
+    initial?.notify_lead_minutes != null ? String(initial.notify_lead_minutes) : ""
+  );
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -579,6 +582,7 @@ function TaskDialog({ initial, prefillDate, onClose, onSave }: {
       due_date: dueDate || null,
       start_time: dueDate && startTime ? startTime : null,
       end_time: dueDate && endTime ? endTime : null,
+      notify_lead_minutes: leadMin === "" ? null : Number(leadMin),
     });
     setBusy(false);
   };
