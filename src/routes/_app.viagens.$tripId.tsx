@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { inputCls } from "./_app.notas";
 import { BUCKET, getSignedUrl } from "@/lib/drive";
-import { useRef } from "react";
+
 import { TripDialog, type Trip } from "./_app.viagens";
 import { TravelAssistant } from "@/components/travel-assistant";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
