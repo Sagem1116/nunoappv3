@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, BellOff, Check, Send } from "lucide-react";
+import { Bell, BellOff, Check, Send, Smartphone, Loader2 } from "lucide-react";
 import {
   DEFAULT_SETTINGS,
   getPermissionState,
@@ -10,26 +10,66 @@ import {
   type NotificationPermissionState,
   type NotificationSettings,
 } from "@/lib/notifications";
+import {
+  disableMobilePush,
+  enableMobilePush,
+  getRegisteredToken,
+  isPushSupported,
+  syncPreferencesToServer,
+} from "@/lib/push";
 
 export function NotificationsSettings() {
   const [perm, setPerm] = useState<NotificationPermissionState>("default");
   const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_SETTINGS);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushActive, setPushActive] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMsg, setPushMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setPerm(getPermissionState());
     setSettings(loadSettings());
+    (async () => {
+      const sup = await isPushSupported();
+      setPushSupported(sup);
+      if (sup) setPushActive(!!(await getRegisteredToken()));
+    })();
   }, []);
 
   const update = (patch: Partial<NotificationSettings>) => {
     const next = { ...settings, ...patch };
     setSettings(next);
     saveSettings(next);
+    // Best-effort sync to server so push-tick respects user prefs.
+    void syncPreferencesToServer(next);
   };
 
   const askPermission = async () => {
     const res = await requestPermission();
     setPerm(res);
     if (res === "granted") update({ enabled: true });
+  };
+
+  const togglePush = async () => {
+    setPushBusy(true);
+    setPushMsg(null);
+    try {
+      if (pushActive) {
+        await disableMobilePush();
+        setPushActive(false);
+        setPushMsg("Notificações no telemóvel desativadas.");
+      } else {
+        const res = await enableMobilePush();
+        if (res.ok) {
+          setPushActive(true);
+          setPushMsg("Pronto! Vais receber notificações no telemóvel.");
+        } else {
+          setPushMsg(res.reason || "Falhou.");
+        }
+      }
+    } finally {
+      setPushBusy(false);
+    }
   };
 
   const unsupported = perm === "unsupported";
