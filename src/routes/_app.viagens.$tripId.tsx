@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowLeft, Plus, X, Trash2, MapPin, Calendar as CalIcon, Wallet,
   ListChecks, Link2, Lightbulb, ExternalLink, Pencil, Map, Activity,
