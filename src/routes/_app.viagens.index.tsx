@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Plus, X, Trash2, Plane, MapPin, Calendar as CalIcon, Wallet, Globe, Image, CheckCircle2 } from "lucide-react";
+import { Plus, X, Trash2, Plane, MapPin, Calendar as CalIcon, Wallet, Globe, Image, CheckCircle2, Search, Filter } from "lucide-react";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,12 @@ function TripsIndexPage() {
   const [editing, setEditing] = useState<Trip | null>(null);
   const [tab, setTab] = useState<"upcoming" | "ongoing" | "completed">("upcoming");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [minBudget, setMinBudget] = useState("");
+  const [maxBudget, setMaxBudget] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const load = async () => {
     setLoading(true);
