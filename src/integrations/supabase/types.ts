@@ -243,6 +243,42 @@ export type Database = {
           },
         ]
       }
+      finance_categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string | null
+          id: string
+          kind: string
+          name: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          kind?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       folder_tags: {
         Row: {
           created_at: string
@@ -867,8 +903,10 @@ export type Database = {
           destination: string
           end_date: string | null
           id: string
+          is_public: boolean
           name: string
           notes: string
+          public_slug: string | null
           secondary_destinations: string[]
           start_date: string | null
           status: string
@@ -884,8 +922,10 @@ export type Database = {
           destination: string
           end_date?: string | null
           id?: string
+          is_public?: boolean
           name?: string
           notes?: string
+          public_slug?: string | null
           secondary_destinations?: string[]
           start_date?: string | null
           status?: string
@@ -901,11 +941,43 @@ export type Database = {
           destination?: string
           end_date?: string | null
           id?: string
+          is_public?: boolean
           name?: string
           notes?: string
+          public_slug?: string | null
           secondary_destinations?: string[]
           start_date?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_integrations: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json
+          provider: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          provider: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          provider?: string
+          token?: string
           updated_at?: string
           user_id?: string
         }
