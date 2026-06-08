@@ -8,7 +8,8 @@ import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } 
 import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { exportData } from "@/lib/data-io";
+import { exportData, exportTable, importTable, type Table as DataTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 import { NotificationsSettings } from "@/components/notifications-settings";
 import { NotepadViewer } from "@/components/notepad-viewer";
 
@@ -341,6 +342,10 @@ function Dashboard() {
       </div>
 
       <CollapsibleNotifications />
+
+      <BackupsPanel userId={user?.id} />
+
+
 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
