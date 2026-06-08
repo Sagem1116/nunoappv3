@@ -1,67 +1,57 @@
-# Notificações Push com Firebase Cloud Messaging
+## 1. Página "Apps" com ligação ao GitHub via token
 
-Vais receber notificações no telemóvel mesmo com a app fechada, replicando o que o scheduler local já faz (pré-aviso/início de tarefas, prazos a chegar, resumo diário).
+- Nova rota `/_app/apps` + item na sidebar (`AppSidebar`) com ícone (lucide `AppWindow` ou `Plug`).
+- Card "GitHub": input para Personal Access Token + nome do repo (`owner/repo` opcional).
+- Token guardado em nova tabela `user_integrations` (user_id, provider='github', token encriptado-at-rest via RLS própria do user, metadata jsonb). RLS: só o próprio user lê/escreve.
+- Server function `getGithubProfile` / `listGithubRepos`: lê o token do user via `requireSupabaseAuth` e chama `https://api.github.com/user` e `/user/repos`.
+- UI mostra: estado (ligado/não ligado), avatar+username do GitHub, lista dos últimos 5 repos, botão "Desligar".
+- Sem webhooks, sem push — apenas leitura inicial. Podemos estender depois.
 
-## O que precisas fazer (manual, antes de eu começar)
+## 2. Partilha pública do Travel Planner
 
-1. **Criar projeto Firebase** em https://console.firebase.google.com (gratuito).
-2. Em *Project Settings → Cloud Messaging*: gerar **VAPID key pair** (Web Push certificates).
-3. Em *Project Settings → Service Accounts*: gerar **private key** (JSON).
-4. Copiar a config web (apiKey, authDomain, projectId, messagingSenderId, appId).
-5. **Instalar a app no telemóvel** (Add to Home Screen). iOS exige 16.4+ e instalação como PWA.
+- Nova coluna em `trips`: `public_slug text unique`, `is_public boolean default false`.
+- Botão "Partilhar" na página de uma viagem → gera slug (nanoid) e mostra link `https://<app>/viagem/<slug>`.
+- Nova rota PÚBLICA `src/routes/viagem.$slug.tsx` (fora de `_app`, sem auth).
+- Loader chama server function `getPublicTrip(slug)` que usa `supabaseAdmin` (bypassa RLS) mas filtra `is_public=true` — devolve viagem + dias + itinerary items + itens (read-only).
+- UI: vista read-only com mesmo layout/visual da página interna, header com "Partilhada por…", sem botões de edição.
+- Botão para revogar partilha (limpa slug + is_public=false).
 
-Depois pedes-me os secrets — eu peço-tos via formulário seguro:
-- `FIREBASE_SERVICE_ACCOUNT_JSON` (server)
-- `VITE_FIREBASE_CONFIG` (client, JSON)
-- `VITE_FIREBASE_VAPID_KEY` (client)
+## 3. Minimizar a caixa de Notificações no Dashboard
 
-## O que eu construo
+- No componente do dashboard que mostra "Notificações", adicionar botão chevron (▼/▲) que colapsa o corpo.
+- Estado persistido em `localStorage` (`dashboard.notifications.collapsed`).
+- Quando colapsado mostra apenas o header com contador "X notificações".
 
-### 1. Cliente / PWA
-- `public/firebase-messaging-sw.js` — service worker dedicado ao FCM (não interfere com o resto, sem cache app-shell).
-- `src/lib/push.ts` — pede permissão, regista token FCM, guarda em BD.
-- Botão "Ativar notificações no telemóvel" nas *Definições de Notificações*, ao lado do toggle atual.
-- Listener `onMessage` para mostrar notificações quando a app está aberta em foreground no telemóvel.
+## 4. Gestão de categorias em Finanças
 
-### 2. Base de dados (migration)
-- Tabela `push_subscriptions` (user_id, fcm_token, platform, user_agent, last_seen).
-- Tabela `push_sent_log` (idempotência server-side, equivalente ao `markSent` do localStorage, para não duplicar push).
-- RLS: cada user só vê/gere os próprios tokens.
+- Nova tabela `finance_categories` (id, user_id, name, color, icon, kind: 'income'|'expense'|'both', created_at, updated_at). RLS por user.
+- Seed automático na primeira utilização: as 9 categorias atuais (`comida`, `transportes`, etc.) são inseridas para o user se ainda não tiver nenhuma.
+- Em `/financas`: novo botão "Categorias" → abre modal com lista + criar/editar/eliminar (não pode eliminar se houver transações a usar — mostrar erro).
+- Selects de categoria nas transações passam a ler de `finance_categories` em vez do array hard-coded.
+- Constante `CATEGORIES` removida; cores do pie chart usam `category.color` quando definido.
 
-### 3. Server route `/api/public/hooks/push-tick`
-- Corre a cada minuto (pg_cron).
-- Autenticada via `apikey` header (anon key) — bypass de /api/public/.
-- Lê tarefas pending de todos os users com tokens registados, replica a lógica do `notification-scheduler.ts`:
-  - pré-aviso (lead time por tarefa ou global)
-  - início / fim
-  - prazos a chegar (janela 1h/24h/72h)
-  - resumo diário à hora configurada
-- Respeita as `notifications:settings` por user → migro essas settings para uma coluna JSON em `profiles` ou nova tabela `notification_preferences` para o server conseguir lê-las.
-- Envia via Firebase Admin SDK (`firebase-admin`) com service account.
-- Marca enviadas em `push_sent_log` (idempotência).
-- Remove tokens inválidos (erro `messaging/registration-token-not-registered`).
+## 5. Notas — negrito e cor
 
-### 4. Cron job
-- `pg_cron` a cada minuto a chamar o endpoint acima.
+- Atualmente as notas são `textarea` simples. Mudança mínima e pragmática:
+  - Trocar por `contentEditable` ligeiro com toolbar: **B** (negrito) + dropdown de cor (6 cores predefinidas do tema).
+  - Persistir conteúdo como HTML em `notes.content` (já é text — sem migração).
+  - Sanitizar com `DOMPurify` ao renderizar (allowlist: `b,strong,span[style*=color]`).
+- Notas antigas em texto puro continuam a funcionar (renderizadas tal-qual).
 
-## Considerações
+## Detalhes técnicos
 
-- **iOS**: só funciona se a app for instalada como PWA (Add to Home Screen) em iOS 16.4+. Em Safari mobile sem instalar, não há push.
-- **Android Chrome**: funciona instalado ou não.
-- O scheduler local atual mantém-se para desktop com app aberta — não removo nada.
-- As preferências de notificação precisam de ir para a BD (hoje estão em localStorage do browser). Caso contrário o servidor não sabe quando avisar.
+- 1 migração SQL única com: `user_integrations`, `finance_categories`, novas colunas em `trips` (`public_slug`, `is_public`), + GRANTs + RLS + triggers `updated_at`.
+- Função SQL `gen_trip_slug()` opcional, ou geramos slug no client com `nanoid` (já provavelmente instalado, senão `crypto.randomUUID().slice(0,8)`).
+- `DOMPurify` via `bun add dompurify` + `@types/dompurify`.
+- Sem secrets novos: token do GitHub é por-utilizador, guardado na DB do próprio user.
 
-## Estrutura técnica resumida
+## Ordem de implementação
 
-```text
-public/firebase-messaging-sw.js     ← SW dedicado FCM
-src/lib/push.ts                     ← getToken, request permission
-src/lib/firebase.ts                 ← init client SDK
-src/components/notifications-settings.tsx  ← + secção "Telemóvel"
-supabase/migrations/*.sql           ← push_subscriptions, push_sent_log,
-                                      notification_preferences
-src/routes/api/public/hooks/push-tick.ts   ← cron endpoint, firebase-admin
-+ pg_cron schedule via supabase--insert
-```
+1. Migração DB (aprovação)
+2. Apps/GitHub (rota + sidebar + server fn)
+3. Partilha de viagens (rota pública + botão)
+4. Categorias finanças (modal + refactor selects)
+5. Notas com formatação (toolbar + sanitização)
+6. Colapsar notificações no dashboard
 
-Confirma e avanço para build.
+Confirmas para avançar?

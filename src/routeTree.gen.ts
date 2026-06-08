@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ViagemSlugRouteImport } from './routes/viagem.$slug'
 import { Route as ApiNewsRouteImport } from './routes/api/news'
 import { Route as ApiChatTravelRouteImport } from './routes/api/chat-travel'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -24,6 +25,7 @@ import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
 import { Route as AppDriveRouteImport } from './routes/_app.drive'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppAppsRouteImport } from './routes/_app.apps'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
 import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index'
 import { Route as AppReservasIndexRouteImport } from './routes/_app.reservas.index'
@@ -50,6 +52,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ViagemSlugRoute = ViagemSlugRouteImport.update({
+  id: '/viagem/$slug',
+  path: '/viagem/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNewsRoute = ApiNewsRouteImport.update({
@@ -110,6 +117,11 @@ const AppDriveRoute = AppDriveRouteImport.update({
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAppsRoute = AppAppsRouteImport.update({
+  id: '/apps',
+  path: '/apps',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAiRoute = AppAiRouteImport.update({
@@ -182,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/ai': typeof AppAiRouteWithChildren
+  '/apps': typeof AppAppsRoute
   '/dashboard': typeof AppDashboardRoute
   '/drive': typeof AppDriveRouteWithChildren
   '/financas': typeof AppFinancasRoute
@@ -194,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
+  '/viagem/$slug': typeof ViagemSlugRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
@@ -210,6 +224,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/apps': typeof AppAppsRoute
   '/dashboard': typeof AppDashboardRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
@@ -219,6 +234,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
+  '/viagem/$slug': typeof ViagemSlugRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
@@ -238,6 +254,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/_app/ai': typeof AppAiRouteWithChildren
+  '/_app/apps': typeof AppAppsRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/drive': typeof AppDriveRouteWithChildren
   '/_app/financas': typeof AppFinancasRoute
@@ -250,6 +267,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
+  '/viagem/$slug': typeof ViagemSlugRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/drive/recent': typeof AppDriveRecentRoute
   '/_app/drive/starred': typeof AppDriveStarredRoute
@@ -269,6 +287,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/ai'
+    | '/apps'
     | '/dashboard'
     | '/drive'
     | '/financas'
@@ -281,6 +300,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
+    | '/viagem/$slug'
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
@@ -297,6 +317,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/apps'
     | '/dashboard'
     | '/financas'
     | '/links'
@@ -306,6 +327,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
+    | '/viagem/$slug'
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
@@ -324,6 +346,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/auth'
     | '/_app/ai'
+    | '/_app/apps'
     | '/_app/dashboard'
     | '/_app/drive'
     | '/_app/financas'
@@ -336,6 +359,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
+    | '/viagem/$slug'
     | '/_app/ai/$threadId'
     | '/_app/drive/recent'
     | '/_app/drive/starred'
@@ -357,6 +381,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiChatTravelRoute: typeof ApiChatTravelRoute
   ApiNewsRoute: typeof ApiNewsRoute
+  ViagemSlugRoute: typeof ViagemSlugRoute
   ApiPublicHooksPushTickRoute: typeof ApiPublicHooksPushTickRoute
 }
 
@@ -381,6 +406,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/viagem/$slug': {
+      id: '/viagem/$slug'
+      path: '/viagem/$slug'
+      fullPath: '/viagem/$slug'
+      preLoaderRoute: typeof ViagemSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/news': {
@@ -465,6 +497,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/apps': {
+      id: '/_app/apps'
+      path: '/apps'
+      fullPath: '/apps'
+      preLoaderRoute: typeof AppAppsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/ai': {
@@ -623,6 +662,7 @@ const AppViagensRouteWithChildren = AppViagensRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAiRoute: typeof AppAiRouteWithChildren
+  AppAppsRoute: typeof AppAppsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDriveRoute: typeof AppDriveRouteWithChildren
   AppFinancasRoute: typeof AppFinancasRoute
@@ -636,6 +676,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRouteWithChildren,
+  AppAppsRoute: AppAppsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDriveRoute: AppDriveRouteWithChildren,
   AppFinancasRoute: AppFinancasRoute,
@@ -656,18 +697,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiChatTravelRoute: ApiChatTravelRoute,
   ApiNewsRoute: ApiNewsRoute,
+  ViagemSlugRoute: ViagemSlugRoute,
   ApiPublicHooksPushTickRoute: ApiPublicHooksPushTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -14,6 +14,7 @@ import { BUCKET, getSignedUrl } from "@/lib/drive";
 
 import { TripDialog, type Trip } from "./_app.viagens";
 import { TravelAssistant } from "@/components/travel-assistant";
+import { ShareTripButton } from "@/components/share-trip-button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_app/viagens/$tripId")({
@@ -378,9 +379,19 @@ function TripDetailPage() {
             </div>
             {trip.description && <p className="mt-3 text-sm text-muted-foreground max-w-3xl">{trip.description}</p>}
           </div>
-          <button onClick={() => setEditOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary hover:text-primary">
-            <Pencil className="h-3.5 w-3.5" /> Editar viagem
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <ShareTripButton
+              tripId={trip.id}
+              initialSlug={(trip as any).public_slug ?? null}
+              initialPublic={!!(trip as any).is_public}
+              onChange={({ slug, isPublic }) =>
+                setTrip((t) => (t ? ({ ...t, public_slug: slug, is_public: isPublic } as any) : t))
+              }
+            />
+            <button onClick={() => setEditOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary hover:text-primary">
+              <Pencil className="h-3.5 w-3.5" /> Editar viagem
+            </button>
+          </div>
         </div>
       </header>
 
