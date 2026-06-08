@@ -9,7 +9,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
-import { RichNoteEditor, sanitizeNote } from "@/components/rich-note-editor";
+// Strip HTML tags from any legacy rich-text content so notes display as plain text
+const stripHtml = (s: string): string => {
+  if (!s) return "";
+  if (!/<[a-z!/][\s\S]*>/i.test(s)) return s;
+  return s
+    .replace(/<br\s*\/?>(?!\n)/gi, "\n")
+    .replace(/<\/(p|div)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .trim();
+};
 import { exportTable, importTable } from "@/lib/data-io";
 import { AutoExportMenu } from "@/components/auto-export-menu";
 
@@ -184,7 +197,7 @@ function NotesPage() {
                   <StickyNote className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{n.title}</div>
-                    <div className="text-xs text-muted-foreground truncate" dangerouslySetInnerHTML={{ __html: sanitizeNote(n.content || "—") }} />
+                    <div className="text-xs text-muted-foreground truncate">{stripHtml(n.content) || "—"}</div>
                   </div>
                 </div>
               </button>
@@ -231,10 +244,9 @@ function NotesPage() {
                 </div>
               </header>
               <button onClick={() => openViewer(n)} className="text-left">
-                <div
-                  className="text-sm text-muted-foreground line-clamp-6 hover:text-foreground/80 transition-colors [&_*]:!font-sans"
-                  dangerouslySetInnerHTML={{ __html: sanitizeNote(n.content || "") }}
-                />
+                <div className="text-sm text-muted-foreground line-clamp-6 hover:text-foreground/80 transition-colors whitespace-pre-wrap">
+                  {stripHtml(n.content)}
+                </div>
               </button>
 
               {n.tags.length > 0 && (
@@ -336,13 +348,13 @@ function NoteDialog({
         </Field>
 
         <Field label="Conteúdo">
-          <div className="rounded-lg overflow-hidden border border-border">
-            <RichNoteEditor
-              value={content}
-              onChange={setContent}
-              className="flex flex-col min-h-[180px]"
-            />
-          </div>
+          <textarea
+            value={stripHtml(content)}
+            onChange={(e) => setContent(e.target.value)}
+            rows={8}
+            className={inputCls + " font-mono"}
+            placeholder="Escreve a tua nota..."
+          />
         </Field>
 
         <Field label="Tags">
