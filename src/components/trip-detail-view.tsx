@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft, Plus, X, Trash2, MapPin, Calendar as CalIcon, Wallet,
   ListChecks, Link2, Lightbulb, ExternalLink, Pencil, Map, Activity,
@@ -8,14 +8,15 @@ import {
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { inputCls } from "./_app.notas";
+import { inputCls } from "@/routes/_app.notas";
 import { BUCKET, getSignedUrl } from "@/lib/drive";
 
-import { TripDialog, type Trip } from "./_app.viagens";
+import { TripDialog, type Trip } from "@/routes/_app.viagens";
 import { TravelAssistant } from "@/components/travel-assistant";
 import { ShareTripButton } from "@/components/share-trip-button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+type TripDialogData = Parameters<Parameters<typeof TripDialog>[0]["onSave"]>[0];
 
 export interface TripDetailViewProps {
   tripId: string;
@@ -396,7 +397,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
                 initialSlug={(trip as any).public_slug ?? null}
                 initialPublic={!!(trip as any).is_public}
                 onChange={({ slug, isPublic: pub }) =>
-                  setTrip((t) => (t ? ({ ...t, public_slug: slug, is_public: pub } as any) : t))
+                  setTrip((currentTrip) => (currentTrip ? ({ ...currentTrip, public_slug: slug, is_public: pub } as any) : currentTrip))
                 }
               />
             )}
@@ -766,7 +767,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
           initial={trip}
           onClose={() => setEditOpen(false)}
           error={null}
-          onSave={async (d) => {
+          onSave={async (d: TripDialogData) => {
             await (supabase as any).from("trips").update(d).eq("id", tripId);
             setEditOpen(false);
             load();
