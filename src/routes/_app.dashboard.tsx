@@ -8,7 +8,8 @@ import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } 
 import { pt } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { exportData } from "@/lib/data-io";
+import { exportData, exportTable, importTable, type Table as DataTable } from "@/lib/data-io";
+import { AutoExportMenu } from "@/components/auto-export-menu";
 import { NotificationsSettings } from "@/components/notifications-settings";
 import { NotepadViewer } from "@/components/notepad-viewer";
 
@@ -341,6 +342,10 @@ function Dashboard() {
       </div>
 
       <CollapsibleNotifications />
+
+      <BackupsPanel userId={user?.id} />
+
+
 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -706,4 +711,91 @@ function CollapsibleNotifications() {
     </section>
   );
 }
+
+const BACKUP_TABLES: { table: DataTable; label: string }[] = [
+  { table: "notes", label: "Notas" },
+  { table: "links", label: "Links" },
+  { table: "tasks", label: "Tarefas" },
+  { table: "transactions", label: "Transações" },
+];
+
+function BackupsPanel({ userId }: { userId: string | undefined }) {
+  const [collapsed, setCollapsed] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const exportAll = async () => {
+    setBusy(true);
+    try {
+      for (const { table } of BACKUP_TABLES) {
+        await exportTable(table, { silent: true });
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="glass-card overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setCollapsed((c) => !c)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-accent/40 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Download className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold tracking-wider uppercase">Backups e exportações</h2>
+        </div>
+        <span className="text-xs text-muted-foreground">{collapsed ? "Expandir ▾" : "Minimizar ▴"}</span>
+      </button>
+      {!collapsed && (
+        <div className="px-5 pb-5 border-t border-border space-y-4">
+          <div className="pt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={exportAll}
+              disabled={busy}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground text-xs font-medium hover:shadow-glow-strong disabled:opacity-50"
+            >
+              <Download className="h-3.5 w-3.5" /> {busy ? "A exportar..." : "Exportar tudo (JSON)"}
+            </button>
+            <span className="text-[11px] text-muted-foreground">
+              Descarrega um JSON por cada secção: notas, links, tarefas e transações.
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {BACKUP_TABLES.map(({ table, label }) => (
+              <div key={table} className="rounded-lg border border-border bg-card/40 p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">{label}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{table}</div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => exportTable(table)}
+                    title={`Exportar ${label} (JSON)`}
+                    className="p-2 rounded-md hover:bg-accent hover:text-primary"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => userId && importTable(table, userId)}
+                    title={`Importar ${label} (JSON)`}
+                    className="p-2 rounded-md hover:bg-accent hover:text-primary"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </button>
+                  <AutoExportMenu table={table} label={label} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 

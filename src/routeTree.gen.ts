@@ -36,6 +36,7 @@ import { Route as AppDriveTrashRouteImport } from './routes/_app.drive.trash'
 import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
 import { Route as AppDriveStarredRouteImport } from './routes/_app.drive.starred'
 import { Route as AppDriveRecentRouteImport } from './routes/_app.drive.recent'
+import { Route as AppDriveLinksRouteImport } from './routes/_app.drive.links'
 import { Route as AppAiThreadIdRouteImport } from './routes/_app.ai.$threadId'
 import { Route as ApiPublicHooksPushTickRouteImport } from './routes/api/public/hooks/push-tick'
 import { Route as AppDriveFolderFolderIdRouteImport } from './routes/_app.drive.folder.$folderId'
@@ -174,6 +175,11 @@ const AppDriveRecentRoute = AppDriveRecentRouteImport.update({
   path: '/recent',
   getParentRoute: () => AppDriveRoute,
 } as any)
+const AppDriveLinksRoute = AppDriveLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
+  getParentRoute: () => AppDriveRoute,
+} as any)
 const AppAiThreadIdRoute = AppAiThreadIdRouteImport.update({
   id: '/$threadId',
   path: '/$threadId',
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
+  '/drive/links': typeof AppDriveLinksRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
+  '/drive/links': typeof AppDriveLinksRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
+  '/_app/drive/links': typeof AppDriveLinksRoute
   '/_app/drive/recent': typeof AppDriveRecentRoute
   '/_app/drive/starred': typeof AppDriveStarredRoute
   '/_app/drive/tags': typeof AppDriveTagsRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/api/chat-travel'
     | '/api/news'
     | '/ai/$threadId'
+    | '/drive/links'
     | '/drive/recent'
     | '/drive/starred'
     | '/drive/tags'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/api/chat-travel'
     | '/api/news'
     | '/ai/$threadId'
+    | '/drive/links'
     | '/drive/recent'
     | '/drive/starred'
     | '/drive/tags'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/api/chat-travel'
     | '/api/news'
     | '/_app/ai/$threadId'
+    | '/_app/drive/links'
     | '/_app/drive/recent'
     | '/_app/drive/starred'
     | '/_app/drive/tags'
@@ -576,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDriveRecentRouteImport
       parentRoute: typeof AppDriveRoute
     }
+    '/_app/drive/links': {
+      id: '/_app/drive/links'
+      path: '/links'
+      fullPath: '/drive/links'
+      preLoaderRoute: typeof AppDriveLinksRouteImport
+      parentRoute: typeof AppDriveRoute
+    }
     '/_app/ai/$threadId': {
       id: '/_app/ai/$threadId'
       path: '/$threadId'
@@ -613,6 +632,7 @@ const AppAiRouteChildren: AppAiRouteChildren = {
 const AppAiRouteWithChildren = AppAiRoute._addFileChildren(AppAiRouteChildren)
 
 interface AppDriveRouteChildren {
+  AppDriveLinksRoute: typeof AppDriveLinksRoute
   AppDriveRecentRoute: typeof AppDriveRecentRoute
   AppDriveStarredRoute: typeof AppDriveStarredRoute
   AppDriveTagsRoute: typeof AppDriveTagsRoute
@@ -622,6 +642,7 @@ interface AppDriveRouteChildren {
 }
 
 const AppDriveRouteChildren: AppDriveRouteChildren = {
+  AppDriveLinksRoute: AppDriveLinksRoute,
   AppDriveRecentRoute: AppDriveRecentRoute,
   AppDriveStarredRoute: AppDriveStarredRoute,
   AppDriveTagsRoute: AppDriveTagsRoute,

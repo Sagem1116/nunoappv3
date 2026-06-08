@@ -198,8 +198,8 @@ function NotesPage() {
         <div className="glass-card divide-y divide-border">
           {paged.map((n) => (
             <div key={n.id} className="w-full px-4 py-3 hover:bg-accent/40 transition-colors flex items-center gap-3">
-              <button type="button" onClick={() => openViewer(n)} className="flex-1 text-left" title="Abrir no bloco de notas">
-                <div className="flex items-start gap-3">
+              <button type="button" onClick={() => openViewer(n)} className="flex-1 min-w-0 text-left" title="Abrir no bloco de notas">
+                <div className="flex items-start gap-3 min-w-0">
                   <StickyNote className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{n.title}</div>
@@ -207,22 +207,23 @@ function NotesPage() {
                   </div>
                 </div>
               </button>
-              <span className="text-[10px] text-muted-foreground/70 uppercase shrink-0">
-                {new Date(n.created_at).toLocaleDateString("pt-PT")}
-              </span>
-              <button onClick={() => toggleFavorite(n)} className="p-1.5 rounded hover:bg-accent" title={n.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
-                <Star className={`h-3.5 w-3.5 ${n.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-              </button>
-              <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
-                <Download className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-              <button onClick={() => remove(n.id)} className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive" title="Eliminar esta nota">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="hidden sm:inline text-[10px] text-muted-foreground/70 uppercase">
+                  {new Date(n.created_at).toLocaleDateString("pt-PT")}
+                </span>
+                <button onClick={() => toggleFavorite(n)} className="p-1.5 rounded hover:bg-accent" title={n.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                  <Star className={`h-3.5 w-3.5 ${n.is_favorite ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                </button>
+                <button onClick={() => exportNote(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Exportar esta nota">
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => startEdit(n)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar título / tags">
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => remove(n.id)} className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive" title="Eliminar esta nota">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
