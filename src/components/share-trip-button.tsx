@@ -20,7 +20,7 @@ export function ShareTripButton({ tripId, initialSlug, initialPublic, onChange }
   const enable = useServerFn(enableTripShare);
   const disable = useServerFn(disableTripShare);
 
-  const url = slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/viagem/${slug}` : "";
+  const url = slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/p/viagem/${slug}` : "";
 
   const handleEnable = async () => {
     setBusy(true);

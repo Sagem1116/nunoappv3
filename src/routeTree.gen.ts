@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ViagemSlugRouteImport } from './routes/viagem.$slug'
 import { Route as ApiNewsRouteImport } from './routes/api/news'
 import { Route as ApiChatTravelRouteImport } from './routes/api/chat-travel'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -52,11 +51,6 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ViagemSlugRoute = ViagemSlugRouteImport.update({
-  id: '/viagem/$slug',
-  path: '/viagem/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNewsRoute = ApiNewsRouteImport.update({
@@ -207,7 +201,6 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
-  '/viagem/$slug': typeof ViagemSlugRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
@@ -234,7 +227,6 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
-  '/viagem/$slug': typeof ViagemSlugRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
@@ -267,7 +259,6 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
-  '/viagem/$slug': typeof ViagemSlugRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/drive/recent': typeof AppDriveRecentRoute
   '/_app/drive/starred': typeof AppDriveStarredRoute
@@ -300,7 +291,6 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
-    | '/viagem/$slug'
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
@@ -327,7 +317,6 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
-    | '/viagem/$slug'
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
@@ -359,7 +348,6 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
-    | '/viagem/$slug'
     | '/_app/ai/$threadId'
     | '/_app/drive/recent'
     | '/_app/drive/starred'
@@ -381,7 +369,6 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiChatTravelRoute: typeof ApiChatTravelRoute
   ApiNewsRoute: typeof ApiNewsRoute
-  ViagemSlugRoute: typeof ViagemSlugRoute
   ApiPublicHooksPushTickRoute: typeof ApiPublicHooksPushTickRoute
 }
 
@@ -406,13 +393,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/viagem/$slug': {
-      id: '/viagem/$slug'
-      path: '/viagem/$slug'
-      fullPath: '/viagem/$slug'
-      preLoaderRoute: typeof ViagemSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/news': {
@@ -697,9 +677,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiChatTravelRoute: ApiChatTravelRoute,
   ApiNewsRoute: ApiNewsRoute,
-  ViagemSlugRoute: ViagemSlugRoute,
   ApiPublicHooksPushTickRoute: ApiPublicHooksPushTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

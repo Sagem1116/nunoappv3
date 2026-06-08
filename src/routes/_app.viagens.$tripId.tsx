@@ -427,7 +427,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
 
       <Tabs value={detailTab} onValueChange={(value) => setDetailTab(value as DetailTab)}>
         <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {([
+          {(([
             ["overview", "Overview"],
             ["itinerary", "Itinerário"],
             ["reservations", "Reservas"],
@@ -435,7 +435,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
             ["expenses", "Despesas"],
             ["map", "Mapa"],
             ["ai", "AI Assistant"],
-          ] as const).map(([value, label]) => (
+          ] as const).filter(([v]) => !isPublic || v !== "ai")).map(([value, label]) => (
             <TabsTrigger key={value} value={value} className="text-[11px] uppercase tracking-[0.2em]">
               {label}
             </TabsTrigger>
