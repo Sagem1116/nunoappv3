@@ -115,6 +115,7 @@ interface TripItemAttachment {
 export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: TripDetailViewProps) {
   const navigate = useNavigate();
   const userId = effectiveUserId;
+  const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<TripItem[]>([]);
   const [days, setDays] = useState<TripDay[]>([]);
   const [planItems, setPlanItems] = useState<TripItineraryItem[]>([]);
@@ -147,7 +148,9 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
       (supabase as any).from("trip_days").select("*").eq("trip_id", tripId).order("day_order", { ascending: true }),
       (supabase as any).from("trip_itinerary_items").select("*").eq("trip_id", tripId).order("day_id", { ascending: true }).order("order_index", { ascending: true }),
       (supabase as any).from("trip_item_attachments").select("*, file_metadata(*)").eq("trip_id", tripId),
-      user ? (supabase as any).from("file_metadata").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50) : Promise.resolve({ data: [] }),
+      isPublic
+        ? (supabase as any).from("file_metadata").select("*").eq("folder", `trips/${tripId}`).order("created_at", { ascending: false }).limit(100)
+        : (supabase as any).from("file_metadata").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
     ]);
 
     setTrip(t as Trip);
