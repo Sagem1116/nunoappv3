@@ -28,7 +28,7 @@ function TripDetailPage() {
   return (
     <TripDetailView
       tripId={tripId}
-      effectiveUserId={userId}
+      effectiveUserId={user.id}
       isPublic={false}
       backHref="/viagens"
     />
