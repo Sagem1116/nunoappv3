@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
+import { RichNoteEditor, sanitizeNote } from "@/components/rich-note-editor";
 import { exportTable, importTable } from "@/lib/data-io";
 import { AutoExportMenu } from "@/components/auto-export-menu";
 
@@ -183,7 +184,7 @@ function NotesPage() {
                   <StickyNote className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{n.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">{n.content || "—"}</div>
+                    <div className="text-xs text-muted-foreground truncate" dangerouslySetInnerHTML={{ __html: sanitizeNote(n.content || "—") }} />
                   </div>
                 </div>
               </button>
@@ -230,7 +231,10 @@ function NotesPage() {
                 </div>
               </header>
               <button onClick={() => openViewer(n)} className="text-left">
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-6 hover:text-foreground/80 transition-colors">{n.content}</p>
+                <div
+                  className="text-sm text-muted-foreground line-clamp-6 hover:text-foreground/80 transition-colors [&_*]:!font-sans"
+                  dangerouslySetInnerHTML={{ __html: sanitizeNote(n.content || "") }}
+                />
               </button>
 
               {n.tags.length > 0 && (
@@ -332,11 +336,13 @@ function NoteDialog({
         </Field>
 
         <Field label="Conteúdo">
-          <textarea
-            value={content} maxLength={10000} rows={6}
-            onChange={(e) => setContent(e.target.value)}
-            className={inputCls + " resize-none"}
-          />
+          <div className="rounded-lg overflow-hidden border border-border">
+            <RichNoteEditor
+              value={content}
+              onChange={setContent}
+              className="flex flex-col min-h-[180px]"
+            />
+          </div>
         </Field>
 
         <Field label="Tags">
