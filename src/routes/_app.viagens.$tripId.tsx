@@ -165,7 +165,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
 
   useEffect(() => {
     if (tripId && userId) load();
-  }, [tripId, user]);
+  }, [tripId, userId]);
 
   const addItem = async (kind: Kind, label: string, url?: string, price?: number) => {
     if (!label.trim()) return;
