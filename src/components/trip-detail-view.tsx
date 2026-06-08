@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowLeft, Plus, X, Trash2, MapPin, Calendar as CalIcon, Wallet,
@@ -16,24 +16,6 @@ import { TripDialog, type Trip } from "./_app.viagens";
 import { TravelAssistant } from "@/components/travel-assistant";
 import { ShareTripButton } from "@/components/share-trip-button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-
-export const Route = createFileRoute("/_app/viagens/$tripId")({
-  component: TripDetailPage,
-});
-
-function TripDetailPage() {
-  const { tripId } = Route.useParams();
-  const { user } = useAuth();
-  if (!user) return null;
-  return (
-    <TripDetailView
-      tripId={tripId}
-      effectiveUserId={user.id}
-      isPublic={false}
-      backHref="/viagens"
-    />
-  );
-}
 
 export interface TripDetailViewProps {
   tripId: string;
