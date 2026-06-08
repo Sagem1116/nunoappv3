@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Github, Plug, ExternalLink, Loader2, Check, X, Star } from "lucide-react";
+import { Plug, ExternalLink, Loader2, Check, X, Star, Code2 } from "lucide-react";
+
+const Github = Code2;
 import { getGithubStatus, saveGithubToken, disconnectGithub } from "@/lib/github.functions";
 import { inputCls } from "./_app.notas";
 

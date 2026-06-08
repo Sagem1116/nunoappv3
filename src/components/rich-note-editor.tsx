@@ -19,7 +19,7 @@ const ALLOWED = {
 
 export function sanitizeNote(html: string): string {
   if (typeof window === "undefined") return html;
-  return DOMPurify.sanitize(html, ALLOWED as any);
+  return DOMPurify.sanitize(html, ALLOWED as any) as unknown as string;
 }
 
 interface Props {
