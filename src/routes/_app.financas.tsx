@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Trash2, Pencil, X, Wallet, TrendingUp, TrendingDown, Search,
-  Download, Upload,
+  Download, Upload, Tags as TagsIcon, Check,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_app/financas")({
 });
 
 type TxType = "income" | "expense";
+type CatKind = "income" | "expense" | "both";
 interface Tx {
   id: string;
   amount: number;
@@ -28,10 +29,25 @@ interface Tx {
   occurred_at: string;
   created_at: string;
 }
+interface Cat {
+  id: string;
+  name: string;
+  color: string;
+  icon: string | null;
+  kind: CatKind;
+  sort_order: number;
+}
 
-const CATEGORIES = [
-  "comida", "transportes", "lazer", "casa", "saúde",
-  "trabalho", "compras", "educação", "outros",
+const DEFAULT_CATEGORIES: { name: string; color: string; kind: CatKind }[] = [
+  { name: "comida", color: "#ff7a18", kind: "expense" },
+  { name: "transportes", color: "#ff9248", kind: "expense" },
+  { name: "lazer", color: "#ffaa6b", kind: "expense" },
+  { name: "casa", color: "#ffc28e", kind: "expense" },
+  { name: "saúde", color: "#ffd9b1", kind: "expense" },
+  { name: "trabalho", color: "#34d399", kind: "income" },
+  { name: "compras", color: "#ff944d", kind: "expense" },
+  { name: "educação", color: "#e85d1a", kind: "expense" },
+  { name: "outros", color: "#ffe8cc", kind: "both" },
 ];
 
 const fmt = (v: number) =>
@@ -40,22 +56,50 @@ const fmt = (v: number) =>
 function FinancasPage() {
   const { user } = useAuth();
   const [txs, setTxs] = useState<Tx[]>([]);
+  const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Tx | null>(null);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<"all" | TxType>("all");
   const [filterCat, setFilterCat] = useState<string>("all");
+  const [catManagerOpen, setCatManagerOpen] = useState(false);
+
+  const loadCats = async () => {
+    const { data } = await (supabase as any)
+      .from("finance_categories")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    return (data as Cat[]) ?? [];
+  };
+
+  const seedIfEmpty = async (existing: Cat[]) => {
+    if (!user || existing.length > 0) return existing;
+    const rows = DEFAULT_CATEGORIES.map((c, i) => ({
+      user_id: user.id,
+      name: c.name,
+      color: c.color,
+      kind: c.kind,
+      sort_order: i,
+    }));
+    await (supabase as any).from("finance_categories").insert(rows);
+    return await loadCats();
+  };
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("transactions").select("*").order("occurred_at", { ascending: false });
-    setTxs(((data as any[]) ?? []).map((t) => ({ ...t, amount: Number(t.amount) })));
+    const [{ data: txData }, catList] = await Promise.all([
+      supabase.from("transactions").select("*").order("occurred_at", { ascending: false }),
+      loadCats(),
+    ]);
+    setTxs(((txData as any[]) ?? []).map((t) => ({ ...t, amount: Number(t.amount) })));
+    const seeded = await seedIfEmpty(catList);
+    setCats(seeded);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { if (user) load(); /* eslint-disable-next-line */ }, [user?.id]);
 
   const stats = useMemo(() => {
     let income = 0, expense = 0;
@@ -65,6 +109,9 @@ function FinancasPage() {
     }
     return { income, expense, balance: income - expense };
   }, [txs]);
+
+  const catColor = (name: string, fallback: string) =>
+    cats.find((c) => c.name === name)?.color ?? fallback;
 
   const byCategory = useMemo(() => {
     const map = new Map<string, number>();
@@ -120,9 +167,8 @@ function FinancasPage() {
     setEditing(null);
   };
 
-  const NEON = "hsl(var(--primary))";
   const NEON_GLOW = "#ff8a3d";
-  const PIE_COLORS = ["#ff7a18", "#ff9248", "#ffaa6b", "#ffc28e", "#ffd9b1", "#ffe8cc", "#ffb380", "#ff944d", "#e85d1a"];
+  const FALLBACK_PIE = ["#ff7a18", "#ff9248", "#ffaa6b", "#ffc28e", "#ffd9b1", "#ffe8cc", "#ffb380", "#ff944d", "#e85d1a"];
 
   return (
     <div className="page-enter space-y-6">
@@ -133,6 +179,12 @@ function FinancasPage() {
           <p className="text-sm text-muted-foreground">Controla as tuas entradas e gastos.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setCatManagerOpen(true)}
+            className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
+          >
+            <TagsIcon className="h-3.5 w-3.5" /> Categorias
+          </button>
           <button
             onClick={() => exportTable("transactions")}
             className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-input border border-border text-xs hover:border-primary/50"
@@ -174,8 +226,8 @@ function FinancasPage() {
               <PieChart>
                 <Pie data={byCategory} dataKey="value" nameKey="name" innerRadius={55} outerRadius={95}
                   paddingAngle={2} stroke="hsl(var(--background))">
-                  {byCategory.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  {byCategory.map((c, i) => (
+                    <Cell key={i} fill={catColor(c.name, FALLBACK_PIE[i % FALLBACK_PIE.length])} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -189,7 +241,7 @@ function FinancasPage() {
             <div className="flex flex-wrap gap-2 mt-3">
               {byCategory.map((c, i) => (
                 <span key={c.name} className="text-[11px] flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-border">
-                  <span className="h-2 w-2 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <span className="h-2 w-2 rounded-full" style={{ background: catColor(c.name, FALLBACK_PIE[i % FALLBACK_PIE.length]) }} />
                   {c.name}
                 </span>
               ))}
@@ -240,7 +292,7 @@ function FinancasPage() {
         <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)}
           className={inputCls + " md:w-48"}>
           <option value="all">Todas categorias</option>
-          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          {cats.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
       </div>
 
@@ -272,7 +324,8 @@ function FinancasPage() {
                   </td>
                   <td className="px-4 py-3">{t.description || <span className="text-muted-foreground italic">—</span>}</td>
                   <td className="px-4 py-3">
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-accent border border-primary/30">
+                    <span className="text-[11px] inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent border border-primary/30">
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: catColor(t.category, "#888") }} />
                       {t.category}
                     </span>
                   </td>
@@ -301,8 +354,20 @@ function FinancasPage() {
       {open && (
         <TxDialog
           initial={editing}
+          cats={cats}
           onClose={() => { setOpen(false); setEditing(null); }}
           onSave={handleSave}
+          onManageCats={() => setCatManagerOpen(true)}
+        />
+      )}
+
+      {catManagerOpen && user && (
+        <CategoryManager
+          userId={user.id}
+          cats={cats}
+          usedNames={new Set(txs.map((t) => t.category))}
+          onClose={() => setCatManagerOpen(false)}
+          onChanged={async () => setCats(await loadCats())}
         />
       )}
     </div>
@@ -330,18 +395,32 @@ function EmptyChart({ label }: { label: string }) {
 }
 
 function TxDialog({
-  initial, onClose, onSave,
+  initial, cats, onClose, onSave, onManageCats,
 }: {
   initial: Tx | null;
+  cats: Cat[];
   onClose: () => void;
   onSave: (d: { amount: number; type: TxType; category: string; description: string; occurred_at: string }) => Promise<void>;
+  onManageCats: () => void;
 }) {
   const [amount, setAmount] = useState(initial?.amount.toString() ?? "");
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
-  const [category, setCategory] = useState(initial?.category ?? "outros");
+  const availableCats = useMemo(
+    () => cats.filter((c) => c.kind === "both" || c.kind === type),
+    [cats, type],
+  );
+  const [category, setCategory] = useState(
+    initial?.category ?? availableCats[0]?.name ?? "outros",
+  );
   const [description, setDescription] = useState(initial?.description ?? "");
   const [date, setDate] = useState(initial?.occurred_at ?? new Date().toISOString().slice(0, 10));
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!availableCats.find((c) => c.name === category)) {
+      setCategory(availableCats[0]?.name ?? "outros");
+    }
+  }, [type, availableCats, category]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -387,9 +466,20 @@ function TxDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Categoria">
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="flex gap-1">
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls + " flex-1"}>
+                {availableCats.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+                {availableCats.length === 0 && <option value="outros">outros</option>}
+              </select>
+              <button
+                type="button"
+                onClick={onManageCats}
+                title="Gerir categorias"
+                className="px-2 rounded-lg bg-input border border-border hover:border-primary/50"
+              >
+                <TagsIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </Field>
           <Field label="Data">
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
@@ -413,6 +503,192 @@ function TxDialog({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+const PRESET_COLORS = [
+  "#ff7a18", "#ff9248", "#ffaa6b", "#ffc28e",
+  "#34d399", "#60a5fa", "#a78bfa", "#f472b6",
+  "#f87171", "#fbbf24", "#22d3ee", "#94a3b8",
+];
+
+function CategoryManager({
+  userId, cats, usedNames, onClose, onChanged,
+}: {
+  userId: string;
+  cats: Cat[];
+  usedNames: Set<string>;
+  onClose: () => void;
+  onChanged: () => Promise<void> | void;
+}) {
+  const [editing, setEditing] = useState<Cat | null>(null);
+  const [name, setName] = useState("");
+  const [color, setColor] = useState(PRESET_COLORS[0]);
+  const [kind, setKind] = useState<CatKind>("expense");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const startEdit = (c: Cat) => {
+    setEditing(c);
+    setName(c.name);
+    setColor(c.color);
+    setKind(c.kind);
+    setError(null);
+  };
+
+  const reset = () => {
+    setEditing(null);
+    setName("");
+    setColor(PRESET_COLORS[0]);
+    setKind("expense");
+    setError(null);
+  };
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    const n = name.trim().toLowerCase();
+    if (!n) return;
+    setBusy(true);
+    setError(null);
+    if (editing) {
+      const oldName = editing.name;
+      const { error: e1 } = await (supabase as any)
+        .from("finance_categories")
+        .update({ name: n, color, kind })
+        .eq("id", editing.id);
+      if (e1) { setError(e1.message); setBusy(false); return; }
+      // Cascade rename on transactions if name changed
+      if (oldName !== n) {
+        await supabase.from("transactions").update({ category: n } as any).eq("category", oldName);
+      }
+    } else {
+      const { error: e1 } = await (supabase as any).from("finance_categories").insert({
+        user_id: userId,
+        name: n,
+        color,
+        kind,
+        sort_order: cats.length,
+      });
+      if (e1) { setError(e1.message); setBusy(false); return; }
+    }
+    await onChanged();
+    reset();
+    setBusy(false);
+  };
+
+  const remove = async (c: Cat) => {
+    if (usedNames.has(c.name)) {
+      setError(`Não podes eliminar "${c.name}" — está em uso em transações.`);
+      return;
+    }
+    if (!confirm(`Eliminar categoria "${c.name}"?`)) return;
+    setBusy(true);
+    setError(null);
+    await (supabase as any).from("finance_categories").delete().eq("id", c.id);
+    await onChanged();
+    setBusy(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
+      <div className="glass-card neon-border w-full max-w-2xl p-6 space-y-4 page-enter max-h-[90vh] overflow-auto">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold neon-text flex items-center gap-2">
+            <TagsIcon className="h-5 w-5" /> Gerir categorias
+          </h3>
+          <button onClick={onClose} className="p-1 hover:text-primary"><X className="h-4 w-4" /></button>
+        </div>
+
+        <form onSubmit={save} className="glass-card p-4 space-y-3">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">
+            {editing ? `Editar "${editing.name}"` : "Nova categoria"}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="nome"
+              maxLength={40}
+              className={inputCls + " sm:col-span-2"}
+            />
+            <select value={kind} onChange={(e) => setKind(e.target.value as CatKind)} className={inputCls}>
+              <option value="expense">Gasto</option>
+              <option value="income">Entrada</option>
+              <option value="both">Ambos</option>
+            </select>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Cor</div>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className="h-7 w-7 rounded-full border-2 transition-transform hover:scale-110 grid place-items-center"
+                  style={{ background: c, borderColor: color === c ? "#fff" : "transparent" }}
+                  title={c}
+                >
+                  {color === c && <Check className="h-3.5 w-3.5 text-black" />}
+                </button>
+              ))}
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="h-7 w-7 rounded cursor-pointer bg-transparent border border-border"
+                title="Cor personalizada"
+              />
+            </div>
+          </div>
+
+          {error && <div className="text-xs text-destructive">{error}</div>}
+
+          <div className="flex justify-end gap-2">
+            {editing && (
+              <button type="button" onClick={reset} className="px-3 py-1.5 rounded-lg text-sm hover:bg-accent">
+                Cancelar
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={busy || !name.trim()}
+              className="px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-glow-strong disabled:opacity-50"
+            >
+              {editing ? "Guardar" : "Adicionar"}
+            </button>
+          </div>
+        </form>
+
+        <div className="glass-card divide-y divide-border">
+          {cats.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted-foreground">Sem categorias.</div>
+          ) : cats.map((c) => (
+            <div key={c.id} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="h-4 w-4 rounded-full border border-white/20" style={{ background: c.color }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">{c.name}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {c.kind === "income" ? "Entrada" : c.kind === "expense" ? "Gasto" : "Ambos"}
+                  {usedNames.has(c.name) && " · em uso"}
+                </div>
+              </div>
+              <button onClick={() => startEdit(c)} className="p-1.5 rounded hover:bg-accent hover:text-primary" title="Editar">
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => remove(c)}
+                disabled={usedNames.has(c.name)}
+                className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed"
+                title={usedNames.has(c.name) ? "Em uso — não é possível eliminar" : "Eliminar"}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
