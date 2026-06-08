@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ViagemSlugRouteImport } from './routes/viagem.$slug'
 import { Route as ApiNewsRouteImport } from './routes/api/news'
 import { Route as ApiChatTravelRouteImport } from './routes/api/chat-travel'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -31,6 +30,7 @@ import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index
 import { Route as AppReservasIndexRouteImport } from './routes/_app.reservas.index'
 import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
+import { Route as PViagemSlugRouteImport } from './routes/p.viagem.$slug'
 import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
 import { Route as AppDriveTrashRouteImport } from './routes/_app.drive.trash'
 import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
@@ -52,11 +52,6 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ViagemSlugRoute = ViagemSlugRouteImport.update({
-  id: '/viagem/$slug',
-  path: '/viagem/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNewsRoute = ApiNewsRouteImport.update({
@@ -149,6 +144,11 @@ const AppAiIndexRoute = AppAiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppAiRoute,
 } as any)
+const PViagemSlugRoute = PViagemSlugRouteImport.update({
+  id: '/p/viagem/$slug',
+  path: '/p/viagem/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppViagensTripIdRoute = AppViagensTripIdRouteImport.update({
   id: '/$tripId',
   path: '/$tripId',
@@ -207,13 +207,13 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
-  '/viagem/$slug': typeof ViagemSlugRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
+  '/p/viagem/$slug': typeof PViagemSlugRoute
   '/ai/': typeof AppAiIndexRoute
   '/drive/': typeof AppDriveIndexRoute
   '/reservas/': typeof AppReservasIndexRoute
@@ -234,13 +234,13 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
-  '/viagem/$slug': typeof ViagemSlugRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/recent': typeof AppDriveRecentRoute
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
+  '/p/viagem/$slug': typeof PViagemSlugRoute
   '/ai': typeof AppAiIndexRoute
   '/drive': typeof AppDriveIndexRoute
   '/reservas': typeof AppReservasIndexRoute
@@ -267,13 +267,13 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
   '/api/news': typeof ApiNewsRoute
-  '/viagem/$slug': typeof ViagemSlugRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/drive/recent': typeof AppDriveRecentRoute
   '/_app/drive/starred': typeof AppDriveStarredRoute
   '/_app/drive/tags': typeof AppDriveTagsRoute
   '/_app/drive/trash': typeof AppDriveTrashRoute
   '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
+  '/p/viagem/$slug': typeof PViagemSlugRoute
   '/_app/ai/': typeof AppAiIndexRoute
   '/_app/drive/': typeof AppDriveIndexRoute
   '/_app/reservas/': typeof AppReservasIndexRoute
@@ -300,13 +300,13 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
-    | '/viagem/$slug'
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
     | '/drive/tags'
     | '/drive/trash'
     | '/viagens/$tripId'
+    | '/p/viagem/$slug'
     | '/ai/'
     | '/drive/'
     | '/reservas/'
@@ -327,13 +327,13 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
-    | '/viagem/$slug'
     | '/ai/$threadId'
     | '/drive/recent'
     | '/drive/starred'
     | '/drive/tags'
     | '/drive/trash'
     | '/viagens/$tripId'
+    | '/p/viagem/$slug'
     | '/ai'
     | '/drive'
     | '/reservas'
@@ -359,13 +359,13 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/chat-travel'
     | '/api/news'
-    | '/viagem/$slug'
     | '/_app/ai/$threadId'
     | '/_app/drive/recent'
     | '/_app/drive/starred'
     | '/_app/drive/tags'
     | '/_app/drive/trash'
     | '/_app/viagens/$tripId'
+    | '/p/viagem/$slug'
     | '/_app/ai/'
     | '/_app/drive/'
     | '/_app/reservas/'
@@ -381,7 +381,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiChatTravelRoute: typeof ApiChatTravelRoute
   ApiNewsRoute: typeof ApiNewsRoute
-  ViagemSlugRoute: typeof ViagemSlugRoute
+  PViagemSlugRoute: typeof PViagemSlugRoute
   ApiPublicHooksPushTickRoute: typeof ApiPublicHooksPushTickRoute
 }
 
@@ -406,13 +406,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/viagem/$slug': {
-      id: '/viagem/$slug'
-      path: '/viagem/$slug'
-      fullPath: '/viagem/$slug'
-      preLoaderRoute: typeof ViagemSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/news': {
@@ -540,6 +533,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/ai/'
       preLoaderRoute: typeof AppAiIndexRouteImport
       parentRoute: typeof AppAiRoute
+    }
+    '/p/viagem/$slug': {
+      id: '/p/viagem/$slug'
+      path: '/p/viagem/$slug'
+      fullPath: '/p/viagem/$slug'
+      preLoaderRoute: typeof PViagemSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/viagens/$tripId': {
       id: '/_app/viagens/$tripId'
@@ -697,7 +697,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiChatTravelRoute: ApiChatTravelRoute,
   ApiNewsRoute: ApiNewsRoute,
-  ViagemSlugRoute: ViagemSlugRoute,
+  PViagemSlugRoute: PViagemSlugRoute,
   ApiPublicHooksPushTickRoute: ApiPublicHooksPushTickRoute,
 }
 export const routeTree = rootRouteImport

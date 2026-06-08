@@ -21,6 +21,27 @@ export const Route = createFileRoute("/_app/viagens/$tripId")({
   component: TripDetailPage,
 });
 
+function TripDetailPage() {
+  const { tripId } = Route.useParams();
+  const { user } = useAuth();
+  if (!user) return null;
+  return (
+    <TripDetailView
+      tripId={tripId}
+      effectiveUserId={user.id}
+      isPublic={false}
+      backHref="/viagens"
+    />
+  );
+}
+
+export interface TripDetailViewProps {
+  tripId: string;
+  effectiveUserId: string;
+  isPublic: boolean;
+  backHref: string;
+}
+
 type Kind = "checklist" | "link" | "idea" | "place" | "activity";
 interface TripItem {
   id: string;
@@ -91,10 +112,9 @@ interface TripItemAttachment {
   file_metadata: FileMetadata | null;
 }
 
-function TripDetailPage() {
-  const { tripId } = Route.useParams();
-  const { user } = useAuth();
+export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: TripDetailViewProps) {
   const navigate = useNavigate();
+  const userId = effectiveUserId;
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<TripItem[]>([]);
   const [days, setDays] = useState<TripDay[]>([]);
@@ -128,7 +148,9 @@ function TripDetailPage() {
       (supabase as any).from("trip_days").select("*").eq("trip_id", tripId).order("day_order", { ascending: true }),
       (supabase as any).from("trip_itinerary_items").select("*").eq("trip_id", tripId).order("day_id", { ascending: true }).order("order_index", { ascending: true }),
       (supabase as any).from("trip_item_attachments").select("*, file_metadata(*)").eq("trip_id", tripId),
-      user ? (supabase as any).from("file_metadata").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50) : Promise.resolve({ data: [] }),
+      isPublic
+        ? (supabase as any).from("file_metadata").select("*").eq("folder", `trips/${tripId}`).order("created_at", { ascending: false }).limit(100)
+        : (supabase as any).from("file_metadata").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
     ]);
 
     setTrip(t as Trip);
@@ -142,13 +164,13 @@ function TripDetailPage() {
   };
 
   useEffect(() => {
-    if (tripId && user) load();
-  }, [tripId, user]);
+    if (tripId && userId) load();
+  }, [tripId, userId]);
 
   const addItem = async (kind: Kind, label: string, url?: string, price?: number) => {
-    if (!user || !label.trim()) return;
+    if (!label.trim()) return;
     const { data } = await (supabase as any).from("trip_items").insert({
-      trip_id: tripId, user_id: user.id, kind, label: label.trim(),
+      trip_id: tripId, user_id: userId, kind, label: label.trim(),
       url: url?.trim() || null, price: price && price > 0 ? price : null, done: false,
     }).select().single();
     if (data) setItems((p) => [...p, data as TripItem]);
@@ -165,10 +187,10 @@ function TripDetailPage() {
   };
 
   const addDay = async () => {
-    if (!user || !newDayTitle.trim()) return;
+    if (!newDayTitle.trim()) return;
     const order = days.length > 0 ? Math.max(...days.map((d) => d.day_order)) + 1 : 0;
     const { data } = await (supabase as any).from("trip_days").insert({
-      trip_id: tripId, user_id: user.id, title: newDayTitle.trim(), day_date: newDayDate || null, day_order: order,
+      trip_id: tripId, user_id: userId, title: newDayTitle.trim(), day_date: newDayDate || null, day_order: order,
     }).select().single();
     if (data) {
       setDays((prev) => [...prev, data as TripDay].sort((a, b) => a.day_order - b.day_order));
@@ -179,7 +201,7 @@ function TripDetailPage() {
   };
 
   const addPlanItem = async () => {
-    if (!user || !selectedDayId || !newItemTitle.trim()) return;
+    if (!selectedDayId || !newItemTitle.trim()) return;
     const dayItems = planItems.filter((item) => item.day_id === selectedDayId);
     const order = dayItems.length > 0 ? Math.max(...dayItems.map((item) => item.order_index)) + 1 : 0;
     
@@ -202,7 +224,7 @@ function TripDetailPage() {
     const { data, error } = await (supabase as any).from("trip_itinerary_items").insert({
       trip_id: tripId,
       day_id: selectedDayId,
-      user_id: user.id,
+      user_id: userId,
       item_type: newItemType,
       title: newItemTitle.trim(),
       description: newItemDescription.trim(),
@@ -247,7 +269,7 @@ function TripDetailPage() {
   };
 
   const attachFile = async () => {
-    if (!user || !fileSelection || !selectedAttachmentItemId) return;
+    if (!fileSelection || !selectedAttachmentItemId) return;
     const file = files.find((file) => file.id === fileSelection);
     const item = planItems.find((item) => item.id === selectedAttachmentItemId);
     if (!file || !item) return;
@@ -255,7 +277,7 @@ function TripDetailPage() {
       trip_id: tripId,
       day_id: item.day_id,
       item_id: item.id,
-      user_id: user.id,
+      user_id: userId,
       file_metadata_id: file.id,
     }).select().single();
     if (data) setAttachments((prev) => [...prev, data as TripItemAttachment]);
@@ -265,19 +287,19 @@ function TripDetailPage() {
   const docInputRef = useRef<HTMLInputElement | null>(null);
 
   const uploadDocuments = async (fileList: FileList | null) => {
-    if (!user || !fileList || fileList.length === 0) return;
+    if (!fileList || fileList.length === 0) return;
     const newMetas: FileMetadata[] = [];
     for (const file of Array.from(fileList)) {
       try {
         const id = crypto.randomUUID();
         const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
-        const path = `${user.id}/trips/${tripId}/${id}${ext}`;
+        const path = `${userId}/trips/${tripId}/${id}${ext}`;
         const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
           contentType: file.type || undefined, upsert: false,
         });
         if (upErr) throw upErr;
         const { data: meta, error: mErr } = await (supabase as any).from("file_metadata").insert({
-          user_id: user.id, path, original_name: file.name, folder: `trips/${tripId}`, project: "viagens", tags: [],
+          user_id: userId, path, original_name: file.name, folder: `trips/${tripId}`, project: "viagens", tags: [],
         }).select().single();
         if (mErr) throw mErr;
         newMetas.push(meta as FileMetadata);
@@ -286,7 +308,7 @@ function TripDetailPage() {
         if (targetItem) {
           const { data: att } = await (supabase as any).from("trip_item_attachments").insert({
             trip_id: tripId, day_id: targetItem.day_id, item_id: targetItem.id,
-            user_id: user.id, file_metadata_id: (meta as FileMetadata).id,
+            user_id: userId, file_metadata_id: (meta as FileMetadata).id,
           }).select("*, file_metadata(*)").single();
           if (att) setAttachments((prev) => [...prev, att as TripItemAttachment]);
         }
@@ -345,17 +367,23 @@ function TripDetailPage() {
   if (!trip) return (
     <div className="space-y-3">
       <p className="text-muted-foreground">Viagem não encontrada.</p>
-      <button onClick={() => navigate({ to: "/viagens" })} className="text-primary hover:underline text-sm">Voltar</button>
+      <button onClick={() => navigate({ to: isPublic ? "/" : backHref })} className="text-primary hover:underline text-sm">Voltar</button>
     </div>
   );
 
   return (
     <div className="page-enter space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <Link to="/viagens" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary">
-          <ArrowLeft className="h-3.5 w-3.5" /> Viagens
-        </Link>
-        <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Travel Planner</span>
+        {isPublic ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Globe className="h-3.5 w-3.5 text-primary" /> Viagem partilhada
+          </span>
+        ) : (
+          <Link to={backHref} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary">
+            <ArrowLeft className="h-3.5 w-3.5" /> Viagens
+          </Link>
+        )}
+        <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Travel Planner{isPublic && " · Edição pública"}</span>
       </div>
 
       <header className="glass-card neon-border p-6 relative overflow-hidden">
@@ -380,14 +408,16 @@ function TripDetailPage() {
             {trip.description && <p className="mt-3 text-sm text-muted-foreground max-w-3xl">{trip.description}</p>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <ShareTripButton
-              tripId={trip.id}
-              initialSlug={(trip as any).public_slug ?? null}
-              initialPublic={!!(trip as any).is_public}
-              onChange={({ slug, isPublic }) =>
-                setTrip((t) => (t ? ({ ...t, public_slug: slug, is_public: isPublic } as any) : t))
-              }
-            />
+            {!isPublic && (
+              <ShareTripButton
+                tripId={trip.id}
+                initialSlug={(trip as any).public_slug ?? null}
+                initialPublic={!!(trip as any).is_public}
+                onChange={({ slug, isPublic: pub }) =>
+                  setTrip((t) => (t ? ({ ...t, public_slug: slug, is_public: pub } as any) : t))
+                }
+              />
+            )}
             <button onClick={() => setEditOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary hover:text-primary">
               <Pencil className="h-3.5 w-3.5" /> Editar viagem
             </button>
@@ -397,7 +427,7 @@ function TripDetailPage() {
 
       <Tabs value={detailTab} onValueChange={(value) => setDetailTab(value as DetailTab)}>
         <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {([
+          {(([
             ["overview", "Overview"],
             ["itinerary", "Itinerário"],
             ["reservations", "Reservas"],
@@ -405,7 +435,7 @@ function TripDetailPage() {
             ["expenses", "Despesas"],
             ["map", "Mapa"],
             ["ai", "AI Assistant"],
-          ] as const).map(([value, label]) => (
+          ] as const).filter(([v]) => !isPublic || v !== "ai")).map(([value, label]) => (
             <TabsTrigger key={value} value={value} className="text-[11px] uppercase tracking-[0.2em]">
               {label}
             </TabsTrigger>
