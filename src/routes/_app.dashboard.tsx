@@ -670,3 +670,40 @@ function Mini({ icon: Icon, tone, label, value }: { icon: any; tone: "good"|"bad
 function Empty({ text }: { text: string }) {
   return <div className="text-xs text-muted-foreground py-4 text-center">{text}</div>;
 }
+
+function CollapsibleNotifications() {
+  const KEY = "dashboard.notifications.collapsed";
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(KEY) === "1";
+  });
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    if (typeof window !== "undefined") localStorage.setItem(KEY, next ? "1" : "0");
+  };
+  return (
+    <section className="glass-card overflow-hidden">
+      <button
+        onClick={toggle}
+        className="w-full flex items-center justify-between px-5 py-3 hover:bg-accent/30 transition-colors"
+      >
+        <span className="font-medium text-sm flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+          Notificações
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {collapsed ? "Expandir ▾" : "Minimizar ▴"}
+        </span>
+      </button>
+      {!collapsed && (
+        <div className="px-5 pb-5 border-t border-border">
+          <div className="pt-4">
+            <NotificationsSettings />
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
