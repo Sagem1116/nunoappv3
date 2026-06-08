@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { FolderOpen, Clock, Star, Tag, Trash2, Plus, Upload, FolderPlus } from "lucide-react";
+import { FolderOpen, Clock, Star, Tag, Trash2, Plus, Upload, FolderPlus, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
@@ -21,6 +21,7 @@ const tabs = [
   { url: "/drive/recent", label: "Recentes", icon: Clock, match: (p: string) => p === "/drive/recent" },
   { url: "/drive/starred", label: "Favoritos", icon: Star, match: (p: string) => p === "/drive/starred" },
   { url: "/drive/tags", label: "Etiquetas", icon: Tag, match: (p: string) => p === "/drive/tags" },
+  { url: "/drive/links", label: "Links externos", icon: Cloud, match: (p: string) => p === "/drive/links" },
   { url: "/drive/trash", label: "Reciclagem", icon: Trash2, match: (p: string) => p === "/drive/trash" },
 ] as const;
 
