@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TripDetailView } from "./_app.viagens.$tripId";
+import { TripDetailView } from "@/components/trip-detail-view";
 
 export const Route = createFileRoute("/p/viagem/$slug")({
   ssr: false,
