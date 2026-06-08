@@ -112,11 +112,9 @@ interface TripItemAttachment {
   file_metadata: FileMetadata | null;
 }
 
-function TripDetailPage() {
-  const { tripId } = Route.useParams();
-  const { user } = useAuth();
+export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: TripDetailViewProps) {
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<Trip | null>(null);
+  const userId = effectiveUserId;
   const [items, setItems] = useState<TripItem[]>([]);
   const [days, setDays] = useState<TripDay[]>([]);
   const [planItems, setPlanItems] = useState<TripItineraryItem[]>([]);
