@@ -33,7 +33,13 @@ function LinksPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [editing, setEditing] = useState<LinkRow | null>(null);
   const [open, setOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "grid";
+    return (localStorage.getItem("links:viewMode") as ViewMode) || "grid";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("links:viewMode", viewMode);
+  }, [viewMode]);
   const [sortBy, setSortBy] = useState<SortBy>("created_desc");
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
