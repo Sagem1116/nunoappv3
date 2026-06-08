@@ -21,6 +21,27 @@ export const Route = createFileRoute("/_app/viagens/$tripId")({
   component: TripDetailPage,
 });
 
+function TripDetailPage() {
+  const { tripId } = Route.useParams();
+  const { user } = useAuth();
+  if (!user) return null;
+  return (
+    <TripDetailView
+      tripId={tripId}
+      effectiveUserId={user.id}
+      isPublic={false}
+      backHref="/viagens"
+    />
+  );
+}
+
+export interface TripDetailViewProps {
+  tripId: string;
+  effectiveUserId: string;
+  isPublic: boolean;
+  backHref: string;
+}
+
 type Kind = "checklist" | "link" | "idea" | "place" | "activity";
 interface TripItem {
   id: string;
