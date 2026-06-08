@@ -47,7 +47,13 @@ function NotesPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [editing, setEditing] = useState<Note | null>(null);
   const [open, setOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "grid";
+    return (localStorage.getItem("notes:viewMode") as ViewMode) || "grid";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("notes:viewMode", viewMode);
+  }, [viewMode]);
   const [sortBy, setSortBy] = useState<SortBy>("created_desc");
   const [page, setPage] = useState(1);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
