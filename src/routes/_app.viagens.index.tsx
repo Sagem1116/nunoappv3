@@ -54,7 +54,38 @@ function TripsIndexPage() {
     return acc;
   }, { upcoming: 0, ongoing: 0, completed: 0 }), [trips]);
 
-  const filtered = useMemo(() => trips.filter((t) => classify(t) === tab), [trips, tab]);
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    const fromD = fromDate ? parseISO(fromDate) : null;
+    const toD = toDate ? parseISO(toDate) : null;
+    const minB = minBudget ? Number(minBudget) : null;
+    const maxB = maxBudget ? Number(maxBudget) : null;
+    return trips.filter((t) => {
+      if (classify(t) !== tab) return false;
+      if (q) {
+        const hay = [
+          t.destination, t.name, t.description,
+          ...(t.secondary_destinations ?? []),
+        ].filter(Boolean).join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (fromD || toD) {
+        const s = t.start_date ? parseISO(t.start_date) : null;
+        const e = t.end_date ? parseISO(t.end_date) : s;
+        if (!s) return false;
+        if (fromD && e && isBefore(e, fromD)) return false;
+        if (toD && isAfter(s, toD)) return false;
+      }
+      if (minB != null && (t.budget == null || t.budget < minB)) return false;
+      if (maxB != null && (t.budget == null || t.budget > maxB)) return false;
+      return true;
+    });
+  }, [trips, tab, search, fromDate, toDate, minBudget, maxBudget]);
+
+  const hasFilters = !!(search || fromDate || toDate || minBudget || maxBudget);
+  const clearFilters = () => {
+    setSearch(""); setFromDate(""); setToDate(""); setMinBudget(""); setMaxBudget("");
+  };
 
   const remove = async (id: string) => {
     if (!confirm("Eliminar viagem e todos os itens associados?")) return;
