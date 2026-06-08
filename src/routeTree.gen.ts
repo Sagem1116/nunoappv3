@@ -31,6 +31,7 @@ import { Route as AppReservasIndexRouteImport } from './routes/_app.reservas.ind
 import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
 import { Route as PViagemSlugRouteImport } from './routes/p.viagem.$slug'
+import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
 import { Route as AppDriveTrashRouteImport } from './routes/_app.drive.trash'
 import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
 import { Route as AppDriveStarredRouteImport } from './routes/_app.drive.starred'
@@ -148,6 +149,11 @@ const PViagemSlugRoute = PViagemSlugRouteImport.update({
   path: '/p/viagem/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppViagensTripIdRoute = AppViagensTripIdRouteImport.update({
+  id: '/$tripId',
+  path: '/$tripId',
+  getParentRoute: () => AppViagensRoute,
+} as any)
 const AppDriveTrashRoute = AppDriveTrashRouteImport.update({
   id: '/trash',
   path: '/trash',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
+  '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/p/viagem/$slug': typeof PViagemSlugRoute
   '/ai/': typeof AppAiIndexRoute
   '/drive/': typeof AppDriveIndexRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
+  '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/p/viagem/$slug': typeof PViagemSlugRoute
   '/ai': typeof AppAiIndexRoute
   '/drive': typeof AppDriveIndexRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/_app/drive/starred': typeof AppDriveStarredRoute
   '/_app/drive/tags': typeof AppDriveTagsRoute
   '/_app/drive/trash': typeof AppDriveTrashRoute
+  '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
   '/p/viagem/$slug': typeof PViagemSlugRoute
   '/_app/ai/': typeof AppAiIndexRoute
   '/_app/drive/': typeof AppDriveIndexRoute
@@ -296,6 +305,7 @@ export interface FileRouteTypes {
     | '/drive/starred'
     | '/drive/tags'
     | '/drive/trash'
+    | '/viagens/$tripId'
     | '/p/viagem/$slug'
     | '/ai/'
     | '/drive/'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/drive/starred'
     | '/drive/tags'
     | '/drive/trash'
+    | '/viagens/$tripId'
     | '/p/viagem/$slug'
     | '/ai'
     | '/drive'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/_app/drive/starred'
     | '/_app/drive/tags'
     | '/_app/drive/trash'
+    | '/_app/viagens/$tripId'
     | '/p/viagem/$slug'
     | '/_app/ai/'
     | '/_app/drive/'
@@ -529,6 +541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PViagemSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/viagens/$tripId': {
+      id: '/_app/viagens/$tripId'
+      path: '/$tripId'
+      fullPath: '/viagens/$tripId'
+      preLoaderRoute: typeof AppViagensTripIdRouteImport
+      parentRoute: typeof AppViagensRoute
+    }
     '/_app/drive/trash': {
       id: '/_app/drive/trash'
       path: '/trash'
@@ -628,10 +647,12 @@ const AppReservasRouteWithChildren = AppReservasRoute._addFileChildren(
 )
 
 interface AppViagensRouteChildren {
+  AppViagensTripIdRoute: typeof AppViagensTripIdRoute
   AppViagensIndexRoute: typeof AppViagensIndexRoute
 }
 
 const AppViagensRouteChildren: AppViagensRouteChildren = {
+  AppViagensTripIdRoute: AppViagensTripIdRoute,
   AppViagensIndexRoute: AppViagensIndexRoute,
 }
 
@@ -682,3 +703,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
