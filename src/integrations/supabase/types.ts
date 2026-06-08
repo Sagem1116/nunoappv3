@@ -73,6 +73,42 @@ export type Database = {
         }
         Relationships: []
       }
+      drive_external_links: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_favorite: boolean
+          provider: string
+          title: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_favorite?: boolean
+          provider?: string
+          title: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_favorite?: boolean
+          provider?: string
+          title?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
