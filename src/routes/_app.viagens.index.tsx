@@ -175,6 +175,69 @@ function TripsIndexPage() {
         </button>
       </div>
 
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Procurar por destino, nome ou descrição..."
+              className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-input border border-border focus:border-primary focus:outline-none text-sm"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowFilters((s) => !s)}
+            className={[
+              "inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs uppercase tracking-wider transition",
+              showFilters || hasFilters
+                ? "bg-primary/15 border-primary/60 text-primary"
+                : "bg-card border-border text-muted-foreground hover:text-foreground",
+            ].join(" ")}
+          >
+            <Filter className="h-3.5 w-3.5" />
+            Filtros{hasFilters ? ` (${[search, fromDate || toDate, minBudget || maxBudget].filter(Boolean).length})` : ""}
+          </button>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-destructive hover:border-destructive/50"
+            >
+              <X className="h-3.5 w-3.5" /> Limpar
+            </button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="glass-card p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <label className="block">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Data início desde</span>
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)}
+                className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border text-sm focus:border-primary focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Data fim até</span>
+              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)}
+                className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border text-sm focus:border-primary focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Orçamento mín. (€)</span>
+              <input type="number" min="0" step="1" value={minBudget} onChange={(e) => setMinBudget(e.target.value)}
+                placeholder="0"
+                className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border text-sm focus:border-primary focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Orçamento máx. (€)</span>
+              <input type="number" min="0" step="1" value={maxBudget} onChange={(e) => setMaxBudget(e.target.value)}
+                placeholder="∞"
+                className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border text-sm focus:border-primary focus:outline-none" />
+            </label>
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div className="text-muted-foreground text-sm">A carregar...</div>
       ) : filtered.length === 0 ? (
