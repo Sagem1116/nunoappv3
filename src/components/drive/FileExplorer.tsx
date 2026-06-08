@@ -187,6 +187,23 @@ export function FileExplorer({ scope, title, search, setSearch, uploadRef, uploa
             )}
           </div>
           <div className="flex items-center gap-2">
+            {scope.kind === "trash" && (visible.folders.length > 0 || visible.files.length > 0) && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  const total = visible.folders.length + visible.files.length;
+                  if (!confirm(`Eliminar definitivamente todos os ${total} item(s) da reciclagem?`)) return;
+                  const items = [
+                    ...visible.folders.map((f) => ({ kind: "folder" as const, id: f.id })),
+                    ...visible.files.map((f) => ({ kind: "file" as const, id: f.id, storagePath: f.storage_path })),
+                  ];
+                  mut.bulkRemove.mutate(items, { onSuccess: clearSelection });
+                }}
+              >
+                <Trash2 className="size-4 mr-1" /> Esvaziar reciclagem
+              </Button>
+            )}
             <div className="relative">
               <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Pesquisar..." className="pl-9 w-64 bg-card" />
