@@ -367,7 +367,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
   if (!trip) return (
     <div className="space-y-3">
       <p className="text-muted-foreground">Viagem não encontrada.</p>
-      <button onClick={() => navigate({ to: "/viagens" })} className="text-primary hover:underline text-sm">Voltar</button>
+      <button onClick={() => navigate({ to: isPublic ? "/" : backHref })} className="text-primary hover:underline text-sm">Voltar</button>
     </div>
   );
 
