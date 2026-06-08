@@ -28,7 +28,7 @@ function TripDetailPage() {
   return (
     <TripDetailView
       tripId={tripId}
-      effectiveUserId={user.id}
+      effectiveUserId={userId}
       isPublic={false}
       backHref="/viagens"
     />
@@ -164,13 +164,13 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
   };
 
   useEffect(() => {
-    if (tripId && user) load();
+    if (tripId && userId) load();
   }, [tripId, user]);
 
   const addItem = async (kind: Kind, label: string, url?: string, price?: number) => {
-    if (!user || !label.trim()) return;
+    if (!label.trim()) return;
     const { data } = await (supabase as any).from("trip_items").insert({
-      trip_id: tripId, user_id: user.id, kind, label: label.trim(),
+      trip_id: tripId, user_id: userId, kind, label: label.trim(),
       url: url?.trim() || null, price: price && price > 0 ? price : null, done: false,
     }).select().single();
     if (data) setItems((p) => [...p, data as TripItem]);
@@ -187,10 +187,10 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
   };
 
   const addDay = async () => {
-    if (!user || !newDayTitle.trim()) return;
+    if (!newDayTitle.trim()) return;
     const order = days.length > 0 ? Math.max(...days.map((d) => d.day_order)) + 1 : 0;
     const { data } = await (supabase as any).from("trip_days").insert({
-      trip_id: tripId, user_id: user.id, title: newDayTitle.trim(), day_date: newDayDate || null, day_order: order,
+      trip_id: tripId, user_id: userId, title: newDayTitle.trim(), day_date: newDayDate || null, day_order: order,
     }).select().single();
     if (data) {
       setDays((prev) => [...prev, data as TripDay].sort((a, b) => a.day_order - b.day_order));
@@ -201,7 +201,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
   };
 
   const addPlanItem = async () => {
-    if (!user || !selectedDayId || !newItemTitle.trim()) return;
+    if (!selectedDayId || !newItemTitle.trim()) return;
     const dayItems = planItems.filter((item) => item.day_id === selectedDayId);
     const order = dayItems.length > 0 ? Math.max(...dayItems.map((item) => item.order_index)) + 1 : 0;
     
@@ -224,7 +224,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
     const { data, error } = await (supabase as any).from("trip_itinerary_items").insert({
       trip_id: tripId,
       day_id: selectedDayId,
-      user_id: user.id,
+      user_id: userId,
       item_type: newItemType,
       title: newItemTitle.trim(),
       description: newItemDescription.trim(),
@@ -269,7 +269,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
   };
 
   const attachFile = async () => {
-    if (!user || !fileSelection || !selectedAttachmentItemId) return;
+    if (!fileSelection || !selectedAttachmentItemId) return;
     const file = files.find((file) => file.id === fileSelection);
     const item = planItems.find((item) => item.id === selectedAttachmentItemId);
     if (!file || !item) return;
@@ -277,7 +277,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
       trip_id: tripId,
       day_id: item.day_id,
       item_id: item.id,
-      user_id: user.id,
+      user_id: userId,
       file_metadata_id: file.id,
     }).select().single();
     if (data) setAttachments((prev) => [...prev, data as TripItemAttachment]);
@@ -287,19 +287,19 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
   const docInputRef = useRef<HTMLInputElement | null>(null);
 
   const uploadDocuments = async (fileList: FileList | null) => {
-    if (!user || !fileList || fileList.length === 0) return;
+    if (!fileList || fileList.length === 0) return;
     const newMetas: FileMetadata[] = [];
     for (const file of Array.from(fileList)) {
       try {
         const id = crypto.randomUUID();
         const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
-        const path = `${user.id}/trips/${tripId}/${id}${ext}`;
+        const path = `${userId}/trips/${tripId}/${id}${ext}`;
         const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
           contentType: file.type || undefined, upsert: false,
         });
         if (upErr) throw upErr;
         const { data: meta, error: mErr } = await (supabase as any).from("file_metadata").insert({
-          user_id: user.id, path, original_name: file.name, folder: `trips/${tripId}`, project: "viagens", tags: [],
+          user_id: userId, path, original_name: file.name, folder: `trips/${tripId}`, project: "viagens", tags: [],
         }).select().single();
         if (mErr) throw mErr;
         newMetas.push(meta as FileMetadata);
@@ -308,7 +308,7 @@ export function TripDetailView({ tripId, effectiveUserId, isPublic, backHref }: 
         if (targetItem) {
           const { data: att } = await (supabase as any).from("trip_item_attachments").insert({
             trip_id: tripId, day_id: targetItem.day_id, item_id: targetItem.id,
-            user_id: user.id, file_metadata_id: (meta as FileMetadata).id,
+            user_id: userId, file_metadata_id: (meta as FileMetadata).id,
           }).select("*, file_metadata(*)").single();
           if (att) setAttachments((prev) => [...prev, att as TripItemAttachment]);
         }
