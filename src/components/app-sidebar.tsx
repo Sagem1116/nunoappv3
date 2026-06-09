@@ -14,6 +14,7 @@ import {
   Ticket,
   X,
   Plug,
+  Mail,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -28,6 +29,7 @@ const items = [
   { title: "Reservas", url: "/reservas", icon: Ticket },
   { title: "Projetos", url: "/projetos", icon: FolderKanban },
   { title: "Apps", url: "/apps", icon: Plug },
+  { title: "Email", url: "/email", icon: Mail },
   { title: "Nuno AI", url: "/ai", icon: Brain },
 ] as const;
 
