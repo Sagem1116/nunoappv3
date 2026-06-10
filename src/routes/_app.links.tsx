@@ -183,8 +183,8 @@ function LinksPage() {
         search={search}
         onSearch={setSearch}
         tags={allTags}
-        activeTag={activeTag}
-        onTag={setActiveTag}
+        activeTags={activeTags}
+        onTagsChange={setActiveTags}
         onNew={() => { setEditing(null); setOpen(true); }}
         newLabel="Novo link"
         viewMode={viewMode}
