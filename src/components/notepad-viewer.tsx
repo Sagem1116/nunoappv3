@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { X, Save, Pencil, FileText, Undo2, Redo2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { X, Save, Pencil, FileText, Undo2, Redo2, Search, ChevronUp, ChevronDown } from "lucide-react";
 
 interface NotepadViewerProps {
   title: string;
@@ -26,7 +26,39 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [findOpen, setFindOpen] = useState(false);
+  const [findQuery, setFindQuery] = useState("");
+  const [findIndex, setFindIndex] = useState(0);
   const ref = useRef<HTMLTextAreaElement>(null);
+
+  const matches = useMemo(() => {
+    if (!findQuery) return [] as number[];
+    const out: number[] = [];
+    const hay = content.toLowerCase();
+    const needle = findQuery.toLowerCase();
+    let i = 0;
+    while ((i = hay.indexOf(needle, i)) !== -1) { out.push(i); i += Math.max(needle.length, 1); }
+    return out;
+  }, [content, findQuery]);
+
+  useEffect(() => { setFindIndex(0); }, [findQuery]);
+
+  const gotoMatch = (idx: number) => {
+    if (!matches.length || !ref.current) return;
+    const safe = ((idx % matches.length) + matches.length) % matches.length;
+    setFindIndex(safe);
+    const start = matches[safe];
+    const end = start + findQuery.length;
+    const ta = ref.current;
+    ta.focus();
+    ta.setSelectionRange(start, end);
+    // Scroll into view by measuring line height
+    const before = content.slice(0, start);
+    const line = before.split("\n").length - 1;
+    const lh = parseFloat(getComputedStyle(ta).lineHeight || "20");
+    ta.scrollTop = Math.max(0, line * lh - ta.clientHeight / 2);
+  };
+
 
   useEffect(() => {
     setContent(htmlToPlain(initialContent));
@@ -70,14 +102,18 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         save();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        setFindOpen(true);
       } else if (e.key === "Escape") {
+        if (findOpen) { setFindOpen(false); return; }
         tryClose();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, saved, saving]);
+  }, [content, saved, saving, findOpen]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4">
@@ -93,6 +129,9 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
             </button>
             <button onClick={() => { ref.current?.focus(); document.execCommand("redo"); }} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Refazer (Ctrl+Y)">
               <Redo2 className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => setFindOpen((v) => !v)} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Procurar (Ctrl+F)">
+              <Search className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={save}
@@ -112,6 +151,41 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
             </button>
           </div>
         </div>
+
+        {findOpen && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#252526] border-b border-black/40">
+            <Search className="h-3.5 w-3.5 text-neutral-400" />
+            <input
+              autoFocus
+              value={findQuery}
+              onChange={(e) => setFindQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  gotoMatch(findIndex + (e.shiftKey ? -1 : 1));
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  setFindOpen(false);
+                  ref.current?.focus();
+                }
+              }}
+              placeholder="Procurar na nota..."
+              className="flex-1 bg-transparent text-sm text-neutral-100 focus:outline-none"
+            />
+            <span className="text-[11px] text-neutral-400 tabular-nums">
+              {matches.length ? `${findIndex + 1}/${matches.length}` : "0/0"}
+            </span>
+            <button onClick={() => gotoMatch(findIndex - 1)} disabled={!matches.length} className="p-1 hover:bg-white/10 rounded text-neutral-300 disabled:opacity-30" title="Anterior (Shift+Enter)">
+              <ChevronUp className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => gotoMatch(findIndex + 1)} disabled={!matches.length} className="p-1 hover:bg-white/10 rounded text-neutral-300 disabled:opacity-30" title="Próximo (Enter)">
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => setFindOpen(false)} className="p-1 hover:bg-white/10 rounded text-neutral-300" title="Fechar (Esc)">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
 
         <textarea
           ref={ref}

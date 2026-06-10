@@ -109,6 +109,36 @@ export type Database = {
         }
         Relationships: []
       }
+      email_connections: {
+        Row: {
+          connection_api_key: string
+          created_at: string
+          email_address: string | null
+          id: string
+          provider: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_api_key: string
+          created_at?: string
+          email_address?: string | null
+          id?: string
+          provider: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_api_key?: string
+          created_at?: string
+          email_address?: string | null
+          id?: string
+          provider?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string

@@ -30,7 +30,7 @@ function LinksPage() {
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [editing, setEditing] = useState<LinkRow | null>(null);
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -66,7 +66,7 @@ function LinksPage() {
     const q = search.toLowerCase().trim();
     const list = links.filter((l) => {
       if (tab === "favorites" && !l.is_favorite) return false;
-      if (activeTag && !l.tags.includes(activeTag)) return false;
+      if (activeTags.length > 0 && !activeTags.every((t) => l.tags.includes(t))) return false;
       if (!q) return true;
       return (
         l.title.toLowerCase().includes(q) ||
@@ -76,9 +76,9 @@ function LinksPage() {
       );
     });
     return sortItems(list, sortBy);
-  }, [links, search, activeTag, sortBy, tab]);
+  }, [links, search, activeTags, sortBy, tab]);
 
-  useEffect(() => { setPage(1); }, [search, activeTag, sortBy, tab]);
+  useEffect(() => { setPage(1); }, [search, activeTags, sortBy, tab]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -183,8 +183,8 @@ function LinksPage() {
         search={search}
         onSearch={setSearch}
         tags={allTags}
-        activeTag={activeTag}
-        onTag={setActiveTag}
+        activeTags={activeTags}
+        onTagsChange={setActiveTags}
         onNew={() => { setEditing(null); setOpen(true); }}
         newLabel="Novo link"
         viewMode={viewMode}
