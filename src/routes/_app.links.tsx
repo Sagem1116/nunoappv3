@@ -30,7 +30,7 @@ function LinksPage() {
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [editing, setEditing] = useState<LinkRow | null>(null);
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
