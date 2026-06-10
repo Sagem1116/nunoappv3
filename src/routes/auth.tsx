@@ -94,17 +94,19 @@ function AuthPage() {
               className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border focus:border-primary focus:outline-none focus:shadow-glow transition-all"
             />
           </div>
-          <div>
-            <label className="text-xs uppercase tracking-wider text-muted-foreground">Password</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border focus:border-primary focus:outline-none focus:shadow-glow transition-all"
-            />
-          </div>
+          {mode !== "forgot" && (
+            <div>
+              <label className="text-xs uppercase tracking-wider text-muted-foreground">Password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 w-full px-3 py-2 rounded-lg bg-input border border-border focus:border-primary focus:outline-none focus:shadow-glow transition-all"
+              />
+            </div>
+          )}
 
           {error && <div className="text-sm text-destructive">{error}</div>}
           {info && <div className="text-sm text-primary">{info}</div>}
@@ -114,8 +116,22 @@ function AuthPage() {
             disabled={busy}
             className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-medium hover:shadow-glow-strong transition-all disabled:opacity-50"
           >
-            {busy ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
+            {busy ? "..." : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Enviar email"}
           </button>
+
+          <div className="text-center">
+            {mode === "forgot" ? (
+              <button type="button" onClick={() => { setMode("login"); setError(null); setInfo(null); }}
+                className="text-xs text-muted-foreground hover:text-primary">
+                ← Voltar a entrar
+              </button>
+            ) : (
+              <button type="button" onClick={() => { setMode("forgot"); setError(null); setInfo(null); }}
+                className="text-xs text-muted-foreground hover:text-primary">
+                Esqueceste-te da password?
+              </button>
+            )}
+          </div>
         </form>
       </div>
     </div>
