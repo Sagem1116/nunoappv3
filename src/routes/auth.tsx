@@ -31,7 +31,7 @@ function AuthPage() {
       if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-      } else {
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -39,6 +39,12 @@ function AuthPage() {
         });
         if (error) throw error;
         setInfo("Conta criada. Verifica o teu email para confirmar.");
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("Email de recuperação enviado. Verifica a tua caixa de entrada.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado");
