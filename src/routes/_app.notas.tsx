@@ -44,7 +44,7 @@ function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [editing, setEditing] = useState<Note | null>(null);
   const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -83,7 +83,7 @@ function NotesPage() {
     const q = search.toLowerCase().trim();
     const list = notes.filter((n) => {
       if (tab === "favorites" && !n.is_favorite) return false;
-      if (activeTag && !n.tags.includes(activeTag)) return false;
+      if (activeTags.length > 0 && !activeTags.every((t) => n.tags.includes(t))) return false;
       if (!q) return true;
       return (
         n.title.toLowerCase().includes(q) ||
@@ -92,9 +92,9 @@ function NotesPage() {
       );
     });
     return sortItems(list, sortBy);
-  }, [notes, search, activeTag, sortBy, tab]);
+  }, [notes, search, activeTags, sortBy, tab]);
 
-  useEffect(() => { setPage(1); }, [search, activeTag, sortBy, tab]);
+  useEffect(() => { setPage(1); }, [search, activeTags, sortBy, tab]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
