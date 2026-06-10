@@ -102,14 +102,18 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         save();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        setFindOpen(true);
       } else if (e.key === "Escape") {
+        if (findOpen) { setFindOpen(false); return; }
         tryClose();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, saved, saving]);
+  }, [content, saved, saving, findOpen]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4">
