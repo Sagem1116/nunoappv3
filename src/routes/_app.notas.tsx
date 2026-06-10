@@ -407,15 +407,15 @@ export function EmptyState({ icon: Icon, label }: { icon: typeof StickyNote; lab
 }
 
 export function Toolbar({
-  search, onSearch, tags, activeTag, onTag, onNew, newLabel,
+  search, onSearch, tags, activeTags, onTagsChange, onNew, newLabel,
   viewMode, onViewMode, sortBy, onSortBy, onManageTags, onExport,
   onExportJson, onImportJson, autoExportTable, autoExportLabel,
 }: {
   search: string;
   onSearch: (v: string) => void;
   tags: string[];
-  activeTag: string | null;
-  onTag: (t: string | null) => void;
+  activeTags: string[];
+  onTagsChange: (t: string[]) => void;
   onNew: () => void;
   newLabel: string;
   viewMode?: ViewMode;
@@ -500,20 +500,24 @@ export function Toolbar({
         </button>
       </div>
       {tags.length > 0 && (
-        <TagFilter tags={tags} activeTag={activeTag} onTag={onTag} />
+        <TagFilter tags={tags} activeTags={activeTags} onTagsChange={onTagsChange} />
       )}
     </div>
   );
 }
 
-function TagFilter({ tags, activeTag, onTag }: { tags: string[]; activeTag: string | null; onTag: (t: string | null) => void }) {
+function TagFilter({ tags, activeTags, onTagsChange }: { tags: string[]; activeTags: string[]; onTagsChange: (t: string[]) => void }) {
   const [q, setQ] = useState("");
   const filtered = q.trim()
     ? tags.filter((t) => t.toLowerCase().includes(q.trim().toLowerCase()))
     : tags;
+  const toggle = (t: string) => {
+    if (activeTags.includes(t)) onTagsChange(activeTags.filter((x) => x !== t));
+    else onTagsChange([...activeTags, t]);
+  };
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
@@ -524,18 +528,23 @@ function TagFilter({ tags, activeTag, onTag }: { tags: string[]; activeTag: stri
             className="w-full pl-7 pr-2 py-1 rounded-md bg-input border border-border text-xs focus:border-primary focus:outline-none"
           />
         </div>
-        {activeTag && (
-          <button onClick={() => onTag(null)} className="text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary">
-            Limpar
-          </button>
+        {activeTags.length > 0 && (
+          <>
+            <span className="text-[10px] text-muted-foreground">
+              {activeTags.length} selec. (todas)
+            </span>
+            <button onClick={() => onTagsChange([])} className="text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary">
+              Limpar
+            </button>
+          </>
         )}
       </div>
       <div className="flex flex-wrap gap-1.5 items-center">
-        <button onClick={() => onTag(null)} className={chipCls(activeTag === null)}>
+        <button onClick={() => onTagsChange([])} className={chipCls(activeTags.length === 0)}>
           Todas
         </button>
         {filtered.map((t) => (
-          <button key={t} onClick={() => onTag(t === activeTag ? null : t)} className={chipCls(activeTag === t)}>
+          <button key={t} onClick={() => toggle(t)} className={chipCls(activeTags.includes(t))}>
             {t}
           </button>
         ))}
