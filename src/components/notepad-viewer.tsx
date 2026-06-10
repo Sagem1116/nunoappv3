@@ -130,6 +130,9 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
             <button onClick={() => { ref.current?.focus(); document.execCommand("redo"); }} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Refazer (Ctrl+Y)">
               <Redo2 className="h-3.5 w-3.5" />
             </button>
+            <button onClick={() => setFindOpen((v) => !v)} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Procurar (Ctrl+F)">
+              <Search className="h-3.5 w-3.5" />
+            </button>
             <button
               onClick={save}
               disabled={saving || saved}
