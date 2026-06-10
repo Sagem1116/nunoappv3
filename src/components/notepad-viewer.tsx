@@ -152,6 +152,41 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
           </div>
         </div>
 
+        {findOpen && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#252526] border-b border-black/40">
+            <Search className="h-3.5 w-3.5 text-neutral-400" />
+            <input
+              autoFocus
+              value={findQuery}
+              onChange={(e) => setFindQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  gotoMatch(findIndex + (e.shiftKey ? -1 : 1));
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  setFindOpen(false);
+                  ref.current?.focus();
+                }
+              }}
+              placeholder="Procurar na nota..."
+              className="flex-1 bg-transparent text-sm text-neutral-100 focus:outline-none"
+            />
+            <span className="text-[11px] text-neutral-400 tabular-nums">
+              {matches.length ? `${findIndex + 1}/${matches.length}` : "0/0"}
+            </span>
+            <button onClick={() => gotoMatch(findIndex - 1)} disabled={!matches.length} className="p-1 hover:bg-white/10 rounded text-neutral-300 disabled:opacity-30" title="Anterior (Shift+Enter)">
+              <ChevronUp className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => gotoMatch(findIndex + 1)} disabled={!matches.length} className="p-1 hover:bg-white/10 rounded text-neutral-300 disabled:opacity-30" title="Próximo (Enter)">
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => setFindOpen(false)} className="p-1 hover:bg-white/10 rounded text-neutral-300" title="Fechar (Esc)">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
         <textarea
           ref={ref}
           value={content}
