@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   StickyNote, Link2, CheckSquare, Wallet, Plane, Ticket,
-  TrendingUp, TrendingDown, AlertTriangle, ArrowRight, Search, Download, RefreshCw, Star, ExternalLink,
+  TrendingUp, TrendingDown, AlertTriangle, ArrowRight, Search, Download, RefreshCw, Star, ExternalLink, Trophy,
 } from "lucide-react";
 import { format, isToday, isPast, parseISO, differenceInCalendarDays, isValid } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -12,6 +12,7 @@ import { exportData, exportTable, importTable, type Table as DataTable } from "@
 import { AutoExportMenu } from "@/components/auto-export-menu";
 import { NotificationsSettings } from "@/components/notifications-settings";
 import { NotepadViewer } from "@/components/notepad-viewer";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -345,8 +346,30 @@ function Dashboard() {
 
       <BackupsPanel userId={user?.id} />
 
-
-
+      <section className="glass-card overflow-hidden">
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent text-primary">
+              <Trophy className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-semibold">LiveScore</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Resultados de futebol, jogos em direto, classificações e calendário.
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                O LiveScore não permite apresentação dentro de outros sites, por isso abre numa nova aba.
+              </p>
+            </div>
+          </div>
+          <Button asChild className="shrink-0">
+            <a href="https://www.livescore.com/" target="_blank" rel="noopener noreferrer">
+              Abrir LiveScore
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Tasks panel - spans 2 */}
