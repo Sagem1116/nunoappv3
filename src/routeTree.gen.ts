@@ -22,6 +22,7 @@ import { Route as AppTarefasRouteImport } from './routes/_app.tarefas'
 import { Route as AppReservasRouteImport } from './routes/_app.reservas'
 import { Route as AppProjetosRouteImport } from './routes/_app.projetos'
 import { Route as AppNotasRouteImport } from './routes/_app.notas'
+import { Route as AppMundialRouteImport } from './routes/_app.mundial'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
 import { Route as AppDriveRouteImport } from './routes/_app.drive'
@@ -105,6 +106,11 @@ const AppProjetosRoute = AppProjetosRouteImport.update({
 const AppNotasRoute = AppNotasRouteImport.update({
   id: '/notas',
   path: '/notas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMundialRoute = AppMundialRouteImport.update({
+  id: '/mundial',
+  path: '/mundial',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLinksRoute = AppLinksRouteImport.update({
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/drive': typeof AppDriveRouteWithChildren
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
+  '/mundial': typeof AppMundialRoute
   '/notas': typeof AppNotasRoute
   '/projetos': typeof AppProjetosRoute
   '/reservas': typeof AppReservasRouteWithChildren
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
+  '/mundial': typeof AppMundialRoute
   '/notas': typeof AppNotasRoute
   '/projetos': typeof AppProjetosRoute
   '/tarefas': typeof AppTarefasRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/_app/drive': typeof AppDriveRouteWithChildren
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
+  '/_app/mundial': typeof AppMundialRoute
   '/_app/notas': typeof AppNotasRoute
   '/_app/projetos': typeof AppProjetosRoute
   '/_app/reservas': typeof AppReservasRouteWithChildren
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/drive'
     | '/financas'
     | '/links'
+    | '/mundial'
     | '/notas'
     | '/projetos'
     | '/reservas'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/financas'
     | '/links'
+    | '/mundial'
     | '/notas'
     | '/projetos'
     | '/tarefas'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/_app/drive'
     | '/_app/financas'
     | '/_app/links'
+    | '/_app/mundial'
     | '/_app/notas'
     | '/_app/projetos'
     | '/_app/reservas'
@@ -514,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/notas'
       fullPath: '/notas'
       preLoaderRoute: typeof AppNotasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mundial': {
+      id: '/_app/mundial'
+      path: '/mundial'
+      fullPath: '/mundial'
+      preLoaderRoute: typeof AppMundialRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/links': {
@@ -728,6 +747,7 @@ interface AppRouteChildren {
   AppDriveRoute: typeof AppDriveRouteWithChildren
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
+  AppMundialRoute: typeof AppMundialRoute
   AppNotasRoute: typeof AppNotasRoute
   AppProjetosRoute: typeof AppProjetosRoute
   AppReservasRoute: typeof AppReservasRouteWithChildren
@@ -742,6 +762,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDriveRoute: AppDriveRouteWithChildren,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
+  AppMundialRoute: AppMundialRoute,
   AppNotasRoute: AppNotasRoute,
   AppProjetosRoute: AppProjetosRoute,
   AppReservasRoute: AppReservasRouteWithChildren,
