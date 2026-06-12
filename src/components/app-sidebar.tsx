@@ -77,39 +77,37 @@ export function AppSidebar({ mobileOpen, onClose }: AppSidebarProps) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {items.map((item) => {
-          const active = pathname === item.url || pathname.startsWith(item.url + "/");
-          return (
-            <Link
-              key={item.url}
-              to={item.url}
-              className={[
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground neon-border"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40",
-              ].join(" ")}
-            >
-              <item.icon className="h-4 w-4" />
-              <span>{item.title}</span>
-            </Link>
-          );
-        })}
-      </nav>
+          {items.map((item) => {
+            const active = pathname === item.url || pathname.startsWith(item.url + "/");
+            return (
+              <Link
+                key={item.url}
+                to={item.url}
+                className={[
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
+                  active
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground neon-border"
+                    : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40",
+                ].join(" ")}
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.title}</span>
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="p-3 border-t border-sidebar-border">
-        <div className="px-3 py-2 text-xs text-muted-foreground truncate">
-          {user?.email}
+        <div className="p-3 border-t border-sidebar-border">
+          <div className="px-3 py-2 text-xs text-muted-foreground truncate">{user?.email}</div>
+          <button
+            onClick={signOut}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </button>
         </div>
-        <button
-          onClick={signOut}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </button>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 }

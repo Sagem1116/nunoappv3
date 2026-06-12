@@ -11,12 +11,18 @@ export const Route = createFileRoute("/api/mundial")({
       GET: async () => {
         try {
           const [scoreboardResponse, standingsResponse] = await Promise.all([
-            fetch("https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=128&region=pt&lang=pt", {
-              headers: { Accept: "application/json" },
-            }),
-            fetch("https://site.web.api.espn.com/apis/v2/sports/soccer/fifa.world/standings?region=pt&lang=pt", {
-              headers: { Accept: "application/json" },
-            }),
+            fetch(
+              "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=128&region=pt&lang=pt",
+              {
+                headers: { Accept: "application/json" },
+              },
+            ),
+            fetch(
+              "https://site.web.api.espn.com/apis/v2/sports/soccer/fifa.world/standings?region=pt&lang=pt",
+              {
+                headers: { Accept: "application/json" },
+              },
+            ),
           ]);
 
           if (!scoreboardResponse.ok || !standingsResponse.ok) {
@@ -37,8 +43,12 @@ export const Route = createFileRoute("/api/mundial")({
             { headers },
           );
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Não foi possível obter os dados.";
-          return Response.json({ error: message }, { status: 502, headers: { "Content-Type": "application/json" } });
+          const message =
+            error instanceof Error ? error.message : "Não foi possível obter os dados.";
+          return Response.json(
+            { error: message },
+            { status: 502, headers: { "Content-Type": "application/json" } },
+          );
         }
       },
     },
