@@ -45,7 +45,11 @@ function MundialPage() {
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
   const load = async (silent = false) => {
-    silent ? setRefreshing(true) : setLoading(true);
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const [worldCupResponse, newsResponse] = await Promise.all([
