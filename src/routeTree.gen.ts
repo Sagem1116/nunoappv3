@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiNewsRouteImport } from './routes/api/news'
+import { Route as ApiMundialRouteImport } from './routes/api/mundial'
 import { Route as ApiChatTravelRouteImport } from './routes/api/chat-travel'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AppViagensRouteImport } from './routes/_app.viagens'
@@ -21,6 +22,7 @@ import { Route as AppTarefasRouteImport } from './routes/_app.tarefas'
 import { Route as AppReservasRouteImport } from './routes/_app.reservas'
 import { Route as AppProjetosRouteImport } from './routes/_app.projetos'
 import { Route as AppNotasRouteImport } from './routes/_app.notas'
+import { Route as AppMundialRouteImport } from './routes/_app.mundial'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
 import { Route as AppDriveRouteImport } from './routes/_app.drive'
@@ -66,6 +68,11 @@ const ApiNewsRoute = ApiNewsRouteImport.update({
   path: '/api/news',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMundialRoute = ApiMundialRouteImport.update({
+  id: '/api/mundial',
+  path: '/api/mundial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatTravelRoute = ApiChatTravelRouteImport.update({
   id: '/api/chat-travel',
   path: '/api/chat-travel',
@@ -99,6 +106,11 @@ const AppProjetosRoute = AppProjetosRouteImport.update({
 const AppNotasRoute = AppNotasRouteImport.update({
   id: '/notas',
   path: '/notas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMundialRoute = AppMundialRouteImport.update({
+  id: '/mundial',
+  path: '/mundial',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLinksRoute = AppLinksRouteImport.update({
@@ -212,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/drive': typeof AppDriveRouteWithChildren
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
+  '/mundial': typeof AppMundialRoute
   '/notas': typeof AppNotasRoute
   '/projetos': typeof AppProjetosRoute
   '/reservas': typeof AppReservasRouteWithChildren
@@ -219,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/viagens': typeof AppViagensRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
+  '/api/mundial': typeof ApiMundialRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/links': typeof AppDriveLinksRoute
@@ -243,11 +257,13 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
+  '/mundial': typeof AppMundialRoute
   '/notas': typeof AppNotasRoute
   '/projetos': typeof AppProjetosRoute
   '/tarefas': typeof AppTarefasRoute
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
+  '/api/mundial': typeof ApiMundialRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/links': typeof AppDriveLinksRoute
@@ -276,6 +292,7 @@ export interface FileRoutesById {
   '/_app/drive': typeof AppDriveRouteWithChildren
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
+  '/_app/mundial': typeof AppMundialRoute
   '/_app/notas': typeof AppNotasRoute
   '/_app/projetos': typeof AppProjetosRoute
   '/_app/reservas': typeof AppReservasRouteWithChildren
@@ -283,6 +300,7 @@ export interface FileRoutesById {
   '/_app/viagens': typeof AppViagensRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
+  '/api/mundial': typeof ApiMundialRoute
   '/api/news': typeof ApiNewsRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/drive/links': typeof AppDriveLinksRoute
@@ -311,6 +329,7 @@ export interface FileRouteTypes {
     | '/drive'
     | '/financas'
     | '/links'
+    | '/mundial'
     | '/notas'
     | '/projetos'
     | '/reservas'
@@ -318,6 +337,7 @@ export interface FileRouteTypes {
     | '/viagens'
     | '/api/chat'
     | '/api/chat-travel'
+    | '/api/mundial'
     | '/api/news'
     | '/ai/$threadId'
     | '/drive/links'
@@ -342,11 +362,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/financas'
     | '/links'
+    | '/mundial'
     | '/notas'
     | '/projetos'
     | '/tarefas'
     | '/api/chat'
     | '/api/chat-travel'
+    | '/api/mundial'
     | '/api/news'
     | '/ai/$threadId'
     | '/drive/links'
@@ -374,6 +396,7 @@ export interface FileRouteTypes {
     | '/_app/drive'
     | '/_app/financas'
     | '/_app/links'
+    | '/_app/mundial'
     | '/_app/notas'
     | '/_app/projetos'
     | '/_app/reservas'
@@ -381,6 +404,7 @@ export interface FileRouteTypes {
     | '/_app/viagens'
     | '/api/chat'
     | '/api/chat-travel'
+    | '/api/mundial'
     | '/api/news'
     | '/_app/ai/$threadId'
     | '/_app/drive/links'
@@ -405,6 +429,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiChatTravelRoute: typeof ApiChatTravelRoute
+  ApiMundialRoute: typeof ApiMundialRoute
   ApiNewsRoute: typeof ApiNewsRoute
   PViagemSlugRoute: typeof PViagemSlugRoute
   ApiPublicHooksPushTickRoute: typeof ApiPublicHooksPushTickRoute
@@ -445,6 +470,13 @@ declare module '@tanstack/react-router' {
       path: '/api/news'
       fullPath: '/api/news'
       preLoaderRoute: typeof ApiNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mundial': {
+      id: '/api/mundial'
+      path: '/api/mundial'
+      fullPath: '/api/mundial'
+      preLoaderRoute: typeof ApiMundialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat-travel': {
@@ -494,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/notas'
       fullPath: '/notas'
       preLoaderRoute: typeof AppNotasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mundial': {
+      id: '/_app/mundial'
+      path: '/mundial'
+      fullPath: '/mundial'
+      preLoaderRoute: typeof AppMundialRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/links': {
@@ -708,6 +747,7 @@ interface AppRouteChildren {
   AppDriveRoute: typeof AppDriveRouteWithChildren
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
+  AppMundialRoute: typeof AppMundialRoute
   AppNotasRoute: typeof AppNotasRoute
   AppProjetosRoute: typeof AppProjetosRoute
   AppReservasRoute: typeof AppReservasRouteWithChildren
@@ -722,6 +762,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDriveRoute: AppDriveRouteWithChildren,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
+  AppMundialRoute: AppMundialRoute,
   AppNotasRoute: AppNotasRoute,
   AppProjetosRoute: AppProjetosRoute,
   AppReservasRoute: AppReservasRouteWithChildren,
@@ -738,6 +779,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
   ApiChatTravelRoute: ApiChatTravelRoute,
+  ApiMundialRoute: ApiMundialRoute,
   ApiNewsRoute: ApiNewsRoute,
   PViagemSlugRoute: PViagemSlugRoute,
   ApiPublicHooksPushTickRoute: ApiPublicHooksPushTickRoute,
