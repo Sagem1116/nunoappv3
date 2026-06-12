@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiNewsRouteImport } from './routes/api/news'
+import { Route as ApiMundialRouteImport } from './routes/api/mundial'
 import { Route as ApiChatTravelRouteImport } from './routes/api/chat-travel'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AppViagensRouteImport } from './routes/_app.viagens'
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiNewsRoute = ApiNewsRouteImport.update({
   id: '/api/news',
   path: '/api/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMundialRoute = ApiMundialRouteImport.update({
+  id: '/api/mundial',
+  path: '/api/mundial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatTravelRoute = ApiChatTravelRouteImport.update({
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/viagens': typeof AppViagensRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
+  '/api/mundial': typeof ApiMundialRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/links': typeof AppDriveLinksRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AppTarefasRoute
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
+  '/api/mundial': typeof ApiMundialRoute
   '/api/news': typeof ApiNewsRoute
   '/ai/$threadId': typeof AppAiThreadIdRoute
   '/drive/links': typeof AppDriveLinksRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   '/_app/viagens': typeof AppViagensRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/chat-travel': typeof ApiChatTravelRoute
+  '/api/mundial': typeof ApiMundialRoute
   '/api/news': typeof ApiNewsRoute
   '/_app/ai/$threadId': typeof AppAiThreadIdRoute
   '/_app/drive/links': typeof AppDriveLinksRoute
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/viagens'
     | '/api/chat'
     | '/api/chat-travel'
+    | '/api/mundial'
     | '/api/news'
     | '/ai/$threadId'
     | '/drive/links'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/api/chat'
     | '/api/chat-travel'
+    | '/api/mundial'
     | '/api/news'
     | '/ai/$threadId'
     | '/drive/links'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/_app/viagens'
     | '/api/chat'
     | '/api/chat-travel'
+    | '/api/mundial'
     | '/api/news'
     | '/_app/ai/$threadId'
     | '/_app/drive/links'
@@ -405,6 +417,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiChatTravelRoute: typeof ApiChatTravelRoute
+  ApiMundialRoute: typeof ApiMundialRoute
   ApiNewsRoute: typeof ApiNewsRoute
   PViagemSlugRoute: typeof PViagemSlugRoute
   ApiPublicHooksPushTickRoute: typeof ApiPublicHooksPushTickRoute
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/api/news'
       fullPath: '/api/news'
       preLoaderRoute: typeof ApiNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mundial': {
+      id: '/api/mundial'
+      path: '/api/mundial'
+      fullPath: '/api/mundial'
+      preLoaderRoute: typeof ApiMundialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat-travel': {
@@ -738,6 +758,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
   ApiChatTravelRoute: ApiChatTravelRoute,
+  ApiMundialRoute: ApiMundialRoute,
   ApiNewsRoute: ApiNewsRoute,
   PViagemSlugRoute: PViagemSlugRoute,
   ApiPublicHooksPushTickRoute: ApiPublicHooksPushTickRoute,
