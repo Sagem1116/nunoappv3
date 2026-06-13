@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ExternalLink, Newspaper, RefreshCw, Trophy } from "lucide-react";
+import { CalendarDays, ExternalLink, Newspaper, RefreshCw, Trophy, Tv } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,9 @@ function MundialPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [news, setNews] = useState<Article[]>([]);
-  const [tab, setTab] = useState<"resultados" | "classificacoes" | "noticias">("resultados");
+  const [tab, setTab] = useState<
+    "resultados" | "classificacoes" | "programacao" | "noticias"
+  >("resultados");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +137,7 @@ function MundialPage() {
           [
             ["resultados", "Resultados", CalendarDays],
             ["classificacoes", "Classificações", Trophy],
+            ["programacao", "Programação", Tv],
             ["noticias", "Notícias", Newspaper],
           ] as const
         ).map(([value, label, Icon]) => (
@@ -265,6 +268,39 @@ function MundialPage() {
               </div>
             </article>
           ))}
+        </section>
+      )}
+
+      {!loading && tab === "programacao" && (
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/60 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="flex items-center gap-2 font-semibold">
+                <Tv className="h-5 w-5 text-primary" /> Jogos na televisão
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Horários de Portugal continental e canais de transmissão, segundo o PÚBLICO.
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <a
+                href="https://www.publico.pt/2026/06/08/desporto/noticia/saiba-horarios-canais-tv-onde-jogos-mundial-2177509"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ver artigo original <ExternalLink />
+              </a>
+            </Button>
+          </div>
+
+          <div className="glass-card overflow-hidden bg-background">
+            <iframe
+              src="https://static.publico.pt/infografia/2026/iframes/desporto/jogos-portugal.html?v9199"
+              title="Programação televisiva do Mundial 2026"
+              loading="lazy"
+              className="h-[760px] w-full border-0 md:h-[680px]"
+            />
+          </div>
         </section>
       )}
 
