@@ -36,6 +36,11 @@ type Article = {
   source?: { name?: string };
 };
 
+const isPortugalNews = (article: Article) =>
+  /\b(portugal|portugu(?:ês|esa|eses|esas)|seleção nacional|equipa das quinas)\b/i.test(
+    `${article.title} ${article.description ?? ""}`,
+  );
+
 const stat = (stats: StandingStat[], name: string) =>
   stats.find((item) => item.name === name)?.displayValue ?? "0";
 
@@ -59,10 +64,14 @@ function MundialPage() {
     }
     setError(null);
     try {
-      const [worldCupResponse, newsResponse] = await Promise.all([
+      const [worldCupResponse, portugalNewsResponse, worldNewsResponse] = await Promise.all([
         fetch(`/api/mundial?_=${Date.now()}`, { cache: "no-store" }),
         fetch(
-          `/api/news?q=${encodeURIComponent("Mundial 2026 OR Copa do Mundo 2026")}&pageSize=12&days=7&_=${Date.now()}`,
+          `/api/news?q=${encodeURIComponent('(Mundial 2026 OR "Copa do Mundo 2026") AND (Portugal OR "seleção portuguesa" OR "equipa das quinas")')}&pageSize=10&days=14&_=${Date.now()}`,
+          { cache: "no-store" },
+        ),
+        fetch(
+          `/api/news?q=${encodeURIComponent('"Mundial 2026" OR "Copa do Mundo 2026"')}&pageSize=20&days=7&_=${Date.now()}`,
           { cache: "no-store" },
         ),
       ]);
@@ -72,10 +81,23 @@ function MundialPage() {
       setEvents(worldCup.events ?? []);
       setGroups(worldCup.groups ?? []);
       setUpdatedAt(new Date(worldCup.updatedAt ?? Date.now()));
-      if (newsResponse.ok) {
-        const newsData = await newsResponse.json();
-        setNews(newsData.articles ?? []);
-      }
+      const [portugalNewsData, worldNewsData] = await Promise.all([
+        portugalNewsResponse.ok ? portugalNewsResponse.json() : Promise.resolve({ articles: [] }),
+        worldNewsResponse.ok ? worldNewsResponse.json() : Promise.resolve({ articles: [] }),
+      ]);
+      const uniqueNews = new Map<string, Article>();
+      [...(portugalNewsData.articles ?? []), ...(worldNewsData.articles ?? [])].forEach(
+        (article: Article) => uniqueNews.set(article.url, article),
+      );
+      setNews(
+        [...uniqueNews.values()]
+          .sort((a, b) => {
+            const portugalPriority = Number(isPortugalNews(b)) - Number(isPortugalNews(a));
+            if (portugalPriority) return portugalPriority;
+            return Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "");
+          })
+          .slice(0, 18),
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Ocorreu um erro ao atualizar os dados.");
     } finally {
@@ -334,7 +356,14 @@ function MundialPage() {
                 )}
                 <div className="p-5">
                   <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span>{article.source?.name ?? "Notícias"}</span>
+                    <span className="flex items-center gap-2">
+                      {isPortugalNews(article) && (
+                        <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                          Destaque Portugal
+                        </span>
+                      )}
+                      {article.source?.name ?? "Notícias"}
+                    </span>
                     <ExternalLink className="h-3.5 w-3.5 transition group-hover:text-primary" />
                   </div>
                   <h3 className="font-semibold leading-snug transition group-hover:text-primary">
