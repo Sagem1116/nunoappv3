@@ -295,9 +295,10 @@ function MundialPage() {
 
           <div className="glass-card overflow-hidden bg-background">
             <iframe
-              src="https://static.publico.pt/infografia/2026/iframes/desporto/jogos-portugal.html?v9199"
+              src="https://flo.uri.sh/visualisation/29276566/embed?auto=1"
               title="Programação televisiva do Mundial 2026"
               loading="lazy"
+              allowFullScreen
               className="h-[760px] w-full border-0 md:h-[680px]"
             />
           </div>
