@@ -1,14 +1,57 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+const decodeXml = (value: string) =>
+  value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+
+const tagValue = (item: string, tag: string) => {
+  const match = item.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  return match ? decodeXml(match[1].trim()) : "";
+};
+
+async function fetchGoogleNews(query: string, pageSize: string) {
+  const rssParams = new URLSearchParams({
+    q: query,
+    hl: "pt-PT",
+    gl: "PT",
+    ceid: "PT:pt-150",
+  });
+  const response = await fetch(`https://news.google.com/rss/search?${rssParams.toString()}`, {
+    headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
+  });
+  if (!response.ok) throw new Error("Fonte alternativa indisponível");
+
+  const xml = await response.text();
+  const limit = Math.min(Math.max(Number(pageSize) || 5, 1), 30);
+  const articles = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)]
+    .slice(0, limit)
+    .map((match) => {
+      const item = match[1];
+      const description = tagValue(item, "description").replace(/<[^>]+>/g, " ").trim();
+      return {
+        title: tagValue(item, "title"),
+        description,
+        url: tagValue(item, "link"),
+        urlToImage: null,
+        publishedAt: new Date(tagValue(item, "pubDate")).toISOString(),
+        source: { name: tagValue(item, "source") || "Google Notícias" },
+      };
+    })
+    .filter((article) => article.title && article.url);
+
+  return { status: "ok", totalResults: articles.length, articles };
+}
+
 export const Route = createFileRoute("/api/news")({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const NEWS_API_KEY = process.env.NEWS_API_KEY;
-        if (!NEWS_API_KEY) {
-          return new Response("NEWS_API_KEY em falta", { status: 500 });
-        }
-
         const url = new URL(request.url);
         const query = url.searchParams.get("q")?.trim();
         const pageSize = url.searchParams.get("pageSize") ?? "5";
@@ -38,10 +81,17 @@ export const Route = createFileRoute("/api/news")({
           "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0",
         };
 
+        if (!NEWS_API_KEY) {
+          return Response.json(await fetchGoogleNews(query, pageSize));
+        }
+
         const response = await fetch(`https://newsapi.org/v2/everything?${params.toString()}`, {
           headers,
           cache: "no-store",
         });
+        if (!response.ok) {
+          return Response.json(await fetchGoogleNews(query, pageSize));
+        }
         const data = await response.json();
 
         // Sort defensively by publishedAt desc in case upstream order drifts
