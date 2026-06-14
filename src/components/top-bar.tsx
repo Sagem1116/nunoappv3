@@ -13,6 +13,7 @@ const titles: Record<string, string> = {
   "/financas": "Finanças",
   "/viagens": "Travel Planner",
   "/mundial": "Mundial 2026",
+  "/noticias": "Notícias",
   "/projetos": "Projetos",
 };
 
