@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ExternalLink,
   Globe2,
@@ -31,7 +31,12 @@ type Article = {
 
 const topics = [
   { id: "desporto", label: "Desporto", icon: Trophy, query: "desporto OR futebol" },
-  { id: "tecnologia", label: "Tecnologia", icon: Laptop, query: "tecnologia OR inteligência artificial" },
+  {
+    id: "tecnologia",
+    label: "Tecnologia",
+    icon: Laptop,
+    query: "tecnologia OR inteligência artificial",
+  },
   { id: "portugal", label: "Portugal", icon: Newspaper, query: "Portugal atualidade" },
   { id: "mundo", label: "Mundo", icon: Globe2, query: "notícias mundo internacional" },
 ] as const;
@@ -60,8 +65,9 @@ function NoticiasPage() {
     }
   }, []);
 
-  const loadNews = async (silent = false) => {
-    silent ? setRefreshing(true) : setLoading(true);
+  const loadNews = useCallback(async (silent = false) => {
+    if (silent) setRefreshing(true);
+    else setLoading(true);
     setError(null);
     try {
       const chosen = topics.filter((topic) => selectedTopics.includes(topic.id));
@@ -88,18 +94,20 @@ function NoticiasPage() {
         (a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""),
       );
       setArticles(nextArticles);
-      if (!nextArticles.length) setError("Não foi possível encontrar notícias recentes para estes temas.");
+      if (!nextArticles.length) {
+        setError("Não foi possível encontrar notícias recentes para estes temas.");
+      }
     } catch {
       setError("Não foi possível atualizar as notícias. Tenta novamente dentro de instantes.");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [selectedTopics]);
 
   useEffect(() => {
     void loadNews();
-  }, [selectedTopics]);
+  }, [loadNews]);
 
   const visibleArticles = useMemo(
     () =>
