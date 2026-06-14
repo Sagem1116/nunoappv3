@@ -7,7 +7,8 @@ const decodeXml = (value: string) =>
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'")
     .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)));
 
 const tagValue = (item: string, tag: string) => {
   const match = item.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
@@ -15,21 +16,20 @@ const tagValue = (item: string, tag: string) => {
 };
 
 async function fetchGoogleNews(query: string, pageSize: string) {
-  const bingParams = new URLSearchParams({ q: query, format: "rss", setlang: "pt-pt" });
-  let response = await fetch(`https://www.bing.com/news/search?${bingParams.toString()}`, {
+  const feedUrl = /tecnologia|inteligência artificial/i.test(query)
+    ? "https://tek.sapo.pt/rss"
+    : /desporto|futebol|mundial|copa do mundo/i.test(query)
+      ? "https://www.publico.pt/rss/desporto"
+      : "https://www.rtp.pt/noticias/rss/";
+  let response = await fetch(feedUrl, {
     headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
   });
   if (!response.ok) throw new Error("Fonte alternativa indisponível");
 
   let xml = await response.text();
   if (!/<item>/i.test(xml)) {
-    const googleParams = new URLSearchParams({
-      q: query,
-      hl: "pt-PT",
-      gl: "PT",
-      ceid: "PT:pt-150",
-    });
-    response = await fetch(`https://news.google.com/rss/search?${googleParams.toString()}`, {
+    const bingParams = new URLSearchParams({ q: query, format: "rss", setlang: "pt-pt" });
+    response = await fetch(`https://www.bing.com/news/search?${bingParams.toString()}`, {
       headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
     });
     if (!response.ok) throw new Error("Fonte alternativa indisponível");
