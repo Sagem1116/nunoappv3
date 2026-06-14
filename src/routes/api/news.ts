@@ -21,12 +21,20 @@ async function fetchGoogleNews(query: string, pageSize: string) {
     gl: "PT",
     ceid: "PT:pt-150",
   });
-  const response = await fetch(`https://news.google.com/rss/search?${rssParams.toString()}`, {
+  let response = await fetch(`https://news.google.com/rss/search?${rssParams.toString()}`, {
     headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
   });
   if (!response.ok) throw new Error("Fonte alternativa indisponível");
 
-  const xml = await response.text();
+  let xml = await response.text();
+  if (!/<item>/i.test(xml)) {
+    const bingParams = new URLSearchParams({ q: query, format: "rss", setlang: "pt-pt" });
+    response = await fetch(`https://www.bing.com/news/search?${bingParams.toString()}`, {
+      headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
+    });
+    if (!response.ok) throw new Error("Fonte alternativa indisponível");
+    xml = await response.text();
+  }
   const limit = Math.min(Math.max(Number(pageSize) || 5, 1), 30);
   const articles = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)]
     .slice(0, limit)
@@ -41,7 +49,9 @@ async function fetchGoogleNews(query: string, pageSize: string) {
         url: tagValue(item, "link"),
         urlToImage: null,
         publishedAt: new Date(tagValue(item, "pubDate")).toISOString(),
-        source: { name: tagValue(item, "source") || "Google Notícias" },
+        source: {
+          name: tagValue(item, "source") || tagValue(item, "News:Source") || "Notícias",
+        },
       };
     })
     .filter((article) => article.title && article.url);
