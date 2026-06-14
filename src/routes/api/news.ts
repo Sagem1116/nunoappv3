@@ -32,7 +32,9 @@ async function fetchGoogleNews(query: string, pageSize: string) {
     .slice(0, limit)
     .map((match) => {
       const item = match[1];
-      const description = tagValue(item, "description").replace(/<[^>]+>/g, " ").trim();
+      const description = tagValue(item, "description")
+        .replace(/<[^>]+>/g, " ")
+        .trim();
       return {
         title: tagValue(item, "title"),
         description,
@@ -80,7 +82,7 @@ export const Route = createFileRoute("/api/news")({
         });
 
         const headers: Record<string, string> = {
-          "Accept": "application/json",
+          Accept: "application/json",
           // Provide a User-Agent to identify the application (required by some APIs)
           "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0",
         };
