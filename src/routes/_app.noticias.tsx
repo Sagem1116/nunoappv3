@@ -65,45 +65,48 @@ function NoticiasPage() {
     }
   }, []);
 
-  const loadNews = useCallback(async (silent = false) => {
-    if (silent) setRefreshing(true);
-    else setLoading(true);
-    setError(null);
-    try {
-      const chosen = topics.filter((topic) => selectedTopics.includes(topic.id));
-      const responses = await Promise.all(
-        chosen.map(async (topic) => {
-          const response = await fetch(
-            `/api/news?q=${encodeURIComponent(topic.query)}&pageSize=8&days=7&_=${Date.now()}`,
-            { cache: "no-store" },
-          );
-          if (!response.ok) return [];
-          const data = await response.json();
-          return (data.articles ?? []).map((article: Omit<Article, "topic">) => ({
-            ...article,
-            topic: topic.id,
-          }));
-        }),
-      );
+  const loadNews = useCallback(
+    async (silent = false) => {
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
+      try {
+        const chosen = topics.filter((topic) => selectedTopics.includes(topic.id));
+        const responses = await Promise.all(
+          chosen.map(async (topic) => {
+            const response = await fetch(
+              `/api/news?q=${encodeURIComponent(topic.query)}&pageSize=8&days=7&_=${Date.now()}`,
+              { cache: "no-store" },
+            );
+            if (!response.ok) return [];
+            const data = await response.json();
+            return (data.articles ?? []).map((article: Omit<Article, "topic">) => ({
+              ...article,
+              topic: topic.id,
+            }));
+          }),
+        );
 
-      const unique = new Map<string, Article>();
-      responses.flat().forEach((article) => {
-        if (article.url && !unique.has(article.url)) unique.set(article.url, article);
-      });
-      const nextArticles = [...unique.values()].sort(
-        (a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""),
-      );
-      setArticles(nextArticles);
-      if (!nextArticles.length) {
-        setError("Não foi possível encontrar notícias recentes para estes temas.");
+        const unique = new Map<string, Article>();
+        responses.flat().forEach((article) => {
+          if (article.url && !unique.has(article.url)) unique.set(article.url, article);
+        });
+        const nextArticles = [...unique.values()].sort(
+          (a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""),
+        );
+        setArticles(nextArticles);
+        if (!nextArticles.length) {
+          setError("Não foi possível encontrar notícias recentes para estes temas.");
+        }
+      } catch {
+        setError("Não foi possível atualizar as notícias. Tenta novamente dentro de instantes.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-    } catch {
-      setError("Não foi possível atualizar as notícias. Tenta novamente dentro de instantes.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [selectedTopics]);
+    },
+    [selectedTopics],
+  );
 
   useEffect(() => {
     void loadNews();
