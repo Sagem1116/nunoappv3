@@ -15,21 +15,21 @@ const tagValue = (item: string, tag: string) => {
 };
 
 async function fetchGoogleNews(query: string, pageSize: string) {
-  const rssParams = new URLSearchParams({
-    q: query,
-    hl: "pt-PT",
-    gl: "PT",
-    ceid: "PT:pt-150",
-  });
-  let response = await fetch(`https://news.google.com/rss/search?${rssParams.toString()}`, {
+  const bingParams = new URLSearchParams({ q: query, format: "rss", setlang: "pt-pt" });
+  let response = await fetch(`https://www.bing.com/news/search?${bingParams.toString()}`, {
     headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
   });
   if (!response.ok) throw new Error("Fonte alternativa indisponível");
 
   let xml = await response.text();
   if (!/<item>/i.test(xml)) {
-    const bingParams = new URLSearchParams({ q: query, format: "rss", setlang: "pt-pt" });
-    response = await fetch(`https://www.bing.com/news/search?${bingParams.toString()}`, {
+    const googleParams = new URLSearchParams({
+      q: query,
+      hl: "pt-PT",
+      gl: "PT",
+      ceid: "PT:pt-150",
+    });
+    response = await fetch(`https://news.google.com/rss/search?${googleParams.toString()}`, {
       headers: { "User-Agent": process.env.USER_AGENT ?? "nunoapp/1.0" },
     });
     if (!response.ok) throw new Error("Fonte alternativa indisponível");
