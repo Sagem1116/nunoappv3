@@ -26,6 +26,7 @@ import { Route as AppNotasRouteImport } from './routes/_app.notas'
 import { Route as AppMundialRouteImport } from './routes/_app.mundial'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
 import { Route as AppFinancasRouteImport } from './routes/_app.financas'
+import { Route as AppEmailRouteImport } from './routes/_app.email'
 import { Route as AppDriveRouteImport } from './routes/_app.drive'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAppsRouteImport } from './routes/_app.apps'
@@ -129,6 +130,11 @@ const AppFinancasRoute = AppFinancasRouteImport.update({
   path: '/financas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEmailRoute = AppEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDriveRoute = AppDriveRouteImport.update({
   id: '/drive',
   path: '/drive',
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/apps': typeof AppAppsRoute
   '/dashboard': typeof AppDashboardRoute
   '/drive': typeof AppDriveRouteWithChildren
+  '/email': typeof AppEmailRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
   '/mundial': typeof AppMundialRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/apps': typeof AppAppsRoute
   '/dashboard': typeof AppDashboardRoute
+  '/email': typeof AppEmailRoute
   '/financas': typeof AppFinancasRoute
   '/links': typeof AppLinksRoute
   '/mundial': typeof AppMundialRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   '/_app/apps': typeof AppAppsRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/drive': typeof AppDriveRouteWithChildren
+  '/_app/email': typeof AppEmailRoute
   '/_app/financas': typeof AppFinancasRoute
   '/_app/links': typeof AppLinksRoute
   '/_app/mundial': typeof AppMundialRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/dashboard'
     | '/drive'
+    | '/email'
     | '/financas'
     | '/links'
     | '/mundial'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/apps'
     | '/dashboard'
+    | '/email'
     | '/financas'
     | '/links'
     | '/mundial'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/_app/apps'
     | '/_app/dashboard'
     | '/_app/drive'
+    | '/_app/email'
     | '/_app/financas'
     | '/_app/links'
     | '/_app/mundial'
@@ -566,6 +578,13 @@ declare module '@tanstack/react-router' {
       path: '/financas'
       fullPath: '/financas'
       preLoaderRoute: typeof AppFinancasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/email': {
+      id: '/_app/email'
+      path: '/email'
+      fullPath: '/email'
+      preLoaderRoute: typeof AppEmailRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/drive': {
@@ -764,6 +783,7 @@ interface AppRouteChildren {
   AppAppsRoute: typeof AppAppsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDriveRoute: typeof AppDriveRouteWithChildren
+  AppEmailRoute: typeof AppEmailRoute
   AppFinancasRoute: typeof AppFinancasRoute
   AppLinksRoute: typeof AppLinksRoute
   AppMundialRoute: typeof AppMundialRoute
@@ -780,6 +800,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAppsRoute: AppAppsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDriveRoute: AppDriveRouteWithChildren,
+  AppEmailRoute: AppEmailRoute,
   AppFinancasRoute: AppFinancasRoute,
   AppLinksRoute: AppLinksRoute,
   AppMundialRoute: AppMundialRoute,
@@ -808,13 +829,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
