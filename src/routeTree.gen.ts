@@ -21,6 +21,7 @@ import { Route as AppViagensRouteImport } from './routes/_app.viagens'
 import { Route as AppTarefasRouteImport } from './routes/_app.tarefas'
 import { Route as AppReservasRouteImport } from './routes/_app.reservas'
 import { Route as AppProjetosRouteImport } from './routes/_app.projetos'
+import { Route as AppNoticiasRouteImport } from './routes/_app.noticias'
 import { Route as AppNotasRouteImport } from './routes/_app.notas'
 import { Route as AppMundialRouteImport } from './routes/_app.mundial'
 import { Route as AppLinksRouteImport } from './routes/_app.links'
@@ -101,6 +102,11 @@ const AppReservasRoute = AppReservasRouteImport.update({
 const AppProjetosRoute = AppProjetosRouteImport.update({
   id: '/projetos',
   path: '/projetos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNoticiasRoute = AppNoticiasRouteImport.update({
+  id: '/noticias',
+  path: '/noticias',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNotasRoute = AppNotasRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/links': typeof AppLinksRoute
   '/mundial': typeof AppMundialRoute
   '/notas': typeof AppNotasRoute
+  '/noticias': typeof AppNoticiasRoute
   '/projetos': typeof AppProjetosRoute
   '/reservas': typeof AppReservasRouteWithChildren
   '/tarefas': typeof AppTarefasRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/links': typeof AppLinksRoute
   '/mundial': typeof AppMundialRoute
   '/notas': typeof AppNotasRoute
+  '/noticias': typeof AppNoticiasRoute
   '/projetos': typeof AppProjetosRoute
   '/tarefas': typeof AppTarefasRoute
   '/api/chat': typeof ApiChatRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/_app/links': typeof AppLinksRoute
   '/_app/mundial': typeof AppMundialRoute
   '/_app/notas': typeof AppNotasRoute
+  '/_app/noticias': typeof AppNoticiasRoute
   '/_app/projetos': typeof AppProjetosRoute
   '/_app/reservas': typeof AppReservasRouteWithChildren
   '/_app/tarefas': typeof AppTarefasRoute
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/links'
     | '/mundial'
     | '/notas'
+    | '/noticias'
     | '/projetos'
     | '/reservas'
     | '/tarefas'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/links'
     | '/mundial'
     | '/notas'
+    | '/noticias'
     | '/projetos'
     | '/tarefas'
     | '/api/chat'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/_app/links'
     | '/_app/mundial'
     | '/_app/notas'
+    | '/_app/noticias'
     | '/_app/projetos'
     | '/_app/reservas'
     | '/_app/tarefas'
@@ -519,6 +531,13 @@ declare module '@tanstack/react-router' {
       path: '/projetos'
       fullPath: '/projetos'
       preLoaderRoute: typeof AppProjetosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/noticias': {
+      id: '/_app/noticias'
+      path: '/noticias'
+      fullPath: '/noticias'
+      preLoaderRoute: typeof AppNoticiasRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/notas': {
@@ -749,6 +768,7 @@ interface AppRouteChildren {
   AppLinksRoute: typeof AppLinksRoute
   AppMundialRoute: typeof AppMundialRoute
   AppNotasRoute: typeof AppNotasRoute
+  AppNoticiasRoute: typeof AppNoticiasRoute
   AppProjetosRoute: typeof AppProjetosRoute
   AppReservasRoute: typeof AppReservasRouteWithChildren
   AppTarefasRoute: typeof AppTarefasRoute
@@ -764,6 +784,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppLinksRoute: AppLinksRoute,
   AppMundialRoute: AppMundialRoute,
   AppNotasRoute: AppNotasRoute,
+  AppNoticiasRoute: AppNoticiasRoute,
   AppProjetosRoute: AppProjetosRoute,
   AppReservasRoute: AppReservasRouteWithChildren,
   AppTarefasRoute: AppTarefasRoute,
@@ -787,13 +808,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

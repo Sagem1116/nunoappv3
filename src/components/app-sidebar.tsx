@@ -15,6 +15,7 @@ import {
   X,
   Plug,
   Trophy,
+  Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -27,6 +28,7 @@ const items = [
   { title: "Finanças", url: "/financas", icon: Wallet },
   { title: "Travel Planner", url: "/viagens", icon: Plane },
   { title: "Mundial", url: "/mundial", icon: Trophy },
+  { title: "Notícias", url: "/noticias", icon: Newspaper },
   { title: "Reservas", url: "/reservas", icon: Ticket },
   { title: "Projetos", url: "/projetos", icon: FolderKanban },
   { title: "Apps", url: "/apps", icon: Plug },
