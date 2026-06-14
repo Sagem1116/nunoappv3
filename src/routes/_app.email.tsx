@@ -93,7 +93,8 @@ function EmailPage() {
       {(data?.errors.gmail || data?.errors.outlook) && (
         <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           <AlertCircle className="h-4 w-4" />
-          Não foi possível atualizar {data.errors.gmail ? "o Gmail" : "o Outlook"}. A outra caixa continua disponível.
+          Não foi possível atualizar {data.errors.gmail ? "o Gmail" : "o Outlook"}. A outra caixa
+          continua disponível.
         </div>
       )}
 
@@ -106,22 +107,34 @@ function EmailPage() {
           {messages.map((message) => (
             <a
               key={`${message.provider}-${message.id}`}
-              href={message.provider === "gmail" ? "https://mail.google.com" : "https://outlook.live.com/mail/"}
+              href={
+                message.provider === "gmail"
+                  ? "https://mail.google.com"
+                  : "https://outlook.live.com/mail/"
+              }
               target="_blank"
               rel="noreferrer"
               className="group grid gap-2 border-b border-border p-4 transition-colors last:border-b-0 hover:bg-accent/40 md:grid-cols-[12rem_1fr_auto] md:items-center"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className={`h-2 w-2 shrink-0 rounded-full ${message.unread ? "bg-primary" : "bg-muted"}`} />
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${message.unread ? "bg-primary" : "bg-muted"}`}
+                />
                 <div className="min-w-0">
-                  <p className={`truncate text-sm ${message.unread ? "font-semibold" : "font-medium"}`}>
+                  <p
+                    className={`truncate text-sm ${message.unread ? "font-semibold" : "font-medium"}`}
+                  >
                     {message.sender}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">{providerNames[message.provider]}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {providerNames[message.provider]}
+                  </p>
                 </div>
               </div>
               <div className="min-w-0">
-                <p className={`truncate text-sm ${message.unread ? "font-semibold" : ""}`}>{message.subject}</p>
+                <p className={`truncate text-sm ${message.unread ? "font-semibold" : ""}`}>
+                  {message.subject}
+                </p>
                 <p className="truncate text-xs text-muted-foreground">{message.preview}</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -133,7 +146,10 @@ function EmailPage() {
         </section>
       ) : (
         <div className="grid min-h-64 place-items-center rounded-2xl border border-dashed border-border text-center text-muted-foreground">
-          <div><Inbox className="mx-auto mb-3 h-8 w-8" /><p>Não foram encontrados emails.</p></div>
+          <div>
+            <Inbox className="mx-auto mb-3 h-8 w-8" />
+            <p>Não foram encontrados emails.</p>
+          </div>
         </div>
       )}
     </div>

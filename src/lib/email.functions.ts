@@ -32,9 +32,8 @@ type OutlookMessage = {
 };
 
 function header(message: GmailMessage, name: string) {
-  return message.payload?.headers?.find(
-    (item) => item.name?.toLowerCase() === name.toLowerCase(),
-  )?.value;
+  return message.payload?.headers?.find((item) => item.name?.toLowerCase() === name.toLowerCase())
+    ?.value;
 }
 
 function parseSender(value = "") {
@@ -85,26 +84,28 @@ async function fetchGmail(): Promise<MailMessage[]> {
   return messages.flatMap((message) => {
     if (!message.id) return [];
     const sender = parseSender(header(message, "From"));
-    return [{
-      id: message.id,
-      provider: "gmail" as const,
-      subject: header(message, "Subject") || "(Sem assunto)",
-      sender: sender.name,
-      senderEmail: sender.email,
-      preview: message.snippet || "",
-      receivedAt: message.internalDate
-        ? new Date(Number(message.internalDate)).toISOString()
-        : header(message, "Date") || new Date(0).toISOString(),
-      unread: message.labelIds?.includes("UNREAD") ?? false,
-    }];
+    return [
+      {
+        id: message.id,
+        provider: "gmail" as const,
+        subject: header(message, "Subject") || "(Sem assunto)",
+        sender: sender.name,
+        senderEmail: sender.email,
+        preview: message.snippet || "",
+        receivedAt: message.internalDate
+          ? new Date(Number(message.internalDate)).toISOString()
+          : header(message, "Date") || new Date(0).toISOString(),
+        unread: message.labelIds?.includes("UNREAD") ?? false,
+      },
+    ];
   });
 }
 
 async function fetchOutlook(): Promise<MailMessage[]> {
   const params = new URLSearchParams({
-    "$top": "20",
-    "$orderby": "receivedDateTime desc",
-    "$select": "id,subject,from,receivedDateTime,isRead,bodyPreview",
+    $top: "20",
+    $orderby: "receivedDateTime desc",
+    $select: "id,subject,from,receivedDateTime,isRead,bodyPreview",
   });
   const data = (await gatewayFetch(
     `microsoft_outlook/me/mailFolders/inbox/messages?${params.toString()}`,
@@ -114,16 +115,18 @@ async function fetchOutlook(): Promise<MailMessage[]> {
   return (data.value ?? []).flatMap((message) => {
     if (!message.id) return [];
     const sender = message.from?.emailAddress;
-    return [{
-      id: message.id,
-      provider: "outlook" as const,
-      subject: message.subject || "(Sem assunto)",
-      sender: sender?.name || sender?.address || "Remetente desconhecido",
-      senderEmail: sender?.address || "",
-      preview: message.bodyPreview || "",
-      receivedAt: message.receivedDateTime || new Date(0).toISOString(),
-      unread: !message.isRead,
-    }];
+    return [
+      {
+        id: message.id,
+        provider: "outlook" as const,
+        subject: message.subject || "(Sem assunto)",
+        sender: sender?.name || sender?.address || "Remetente desconhecido",
+        senderEmail: sender?.address || "",
+        preview: message.bodyPreview || "",
+        receivedAt: message.receivedDateTime || new Date(0).toISOString(),
+        unread: !message.isRead,
+      },
+    ];
   });
 }
 
