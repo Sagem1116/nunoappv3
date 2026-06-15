@@ -28,8 +28,16 @@ import { RichNoteEditor } from "@/components/rich-note-editor";
 export const Route = createFileRoute("/_app/estudos/ri")({ component: RIPage });
 
 type ReviewStatus = "unreviewed" | "correct" | "incorrect";
+type NoteType = "notes" | "material" | "reflection";
 type Module = { id: string; title: string; position: number; created_at: string };
-type Note = { id: string; module_id: string; title: string; content: string; position: number };
+type Note = {
+  id: string;
+  module_id: string;
+  title: string;
+  content: string;
+  content_type: NoteType;
+  position: number;
+};
 type Question = {
   id: string;
   module_id: string;
@@ -38,7 +46,7 @@ type Question = {
   review_status: ReviewStatus;
   position: number;
 };
-type Section = "notes" | "tests";
+type Section = NoteType | "tests";
 
 const inputClass =
   "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary focus:ring-1 focus:ring-ring";
@@ -53,6 +61,7 @@ const exportSchema = z.object({
         z.object({
           title: z.string().min(1).max(160),
           content: z.string(),
+          content_type: z.enum(["notes", "material", "reflection"]).default("notes"),
           position: z.number().int(),
         }),
       ),
@@ -101,8 +110,8 @@ function RIPage() {
 
   const selected = modules.find((module) => module.id === selectedId) ?? null;
   const moduleNotes = useMemo(
-    () => notes.filter((note) => note.module_id === selectedId),
-    [notes, selectedId],
+    () => notes.filter((note) => note.module_id === selectedId && note.content_type === section),
+    [notes, selectedId, section],
   );
   const moduleQuestions = useMemo(
     () => questions.filter((question) => question.module_id === selectedId),
@@ -178,7 +187,12 @@ function RIPage() {
         position: module.position,
         notes: notes
           .filter((note) => note.module_id === module.id)
-          .map(({ title, content, position }) => ({ title, content, position })),
+          .map(({ title, content, content_type, position }) => ({
+            title,
+            content,
+            content_type,
+            position,
+          })),
         questions: questions
           .filter((question) => question.module_id === module.id)
           .map(({ question, answer, review_status, position }) => ({
@@ -262,18 +276,27 @@ function RIPage() {
             </div>
           </div>
         </header>
-        <div className="flex gap-2 border-b border-border">
-          <Button
-            variant="ghost"
-            onClick={() => setSection("notes")}
-            className={
-              section === "notes"
-                ? "border-b-2 border-primary text-primary rounded-none"
-                : "rounded-none text-muted-foreground"
-            }
-          >
-            <FileText /> Notas
-          </Button>
+        <div className="flex gap-2 overflow-x-auto border-b border-border">
+          {(
+            [
+              ["notes", "Notas"],
+              ["material", "Matéria"],
+              ["reflection", "Reflexão"],
+            ] as const
+          ).map(([value, label]) => (
+            <Button
+              key={value}
+              variant="ghost"
+              onClick={() => setSection(value)}
+              className={
+                section === value
+                  ? "border-b-2 border-primary text-primary rounded-none"
+                  : "rounded-none text-muted-foreground"
+              }
+            >
+              <FileText /> {label}
+            </Button>
+          ))}
           <Button
             variant="ghost"
             onClick={() => setSection("tests")}
@@ -286,12 +309,15 @@ function RIPage() {
             <HelpCircle /> Testes
           </Button>
         </div>
-        {section === "notes" ? (
+        {section !== "tests" ? (
           <NotesPanel
+            key={`${selected.id}-${section}`}
             moduleId={selected.id}
             userId={user?.id}
             notes={moduleNotes}
             setNotes={setNotes}
+            contentType={section}
+            label={section === "notes" ? "nota" : section === "material" ? "matéria" : "reflexão"}
           />
         ) : (
           <QuestionsPanel
@@ -487,11 +513,15 @@ function NotesPanel({
   userId,
   notes,
   setNotes,
+  contentType,
+  label,
 }: {
   moduleId: string;
   userId?: string;
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
+  contentType: NoteType;
+  label: string;
 }) {
   const [activeId, setActiveId] = useState<string | null>(notes[0]?.id ?? null);
   const active = notes.find((note) => note.id === activeId) ?? null;
@@ -502,13 +532,14 @@ function NotesPanel({
       .insert({
         module_id: moduleId,
         user_id: userId,
-        title: "Nova nota",
+        title: `Nova ${label}`,
         content: "",
+        content_type: contentType,
         position: notes.length,
       })
       .select()
       .single();
-    if (error || !data) return toast.error("Não foi possível criar a nota.");
+    if (error || !data) return toast.error(`Não foi possível criar a ${label}.`);
     setNotes((current) => [...current, data as Note]);
     setActiveId(data.id);
   };
@@ -517,12 +548,12 @@ function NotesPanel({
       current.map((item) => (item.id === note.id ? { ...item, ...changes } : item)),
     );
     const { error } = await supabase.from("ri_notes").update(changes).eq("id", note.id);
-    if (error) toast.error("Não foi possível guardar a nota.");
+    if (error) toast.error(`Não foi possível guardar a ${label}.`);
   };
   const remove = async (note: Note) => {
-    if (!confirm(`Eliminar a nota “${note.title}”?`)) return;
+    if (!confirm(`Eliminar a ${label} “${note.title}”?`)) return;
     const { error } = await supabase.from("ri_notes").delete().eq("id", note.id);
-    if (error) return toast.error("Não foi possível eliminar a nota.");
+    if (error) return toast.error(`Não foi possível eliminar a ${label}.`);
     setNotes((current) => current.filter((item) => item.id !== note.id));
     setActiveId(null);
   };
@@ -530,7 +561,7 @@ function NotesPanel({
     <div className="grid min-h-[520px] gap-4 lg:grid-cols-[260px_1fr]">
       <aside className="glass-card p-3">
         <Button className="w-full" onClick={() => void add()}>
-          <Plus /> Nova nota
+          <Plus /> Nova {label}
         </Button>
         <div className="mt-3 space-y-1">
           {notes.map((note) => (
@@ -585,13 +616,13 @@ function NotesPanel({
             />
             <div className="flex justify-end border-t border-border p-3">
               <Button onClick={() => void update(active, { content: active.content })}>
-                Guardar nota
+                Guardar {label}
               </Button>
             </div>
           </div>
         ) : (
           <div className="grid h-full min-h-80 place-items-center text-sm text-muted-foreground">
-            Cria ou seleciona uma nota.
+            Cria ou seleciona uma {label}.
           </div>
         )}
       </section>

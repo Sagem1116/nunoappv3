@@ -665,6 +665,7 @@ export type Database = {
       ri_notes: {
         Row: {
           content: string
+          content_type: string
           created_at: string
           id: string
           module_id: string
@@ -675,6 +676,7 @@ export type Database = {
         }
         Insert: {
           content?: string
+          content_type?: string
           created_at?: string
           id?: string
           module_id: string
@@ -685,6 +687,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          content_type?: string
           created_at?: string
           id?: string
           module_id?: string
