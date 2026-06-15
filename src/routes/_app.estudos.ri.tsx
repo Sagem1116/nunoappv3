@@ -214,27 +214,23 @@ function RIPage() {
           .single();
         if (error || !insertedModule) throw error ?? new Error("module");
         if (module.notes.length) {
-          const { error: noteError } = await supabase
-            .from("ri_notes")
-            .insert(
-              module.notes.map((note) => ({
-                ...note,
-                module_id: insertedModule.id,
-                user_id: user.id,
-              })),
-            );
+          const { error: noteError } = await supabase.from("ri_notes").insert(
+            module.notes.map((note) => ({
+              ...note,
+              module_id: insertedModule.id,
+              user_id: user.id,
+            })),
+          );
           if (noteError) throw noteError;
         }
         if (module.questions.length) {
-          const { error: questionError } = await supabase
-            .from("ri_questions")
-            .insert(
-              module.questions.map((question) => ({
-                ...question,
-                module_id: insertedModule.id,
-                user_id: user.id,
-              })),
-            );
+          const { error: questionError } = await supabase.from("ri_questions").insert(
+            module.questions.map((question) => ({
+              ...question,
+              module_id: insertedModule.id,
+              user_id: user.id,
+            })),
+          );
           if (questionError) throw questionError;
         }
       }
