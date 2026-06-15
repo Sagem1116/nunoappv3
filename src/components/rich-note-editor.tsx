@@ -159,6 +159,7 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
 ) {
   const ref = useRef<HTMLDivElement>(null);
   const lastSetValue = useRef("");
+  const [schemeOpen, setSchemeOpen] = useState(false);
 
   useEffect(() => {
     if (ref.current && value !== lastSetValue.current && value !== ref.current.innerHTML) {
