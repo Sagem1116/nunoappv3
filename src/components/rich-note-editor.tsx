@@ -114,7 +114,10 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
       <div className="sticky top-0 z-20 flex shrink-0 items-center gap-1 overflow-x-auto px-2 py-1 bg-[#2d2d2d] border-b border-black/40 text-xs text-neutral-300 shadow-md">
         <button
           type="button"
-          onMouseDown={(e) => { e.preventDefault(); exec("undo"); }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("undo");
+          }}
           className="inline-flex shrink-0 items-center gap-1 px-2 py-1 rounded hover:bg-white/10"
           title="Retroceder (Ctrl+Z)"
           aria-label="Retroceder última alteração"
@@ -123,7 +126,10 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
         </button>
         <button
           type="button"
-          onMouseDown={(e) => { e.preventDefault(); exec("redo"); }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("redo");
+          }}
           className="inline-flex shrink-0 items-center gap-1 px-2 py-1 rounded hover:bg-white/10"
           title="Avançar (Ctrl+Y)"
           aria-label="Avançar alteração"
@@ -133,14 +139,20 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
         <span className="mx-1 h-4 w-px shrink-0 bg-white/15" />
         <button
           type="button"
-          onMouseDown={(e) => { e.preventDefault(); exec("bold"); }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("bold");
+          }}
           className="inline-flex shrink-0 items-center gap-1 px-2 py-1 rounded hover:bg-white/10"
           title="Negrito (Ctrl+B)"
         >
           <Bold className="h-3.5 w-3.5" /> Negrito
         </button>
         <span className="mx-1 h-4 w-px bg-white/15" />
-        <label className="inline-flex shrink-0 items-center gap-1 px-2 py-1 rounded hover:bg-white/10" title="Tamanho da letra">
+        <label
+          className="inline-flex shrink-0 items-center gap-1 px-2 py-1 rounded hover:bg-white/10"
+          title="Tamanho da letra"
+        >
           <Type className="h-3.5 w-3.5" />
           <select
             defaultValue="3"
