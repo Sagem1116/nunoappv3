@@ -613,6 +613,9 @@ function QuestionsPanel({
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
   const add = async () => {
     if (!userId || !question.trim() || !answer.trim()) return;
     const { data, error } = await supabase
@@ -642,6 +645,23 @@ function QuestionsPanel({
         currentItem.id === item.id ? { ...currentItem, review_status } : currentItem,
       ),
     );
+  };
+  const startEdit = (item: Question) => {
+    setEditingId(item.id);
+    setEditQuestion(item.question);
+    setEditAnswer(item.answer);
+  };
+  const saveEdit = async (item: Question) => {
+    if (!editQuestion.trim() || !editAnswer.trim()) return;
+    const changes = { question: editQuestion.trim(), answer: editAnswer.trim() };
+    const { error } = await supabase.from("ri_questions").update(changes).eq("id", item.id);
+    if (error) return toast.error("Não foi possível editar a pergunta.");
+    setQuestions((current) =>
+      current.map((currentItem) =>
+        currentItem.id === item.id ? { ...currentItem, ...changes } : currentItem,
+      ),
+    );
+    setEditingId(null);
   };
   const remove = async (item: Question) => {
     if (!confirm("Eliminar esta pergunta?")) return;
@@ -690,15 +710,42 @@ function QuestionsPanel({
                     {index + 1}
                   </span>
                   <div className="flex-1">
-                    <p className="font-medium whitespace-pre-wrap">{item.question}</p>
-                    {isRevealed ? (
+                    {editingId === item.id ? (
+                      <div className="grid gap-3">
+                        <textarea
+                          className={inputClass}
+                          rows={2}
+                          value={editQuestion}
+                          maxLength={2000}
+                          onChange={(event) => setEditQuestion(event.target.value)}
+                        />
+                        <textarea
+                          className={inputClass}
+                          rows={3}
+                          value={editAnswer}
+                          maxLength={5000}
+                          onChange={(event) => setEditAnswer(event.target.value)}
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => void saveEdit(item)}>
+                            <Check /> Guardar
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>
+                            <X /> Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="font-medium whitespace-pre-wrap">{item.question}</p>
+                    )}
+                    {editingId !== item.id && isRevealed ? (
                       <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4">
                         <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
                           Resposta
                         </p>
                         <p className="whitespace-pre-wrap text-sm">{item.answer}</p>
                       </div>
-                    ) : (
+                    ) : editingId !== item.id ? (
                       <Button
                         variant="outline"
                         className="mt-4"
@@ -706,7 +753,7 @@ function QuestionsPanel({
                       >
                         Ver resposta
                       </Button>
-                    )}
+                    ) : null}
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       {isRevealed && (
                         <>
@@ -740,6 +787,14 @@ function QuestionsPanel({
                           </Button>
                         </>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => startEdit(item)}
+                        aria-label="Editar pergunta"
+                      >
+                        <Pencil />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon-sm"
