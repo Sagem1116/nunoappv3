@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { Bold, Palette } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { Bold, Palette, Type } from "lucide-react";
 import DOMPurify from "dompurify";
 
 const COLORS = [
@@ -22,6 +22,13 @@ export function sanitizeNote(html: string): string {
   return DOMPurify.sanitize(html, ALLOWED as any) as unknown as string;
 }
 
+export interface RichNoteEditorHandle {
+  focus: () => void;
+  undo: () => void;
+  redo: () => void;
+  selectTextRange: (start: number, end: number) => void;
+}
+
 interface Props {
   value: string;
   onChange: (html: string) => void;
@@ -30,7 +37,10 @@ interface Props {
   placeholder?: string;
 }
 
-export function RichNoteEditor({ value, onChange, className, autoFocus, placeholder }: Props) {
+export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function RichNoteEditor(
+  { value, onChange, className, autoFocus, placeholder },
+  forwardedRef,
+) {
   const ref = useRef<HTMLDivElement>(null);
   const lastSetValue = useRef(value);
 
@@ -60,6 +70,43 @@ export function RichNoteEditor({ value, onChange, className, autoFocus, placehol
     onChange(html);
   };
 
+  useImperativeHandle(forwardedRef, () => ({
+    focus: () => ref.current?.focus(),
+    undo: () => exec("undo"),
+    redo: () => exec("redo"),
+    selectTextRange: (start, end) => {
+      if (!ref.current) return;
+      const walker = document.createTreeWalker(ref.current, NodeFilter.SHOW_TEXT);
+      let offset = 0;
+      let startNode: Node | null = null;
+      let endNode: Node | null = null;
+      let startOffset = 0;
+      let endOffset = 0;
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        const length = node.textContent?.length ?? 0;
+        if (!startNode && start <= offset + length) {
+          startNode = node;
+          startOffset = Math.max(0, start - offset);
+        }
+        if (end <= offset + length) {
+          endNode = node;
+          endOffset = Math.max(0, end - offset);
+          break;
+        }
+        offset += length;
+      }
+      if (!startNode || !endNode) return;
+      const range = document.createRange();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      ref.current.focus();
+    },
+  }));
+
   return (
     <div className={className}>
       <div className="flex items-center gap-1 px-2 py-1 bg-[#2d2d2d] border-b border-black/40 text-xs text-neutral-300">
@@ -71,6 +118,21 @@ export function RichNoteEditor({ value, onChange, className, autoFocus, placehol
         >
           <Bold className="h-3.5 w-3.5" /> Negrito
         </button>
+        <span className="mx-1 h-4 w-px bg-white/15" />
+        <label className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-white/10" title="Tamanho da letra">
+          <Type className="h-3.5 w-3.5" />
+          <select
+            defaultValue="3"
+            onChange={(e) => exec("fontSize", e.target.value)}
+            className="bg-transparent text-xs focus:outline-none"
+            aria-label="Tamanho da letra"
+          >
+            <option value="2">Pequena</option>
+            <option value="3">Normal</option>
+            <option value="4">Grande</option>
+            <option value="5">Muito grande</option>
+          </select>
+        </label>
         <span className="mx-1 h-4 w-px bg-white/15" />
         <div className="relative group">
           <button
@@ -110,4 +172,4 @@ export function RichNoteEditor({ value, onChange, className, autoFocus, placehol
       />
     </div>
   );
-}
+});
