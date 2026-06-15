@@ -75,11 +75,11 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
   const insertScheme = () => {
     const scheme = [
       '<div style="margin: 16px 0;">',
-      '<div><b>PALAVRA-CHAVE</b></div>',
+      "<div><b>PALAVRA-CHAVE</b></div>",
       '<div style="margin-left: 16px;">',
-      '<div>├── Definição 1</div>',
-      '<div>├── Definição 2</div>',
-      '<div>└── Definição 3</div>',
+      "<div>├── Definição 1</div>",
+      "<div>├── Definição 2</div>",
+      "<div>└── Definição 3</div>",
       "</div>",
       "</div><div><br></div>",
     ].join("");
