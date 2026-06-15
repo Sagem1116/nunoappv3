@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { Bold, Palette, Redo2, Type, Undo2 } from "lucide-react";
+import { Bold, GitBranch, Palette, Redo2, Type, Undo2 } from "lucide-react";
 import DOMPurify, { type Config } from "dompurify";
 
 const COLORS = [
@@ -72,6 +72,20 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
     onChange(html);
   };
 
+  const insertScheme = () => {
+    const scheme = [
+      '<div style="margin: 16px 0;">',
+      "<div><b>PALAVRA-CHAVE</b></div>",
+      '<div style="margin-left: 16px;">',
+      "<div>├── Definição 1</div>",
+      "<div>├── Definição 2</div>",
+      "<div>└── Definição 3</div>",
+      "</div>",
+      "</div><div><br></div>",
+    ].join("");
+    exec("insertHTML", scheme);
+  };
+
   useImperativeHandle(forwardedRef, () => ({
     focus: () => ref.current?.focus(),
     undo: () => exec("undo"),
@@ -135,6 +149,18 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
           aria-label="Avançar alteração"
         >
           <Redo2 className="h-3.5 w-3.5" /> Avançar
+        </button>
+        <span className="mx-1 h-4 w-px shrink-0 bg-white/15" />
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            insertScheme();
+          }}
+          className="inline-flex shrink-0 items-center gap-1 px-2 py-1 rounded hover:bg-white/10"
+          title="Inserir esquema com palavra-chave e definições"
+        >
+          <GitBranch className="h-3.5 w-3.5" /> Esquema
         </button>
         <span className="mx-1 h-4 w-px shrink-0 bg-white/15" />
         <button
