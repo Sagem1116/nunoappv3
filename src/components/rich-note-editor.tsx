@@ -190,13 +190,19 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
   };
 
   const insertScheme = () => {
+    setSchemeOpen(true);
+  };
+
+  const handleSchemeInsert = (keyword: string, definitions: string[]) => {
+    const lines = definitions.map((def, i) => {
+      const branch = i === definitions.length - 1 ? "└──" : "├──";
+      return `<div>${branch} ${def}</div>`;
+    });
     const scheme = [
       '<div style="margin: 16px 0;">',
-      "<div><b>PALAVRA-CHAVE</b></div>",
+      `<div><b>${keyword}</b></div>`,
       '<div style="margin-left: 16px;">',
-      "<div>├── Definição 1</div>",
-      "<div>├── Definição 2</div>",
-      "<div>└── Definição 3</div>",
+      ...lines,
       "</div>",
       "</div><div><br></div>",
     ].join("");
