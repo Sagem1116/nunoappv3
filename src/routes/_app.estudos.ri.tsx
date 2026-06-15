@@ -513,11 +513,15 @@ function NotesPanel({
   userId,
   notes,
   setNotes,
+  contentType,
+  label,
 }: {
   moduleId: string;
   userId?: string;
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
+  contentType: NoteType;
+  label: string;
 }) {
   const [activeId, setActiveId] = useState<string | null>(notes[0]?.id ?? null);
   const active = notes.find((note) => note.id === activeId) ?? null;
@@ -528,13 +532,14 @@ function NotesPanel({
       .insert({
         module_id: moduleId,
         user_id: userId,
-        title: "Nova nota",
+        title: `Nova ${label}`,
         content: "",
+        content_type: contentType,
         position: notes.length,
       })
       .select()
       .single();
-    if (error || !data) return toast.error("Não foi possível criar a nota.");
+    if (error || !data) return toast.error(`Não foi possível criar a ${label}.`);
     setNotes((current) => [...current, data as Note]);
     setActiveId(data.id);
   };
@@ -543,12 +548,12 @@ function NotesPanel({
       current.map((item) => (item.id === note.id ? { ...item, ...changes } : item)),
     );
     const { error } = await supabase.from("ri_notes").update(changes).eq("id", note.id);
-    if (error) toast.error("Não foi possível guardar a nota.");
+    if (error) toast.error(`Não foi possível guardar a ${label}.`);
   };
   const remove = async (note: Note) => {
-    if (!confirm(`Eliminar a nota “${note.title}”?`)) return;
+    if (!confirm(`Eliminar a ${label} “${note.title}”?`)) return;
     const { error } = await supabase.from("ri_notes").delete().eq("id", note.id);
-    if (error) return toast.error("Não foi possível eliminar a nota.");
+    if (error) return toast.error(`Não foi possível eliminar a ${label}.`);
     setNotes((current) => current.filter((item) => item.id !== note.id));
     setActiveId(null);
   };
@@ -556,7 +561,7 @@ function NotesPanel({
     <div className="grid min-h-[520px] gap-4 lg:grid-cols-[260px_1fr]">
       <aside className="glass-card p-3">
         <Button className="w-full" onClick={() => void add()}>
-          <Plus /> Nova nota
+          <Plus /> Nova {label}
         </Button>
         <div className="mt-3 space-y-1">
           {notes.map((note) => (
@@ -611,13 +616,13 @@ function NotesPanel({
             />
             <div className="flex justify-end border-t border-border p-3">
               <Button onClick={() => void update(active, { content: active.content })}>
-                Guardar nota
+                Guardar {label}
               </Button>
             </div>
           </div>
         ) : (
           <div className="grid h-full min-h-80 place-items-center text-sm text-muted-foreground">
-            Cria ou seleciona uma nota.
+            Cria ou seleciona uma {label}.
           </div>
         )}
       </section>
