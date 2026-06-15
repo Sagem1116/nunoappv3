@@ -276,7 +276,7 @@ function RIPage() {
             </div>
           </div>
         </header>
-        <div className="flex gap-2 border-b border-border">
+        <div className="flex gap-2 overflow-x-auto border-b border-border">
           {([
             ["notes", "Notas"],
             ["material", "Matéria"],
