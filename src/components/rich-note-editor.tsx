@@ -167,7 +167,7 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
         onInput={handleInput}
         onBlur={handleInput}
         data-placeholder={placeholder}
-        className="flex-1 w-full p-4 bg-[#1e1e1e] text-neutral-100 font-mono text-sm leading-relaxed focus:outline-none overflow-auto min-h-[200px] empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-500"
+        className="flex-1 w-full p-4 bg-[#1e1e1e] text-neutral-100 font-mono text-sm leading-relaxed whitespace-pre-wrap focus:outline-none overflow-auto min-h-[200px] empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-500"
         style={{ fontFamily: 'Consolas, "Courier New", monospace' }}
       />
     </div>
