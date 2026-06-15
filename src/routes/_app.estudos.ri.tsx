@@ -277,11 +277,13 @@ function RIPage() {
           </div>
         </header>
         <div className="flex gap-2 overflow-x-auto border-b border-border">
-          {([
-            ["notes", "Notas"],
-            ["material", "Matéria"],
-            ["reflection", "Reflexão"],
-          ] as const).map(([value, label]) => (
+          {(
+            [
+              ["notes", "Notas"],
+              ["material", "Matéria"],
+              ["reflection", "Reflexão"],
+            ] as const
+          ).map(([value, label]) => (
             <Button
               key={value}
               variant="ghost"
@@ -315,9 +317,7 @@ function RIPage() {
             notes={moduleNotes}
             setNotes={setNotes}
             contentType={section}
-            label={
-              section === "notes" ? "nota" : section === "material" ? "matéria" : "reflexão"
-            }
+            label={section === "notes" ? "nota" : section === "material" ? "matéria" : "reflexão"}
           />
         ) : (
           <QuestionsPanel
