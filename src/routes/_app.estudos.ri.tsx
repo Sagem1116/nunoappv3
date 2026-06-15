@@ -576,7 +576,7 @@ function NotesPanel({
           ))}
         </div>
       </aside>
-      <section className="glass-card overflow-hidden">
+      <section className="glass-card">
         {active ? (
           <div className="flex h-full flex-col">
             <div className="flex items-center gap-2 border-b border-border p-3">
