@@ -82,7 +82,10 @@ function RIPage() {
     const cleanTitle = title.trim();
     if (!cleanTitle) return;
     const { error } = await supabase.from("ri_modules").update({ title: cleanTitle }).eq("id", id);
-    if (error) return toast.error("Não foi possível renomear o módulo.");
+    if (error) {
+      toast.error("Não foi possível renomear o módulo.");
+      return;
+    }
     setModules((current) => current.map((module) => module.id === id ? { ...module, title: cleanTitle } : module));
     setRenamingId(null);
   };
