@@ -248,6 +248,11 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
 
   return (
     <div className={className}>
+      <SchemeModal
+        open={schemeOpen}
+        onClose={() => setSchemeOpen(false)}
+        onInsert={handleSchemeInsert}
+      />
       <div className="sticky top-0 z-20 flex shrink-0 items-center gap-1 overflow-x-auto px-2 py-1 bg-[#2d2d2d] border-b border-black/40 text-xs text-neutral-300 shadow-md">
         <button
           type="button"
