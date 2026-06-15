@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { TagInput } from "@/components/tag-input";
 import { NotepadViewer } from "@/components/notepad-viewer";
+import { RichNoteEditor } from "@/components/rich-note-editor";
 // Strip HTML tags from any legacy rich-text content so notes display as plain text
 const stripHtml = (s: string): string => {
   if (!s) return "";
@@ -355,11 +356,10 @@ function NoteDialog({
         </Field>
 
         <Field label="Conteúdo">
-          <textarea
-            value={stripHtml(content)}
-            onChange={(e) => setContent(e.target.value)}
-            rows={8}
-            className={inputCls + " font-mono"}
+          <RichNoteEditor
+            value={content}
+            onChange={setContent}
+            className="overflow-hidden rounded-lg border border-border"
             placeholder="Escreve a tua nota..."
           />
         </Field>
