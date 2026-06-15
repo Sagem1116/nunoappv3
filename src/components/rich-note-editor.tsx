@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { Bold, Palette, Type } from "lucide-react";
-import DOMPurify from "dompurify";
+import DOMPurify, { type Config } from "dompurify";
 
 const COLORS = [
   { name: "Padrão", value: "" },
@@ -12,14 +12,14 @@ const COLORS = [
   { name: "Amarelo", value: "#fbbf24" },
 ];
 
-const ALLOWED = {
+const ALLOWED: Config = {
   ALLOWED_TAGS: ["b", "strong", "i", "em", "u", "br", "div", "p", "span", "font"],
   ALLOWED_ATTR: ["style", "color", "size"],
 };
 
 export function sanitizeNote(html: string): string {
   if (typeof window === "undefined") return html;
-  return DOMPurify.sanitize(html, ALLOWED as any) as unknown as string;
+  return DOMPurify.sanitize(html, ALLOWED) as string;
 }
 
 export interface RichNoteEditorHandle {
@@ -59,7 +59,9 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
     ref.current?.focus();
     try {
       document.execCommand(cmd, false, val);
-    } catch {}
+    } catch {
+      return;
+    }
     handleInput();
   };
 
