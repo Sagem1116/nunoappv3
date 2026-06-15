@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Save, Pencil, FileText, Undo2, Redo2, Search, ChevronUp, ChevronDown } from "lucide-react";
+import { RichNoteEditor, type RichNoteEditorHandle } from "@/components/rich-note-editor";
 
 interface NotepadViewerProps {
   title: string;
@@ -9,7 +10,6 @@ interface NotepadViewerProps {
   onEditMeta?: () => void;
 }
 
-// Strip any leftover HTML tags so old rich-text content shows as plain text
 function htmlToPlain(s: string): string {
   if (!s) return "";
   if (!/<[a-z!/][\s\S]*>/i.test(s)) return s;
@@ -22,19 +22,19 @@ function htmlToPlain(s: string): string {
 }
 
 export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMeta }: NotepadViewerProps) {
-  const [content, setContent] = useState(() => htmlToPlain(initialContent));
+  const [content, setContent] = useState(initialContent);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);
   const [confirmClose, setConfirmClose] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
   const [findQuery, setFindQuery] = useState("");
   const [findIndex, setFindIndex] = useState(0);
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const ref = useRef<RichNoteEditorHandle>(null);
 
   const matches = useMemo(() => {
     if (!findQuery) return [] as number[];
     const out: number[] = [];
-    const hay = content.toLowerCase();
+    const hay = htmlToPlain(content).toLowerCase();
     const needle = findQuery.toLowerCase();
     let i = 0;
     while ((i = hay.indexOf(needle, i)) !== -1) { out.push(i); i += Math.max(needle.length, 1); }
@@ -49,24 +49,17 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
     setFindIndex(safe);
     const start = matches[safe];
     const end = start + findQuery.length;
-    const ta = ref.current;
-    ta.focus();
-    ta.setSelectionRange(start, end);
-    // Scroll into view by measuring line height
-    const before = content.slice(0, start);
-    const line = before.split("\n").length - 1;
-    const lh = parseFloat(getComputedStyle(ta).lineHeight || "20");
-    ta.scrollTop = Math.max(0, line * lh - ta.clientHeight / 2);
+    ref.current.selectTextRange(start, end);
   };
 
 
   useEffect(() => {
-    setContent(htmlToPlain(initialContent));
+    setContent(initialContent);
     setSaved(true);
   }, [initialContent]);
 
   useEffect(() => {
-    setSaved(content === htmlToPlain(initialContent));
+    setSaved(content === initialContent);
   }, [content, initialContent]);
 
   const save = async () => {
@@ -124,10 +117,10 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
             <span className="truncate">{title || "Sem título"}{!saved && " •"} — Bloco de notas</span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={() => { ref.current?.focus(); document.execCommand("undo"); }} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Anular (Ctrl+Z)">
+            <button onClick={() => ref.current?.undo()} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Anular (Ctrl+Z)">
               <Undo2 className="h-3.5 w-3.5" />
             </button>
-            <button onClick={() => { ref.current?.focus(); document.execCommand("redo"); }} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Refazer (Ctrl+Y)">
+            <button onClick={() => ref.current?.redo()} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Refazer (Ctrl+Y)">
               <Redo2 className="h-3.5 w-3.5" />
             </button>
             <button onClick={() => setFindOpen((v) => !v)} className="px-2 py-0.5 hover:bg-white/20 rounded-sm text-xs" title="Procurar (Ctrl+F)">
@@ -187,15 +180,13 @@ export function NotepadViewer({ title, initialContent, onClose, onSave, onEditMe
           </div>
         )}
 
-        <textarea
+        <RichNoteEditor
           ref={ref}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={setContent}
           autoFocus
-          spellCheck
           placeholder="Escreve a tua nota..."
-          className="flex-1 w-full p-4 bg-[#1e1e1e] text-neutral-100 font-mono text-sm leading-relaxed focus:outline-none resize-none"
-          style={{ fontFamily: 'Consolas, "Courier New", monospace' }}
+          className="flex flex-1 min-h-0 flex-col"
         />
 
         <div className="px-3 py-1 text-[10px] text-neutral-400 bg-[#2d2d2d] border-t border-black/40 flex justify-between">
