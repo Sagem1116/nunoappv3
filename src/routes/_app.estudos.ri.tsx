@@ -277,17 +277,24 @@ function RIPage() {
           </div>
         </header>
         <div className="flex gap-2 border-b border-border">
-          <Button
-            variant="ghost"
-            onClick={() => setSection("notes")}
-            className={
-              section === "notes"
-                ? "border-b-2 border-primary text-primary rounded-none"
-                : "rounded-none text-muted-foreground"
-            }
-          >
-            <FileText /> Notas
-          </Button>
+          {([
+            ["notes", "Notas"],
+            ["material", "Matéria"],
+            ["reflection", "Reflexão"],
+          ] as const).map(([value, label]) => (
+            <Button
+              key={value}
+              variant="ghost"
+              onClick={() => setSection(value)}
+              className={
+                section === value
+                  ? "border-b-2 border-primary text-primary rounded-none"
+                  : "rounded-none text-muted-foreground"
+              }
+            >
+              <FileText /> {label}
+            </Button>
+          ))}
           <Button
             variant="ghost"
             onClick={() => setSection("tests")}
@@ -300,12 +307,17 @@ function RIPage() {
             <HelpCircle /> Testes
           </Button>
         </div>
-        {section === "notes" ? (
+        {section !== "tests" ? (
           <NotesPanel
+            key={`${selected.id}-${section}`}
             moduleId={selected.id}
             userId={user?.id}
             notes={moduleNotes}
             setNotes={setNotes}
+            contentType={section}
+            label={
+              section === "notes" ? "nota" : section === "material" ? "matéria" : "reflexão"
+            }
           />
         ) : (
           <QuestionsPanel
