@@ -14,7 +14,7 @@ const COLORS = [
 
 const ALLOWED = {
   ALLOWED_TAGS: ["b", "strong", "i", "em", "u", "br", "div", "p", "span", "font"],
-  ALLOWED_ATTR: ["style", "color"],
+  ALLOWED_ATTR: ["style", "color", "size"],
 };
 
 export function sanitizeNote(html: string): string {
@@ -42,7 +42,7 @@ export const RichNoteEditor = forwardRef<RichNoteEditorHandle, Props>(function R
   forwardedRef,
 ) {
   const ref = useRef<HTMLDivElement>(null);
-  const lastSetValue = useRef(value);
+  const lastSetValue = useRef("");
 
   useEffect(() => {
     if (ref.current && value !== lastSetValue.current && value !== ref.current.innerHTML) {
