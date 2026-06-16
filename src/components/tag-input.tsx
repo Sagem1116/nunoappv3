@@ -61,7 +61,7 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Adi
       </div>
       {available.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground self-center mr-1">Existentes:</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground self-center mr-1">{draft.trim() ? "Resultados:" : "Existentes:"}</span>
           {available.map((s) => (
             <button
               key={s}
