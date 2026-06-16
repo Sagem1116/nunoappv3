@@ -49,6 +49,14 @@ const PRIORITY_CLASS: Record<Priority, string> = {
   high: "bg-red-500/15 text-red-400 border-red-500/40",
 };
 
+// Sort tasks by start_time ascending; tasks without start_time go last.
+const byStartTime = (a: Task, b: Task) => {
+  const sa = a.start_time ?? "99:99";
+  const sb = b.start_time ?? "99:99";
+  if (sa !== sb) return sa.localeCompare(sb);
+  return (a.due_date ?? "").localeCompare(b.due_date ?? "");
+};
+
 function TasksPage() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -286,9 +294,9 @@ function DailyView({ tasks, onToggle, onEdit, onDelete }: {
   onDelete: (id: string) => void;
 }) {
   const today = startOfDay(new Date());
-  const overdue = tasks.filter((t) => t.due_date && parseISO(t.due_date) < today && t.status === "pending");
-  const todays = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), today));
-  const noDate = tasks.filter((t) => !t.due_date && t.status === "pending");
+  const overdue = tasks.filter((t) => t.due_date && parseISO(t.due_date) < today && t.status === "pending").sort(byStartTime);
+  const todays = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), today)).sort(byStartTime);
+  const noDate = tasks.filter((t) => !t.due_date && t.status === "pending").sort(byStartTime);
 
   if (tasks.length === 0) return <EmptyState icon={CheckSquare} label="Sem tarefas." />;
 
@@ -343,7 +351,7 @@ function WeeklyView({ tasks, cursor, setCursor, onToggle, onEdit, onDelete, onSe
       />
       <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
         {days.map((d) => {
-          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d));
+          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d)).sort(byStartTime);
           const isToday = isSameDay(d, new Date());
           return (
             <div key={d.toISOString()} className={[
@@ -394,7 +402,7 @@ function MonthlyView({ tasks, cursor, setCursor, onSelectDay }: {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {days.map((d) => {
-          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d));
+          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d)).sort(byStartTime);
           const isToday = isSameDay(d, new Date());
           const inMonth = isSameMonth(d, cursor);
           return (
@@ -514,7 +522,7 @@ function MiniTask({ task, onToggle, onEdit, onDelete }: {
 function DayTasksList({ date, tasks, onToggle, onEdit, onDelete }: {
   date: Date; tasks: Task[]; onToggle: (t: Task) => void; onEdit: (t: Task) => void; onDelete: (id: string) => void;
 }) {
-  const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), date));
+  const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), date)).sort(byStartTime);
   if (dayTasks.length === 0) return <div className="rounded-md p-3 border border-border bg-card/40 text-sm text-muted-foreground">Sem tarefas para este dia.</div>;
   return (
     <div className="space-y-2">
