@@ -32,10 +32,12 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Adi
     }
   };
 
-  const available = useMemo(
-    () => suggestions.filter((s) => !value.includes(s)).slice(0, 20),
-    [suggestions, value],
-  );
+  const available = useMemo(() => {
+    const q = draft.trim().toLowerCase();
+    const list = suggestions.filter((s) => !value.includes(s));
+    const filtered = q ? list.filter((s) => s.toLowerCase().includes(q)) : list;
+    return filtered.slice(0, 20);
+  }, [suggestions, value, draft]);
 
   return (
     <div className="space-y-2">
