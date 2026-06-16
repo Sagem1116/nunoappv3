@@ -49,6 +49,14 @@ const PRIORITY_CLASS: Record<Priority, string> = {
   high: "bg-red-500/15 text-red-400 border-red-500/40",
 };
 
+// Sort tasks by start_time ascending; tasks without start_time go last.
+const byStartTime = (a: Task, b: Task) => {
+  const sa = a.start_time ?? "99:99";
+  const sb = b.start_time ?? "99:99";
+  if (sa !== sb) return sa.localeCompare(sb);
+  return (a.due_date ?? "").localeCompare(b.due_date ?? "");
+};
+
 function TasksPage() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
