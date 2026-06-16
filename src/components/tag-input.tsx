@@ -55,7 +55,7 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Adi
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKey}
           onBlur={() => draft && add(draft)}
-          placeholder={value.length === 0 ? placeholder : ""}
+          placeholder={value.length === 0 ? placeholder : "Procurar ou adicionar tag..."}
           className="flex-1 min-w-[140px] bg-transparent px-1 py-1 text-sm focus:outline-none"
         />
       </div>
