@@ -294,9 +294,9 @@ function DailyView({ tasks, onToggle, onEdit, onDelete }: {
   onDelete: (id: string) => void;
 }) {
   const today = startOfDay(new Date());
-  const overdue = tasks.filter((t) => t.due_date && parseISO(t.due_date) < today && t.status === "pending");
-  const todays = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), today));
-  const noDate = tasks.filter((t) => !t.due_date && t.status === "pending");
+  const overdue = tasks.filter((t) => t.due_date && parseISO(t.due_date) < today && t.status === "pending").sort(byStartTime);
+  const todays = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), today)).sort(byStartTime);
+  const noDate = tasks.filter((t) => !t.due_date && t.status === "pending").sort(byStartTime);
 
   if (tasks.length === 0) return <EmptyState icon={CheckSquare} label="Sem tarefas." />;
 
