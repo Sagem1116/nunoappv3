@@ -7,16 +7,15 @@ import {
   CheckSquare,
   Wallet,
   Plane,
-  FolderKanban,
   LogOut,
   Sparkles,
   Brain,
-  Ticket,
   X,
   Plug,
   Trophy,
   Newspaper,
   Mail,
+  Keyboard,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -31,10 +30,9 @@ const items = [
   { title: "Mundial", url: "/mundial", icon: Trophy },
   { title: "Notícias", url: "/noticias", icon: Newspaper },
   { title: "Email", url: "/email", icon: Mail },
-  { title: "Reservas", url: "/reservas", icon: Ticket },
-  { title: "Projetos", url: "/projetos", icon: FolderKanban },
   { title: "Apps", url: "/apps", icon: Plug },
   { title: "Nuno AI", url: "/ai", icon: Brain },
+  { title: "Atalhos", url: "/atalhos", icon: Keyboard },
 ] as const;
 
 interface AppSidebarProps {
