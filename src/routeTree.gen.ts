@@ -29,6 +29,7 @@ import { Route as AppFinancasRouteImport } from './routes/_app.financas'
 import { Route as AppEmailRouteImport } from './routes/_app.email'
 import { Route as AppDriveRouteImport } from './routes/_app.drive'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppAtalhosRouteImport } from './routes/_app.atalhos'
 import { Route as AppAppsRouteImport } from './routes/_app.apps'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
 import { Route as AppViagensIndexRouteImport } from './routes/_app.viagens.index'
@@ -145,6 +146,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAtalhosRoute = AppAtalhosRouteImport.update({
+  id: '/atalhos',
+  path: '/atalhos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAppsRoute = AppAppsRouteImport.update({
   id: '/apps',
   path: '/apps',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ai': typeof AppAiRouteWithChildren
   '/apps': typeof AppAppsRoute
+  '/atalhos': typeof AppAtalhosRoute
   '/dashboard': typeof AppDashboardRoute
   '/drive': typeof AppDriveRouteWithChildren
   '/email': typeof AppEmailRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/apps': typeof AppAppsRoute
+  '/atalhos': typeof AppAtalhosRoute
   '/dashboard': typeof AppDashboardRoute
   '/email': typeof AppEmailRoute
   '/financas': typeof AppFinancasRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_app/ai': typeof AppAiRouteWithChildren
   '/_app/apps': typeof AppAppsRoute
+  '/_app/atalhos': typeof AppAtalhosRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/drive': typeof AppDriveRouteWithChildren
   '/_app/email': typeof AppEmailRoute
@@ -343,6 +352,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ai'
     | '/apps'
+    | '/atalhos'
     | '/dashboard'
     | '/drive'
     | '/email'
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/apps'
+    | '/atalhos'
     | '/dashboard'
     | '/email'
     | '/financas'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_app/ai'
     | '/_app/apps'
+    | '/_app/atalhos'
     | '/_app/dashboard'
     | '/_app/drive'
     | '/_app/email'
@@ -601,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/atalhos': {
+      id: '/_app/atalhos'
+      path: '/atalhos'
+      fullPath: '/atalhos'
+      preLoaderRoute: typeof AppAtalhosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/apps': {
       id: '/_app/apps'
       path: '/apps'
@@ -781,6 +800,7 @@ const AppViagensRouteWithChildren = AppViagensRoute._addFileChildren(
 interface AppRouteChildren {
   AppAiRoute: typeof AppAiRouteWithChildren
   AppAppsRoute: typeof AppAppsRoute
+  AppAtalhosRoute: typeof AppAtalhosRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDriveRoute: typeof AppDriveRouteWithChildren
   AppEmailRoute: typeof AppEmailRoute
@@ -798,6 +818,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRouteWithChildren,
   AppAppsRoute: AppAppsRoute,
+  AppAtalhosRoute: AppAtalhosRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDriveRoute: AppDriveRouteWithChildren,
   AppEmailRoute: AppEmailRoute,
