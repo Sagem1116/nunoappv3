@@ -17,7 +17,6 @@ import {
   Trophy,
   Newspaper,
   Mail,
-  GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -32,7 +31,6 @@ const items = [
   { title: "Mundial", url: "/mundial", icon: Trophy },
   { title: "Notícias", url: "/noticias", icon: Newspaper },
   { title: "Email", url: "/email", icon: Mail },
-  { title: "Estudos · RI", url: "/estudos/ri", icon: GraduationCap },
   { title: "Reservas", url: "/reservas", icon: Ticket },
   { title: "Projetos", url: "/projetos", icon: FolderKanban },
   { title: "Apps", url: "/apps", icon: Plug },

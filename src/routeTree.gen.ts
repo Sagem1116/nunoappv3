@@ -37,7 +37,6 @@ import { Route as AppDriveIndexRouteImport } from './routes/_app.drive.index'
 import { Route as AppAiIndexRouteImport } from './routes/_app.ai.index'
 import { Route as PViagemSlugRouteImport } from './routes/p.viagem.$slug'
 import { Route as AppViagensTripIdRouteImport } from './routes/_app.viagens.$tripId'
-import { Route as AppEstudosRiRouteImport } from './routes/_app.estudos.ri'
 import { Route as AppDriveTrashRouteImport } from './routes/_app.drive.trash'
 import { Route as AppDriveTagsRouteImport } from './routes/_app.drive.tags'
 import { Route as AppDriveStarredRouteImport } from './routes/_app.drive.starred'
@@ -186,11 +185,6 @@ const AppViagensTripIdRoute = AppViagensTripIdRouteImport.update({
   path: '/$tripId',
   getParentRoute: () => AppViagensRoute,
 } as any)
-const AppEstudosRiRoute = AppEstudosRiRouteImport.update({
-  id: '/estudos/ri',
-  path: '/estudos/ri',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppDriveTrashRoute = AppDriveTrashRouteImport.update({
   id: '/trash',
   path: '/trash',
@@ -260,7 +254,6 @@ export interface FileRoutesByFullPath {
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
-  '/estudos/ri': typeof AppEstudosRiRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/p/viagem/$slug': typeof PViagemSlugRoute
   '/ai/': typeof AppAiIndexRoute
@@ -294,7 +287,6 @@ export interface FileRoutesByTo {
   '/drive/starred': typeof AppDriveStarredRoute
   '/drive/tags': typeof AppDriveTagsRoute
   '/drive/trash': typeof AppDriveTrashRoute
-  '/estudos/ri': typeof AppEstudosRiRoute
   '/viagens/$tripId': typeof AppViagensTripIdRoute
   '/p/viagem/$slug': typeof PViagemSlugRoute
   '/ai': typeof AppAiIndexRoute
@@ -334,7 +326,6 @@ export interface FileRoutesById {
   '/_app/drive/starred': typeof AppDriveStarredRoute
   '/_app/drive/tags': typeof AppDriveTagsRoute
   '/_app/drive/trash': typeof AppDriveTrashRoute
-  '/_app/estudos/ri': typeof AppEstudosRiRoute
   '/_app/viagens/$tripId': typeof AppViagensTripIdRoute
   '/p/viagem/$slug': typeof PViagemSlugRoute
   '/_app/ai/': typeof AppAiIndexRoute
@@ -374,7 +365,6 @@ export interface FileRouteTypes {
     | '/drive/starred'
     | '/drive/tags'
     | '/drive/trash'
-    | '/estudos/ri'
     | '/viagens/$tripId'
     | '/p/viagem/$slug'
     | '/ai/'
@@ -408,7 +398,6 @@ export interface FileRouteTypes {
     | '/drive/starred'
     | '/drive/tags'
     | '/drive/trash'
-    | '/estudos/ri'
     | '/viagens/$tripId'
     | '/p/viagem/$slug'
     | '/ai'
@@ -447,7 +436,6 @@ export interface FileRouteTypes {
     | '/_app/drive/starred'
     | '/_app/drive/tags'
     | '/_app/drive/trash'
-    | '/_app/estudos/ri'
     | '/_app/viagens/$tripId'
     | '/p/viagem/$slug'
     | '/_app/ai/'
@@ -669,13 +657,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppViagensTripIdRouteImport
       parentRoute: typeof AppViagensRoute
     }
-    '/_app/estudos/ri': {
-      id: '/_app/estudos/ri'
-      path: '/estudos/ri'
-      fullPath: '/estudos/ri'
-      preLoaderRoute: typeof AppEstudosRiRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/drive/trash': {
       id: '/_app/drive/trash'
       path: '/trash'
@@ -812,7 +793,6 @@ interface AppRouteChildren {
   AppReservasRoute: typeof AppReservasRouteWithChildren
   AppTarefasRoute: typeof AppTarefasRoute
   AppViagensRoute: typeof AppViagensRouteWithChildren
-  AppEstudosRiRoute: typeof AppEstudosRiRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -830,7 +810,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasRoute: AppReservasRouteWithChildren,
   AppTarefasRoute: AppTarefasRoute,
   AppViagensRoute: AppViagensRouteWithChildren,
-  AppEstudosRiRoute: AppEstudosRiRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -1,2 +1,0 @@
-ALTER TABLE public.ri_notes ADD COLUMN content_type text NOT NULL DEFAULT 'notes' CHECK (content_type IN ('notes', 'material', 'reflection'));
-CREATE INDEX ri_notes_module_type_position_idx ON public.ri_notes(module_id, content_type, position);
