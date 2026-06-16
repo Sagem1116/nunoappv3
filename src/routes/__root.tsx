@@ -93,8 +93,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Nuno App" },
       { name: "twitter:description", content: "Organiza toda a tua vida" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/95b63138-48ee-400e-8595-a9db132e89ea/id-preview-67476120--1f66f12d-7d63-4390-8c22-f436d3bde838.lovable.app-1780635717722.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/95b63138-48ee-400e-8595-a9db132e89ea/id-preview-67476120--1f66f12d-7d63-4390-8c22-f436d3bde838.lovable.app-1780635717722.png" },
+      { property: "og:image", content: "/__l5e/assets-v1/857a536d-d54f-4738-bbb0-353782ab99f6/nuno-stuff-logo.png" },
+      { name: "twitter:image", content: "/__l5e/assets-v1/857a536d-d54f-4738-bbb0-353782ab99f6/nuno-stuff-logo.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
