@@ -337,8 +337,8 @@ function NoteDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
-      <form onSubmit={submit} className="glass-card neon-border w-full max-w-lg p-6 space-y-4 page-enter">
-        <div className="flex items-center justify-between">
+      <form onSubmit={submit} className="glass-card neon-border w-full max-w-lg p-6 page-enter flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold neon-text">
             {initial ? "Editar nota" : "Nova nota"}
           </h3>
@@ -347,29 +347,33 @@ function NoteDialog({
           </button>
         </div>
 
-        <Field label="Título">
-          <input
-            autoFocus value={title} maxLength={200}
-            onChange={(e) => setTitle(e.target.value)}
-            className={inputCls}
-          />
-        </Field>
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+          <Field label="Título">
+            <input
+              autoFocus value={title} maxLength={200}
+              onChange={(e) => setTitle(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
 
-        <Field label="Conteúdo">
-          <RichNoteEditor
-            value={content}
-            onChange={setContent}
-            className="overflow-hidden rounded-lg border border-border"
-            placeholder="Escreve a tua nota..."
-          />
-        </Field>
+          <div className="block">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">Conteúdo</span>
+            <div className="mt-1">
+              <RichNoteEditor
+                value={content}
+                onChange={setContent}
+                className="overflow-hidden rounded-lg border border-border"
+                placeholder="Escreve a tua nota..."
+              />
+            </div>
+          </div>
 
-        <Field label="Tags">
-          <TagInput value={tags} onChange={setTags} suggestions={allTags} placeholder="ideia, trabalho, urgente" />
-        </Field>
+          <Field label="Tags">
+            <TagInput value={tags} onChange={setTags} suggestions={allTags} placeholder="ideia, trabalho, urgente" />
+          </Field>
+        </div>
 
-
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-4 mt-2 border-t border-border">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">
             Cancelar
           </button>

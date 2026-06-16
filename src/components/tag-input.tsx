@@ -32,10 +32,12 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Adi
     }
   };
 
-  const available = useMemo(
-    () => suggestions.filter((s) => !value.includes(s)).slice(0, 20),
-    [suggestions, value],
-  );
+  const available = useMemo(() => {
+    const q = draft.trim().toLowerCase();
+    const list = suggestions.filter((s) => !value.includes(s));
+    const filtered = q ? list.filter((s) => s.toLowerCase().includes(q)) : list;
+    return filtered.slice(0, 20);
+  }, [suggestions, value, draft]);
 
   return (
     <div className="space-y-2">
@@ -53,13 +55,13 @@ export function TagInput({ value, onChange, suggestions = [], placeholder = "Adi
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKey}
           onBlur={() => draft && add(draft)}
-          placeholder={value.length === 0 ? placeholder : ""}
+          placeholder={value.length === 0 ? placeholder : "Procurar ou adicionar tag..."}
           className="flex-1 min-w-[140px] bg-transparent px-1 py-1 text-sm focus:outline-none"
         />
       </div>
       {available.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground self-center mr-1">Existentes:</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground self-center mr-1">{draft.trim() ? "Resultados:" : "Existentes:"}</span>
           {available.map((s) => (
             <button
               key={s}
