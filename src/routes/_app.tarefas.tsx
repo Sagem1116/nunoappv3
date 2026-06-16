@@ -351,7 +351,7 @@ function WeeklyView({ tasks, cursor, setCursor, onToggle, onEdit, onDelete, onSe
       />
       <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
         {days.map((d) => {
-          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d));
+          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d)).sort(byStartTime);
           const isToday = isSameDay(d, new Date());
           return (
             <div key={d.toISOString()} className={[
