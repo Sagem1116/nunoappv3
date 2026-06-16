@@ -1,5 +1,5 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { Bold, Palette, Type } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { Bold, Palette, Type, Undo2, Redo2, Search, ChevronUp, ChevronDown, X } from "lucide-react";
 import DOMPurify, { type Config } from "dompurify";
 
 const COLORS = [
