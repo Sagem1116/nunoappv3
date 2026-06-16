@@ -402,7 +402,7 @@ function MonthlyView({ tasks, cursor, setCursor, onSelectDay }: {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {days.map((d) => {
-          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d));
+          const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), d)).sort(byStartTime);
           const isToday = isSameDay(d, new Date());
           const inMonth = isSameMonth(d, cursor);
           return (
