@@ -522,7 +522,7 @@ function MiniTask({ task, onToggle, onEdit, onDelete }: {
 function DayTasksList({ date, tasks, onToggle, onEdit, onDelete }: {
   date: Date; tasks: Task[]; onToggle: (t: Task) => void; onEdit: (t: Task) => void; onDelete: (id: string) => void;
 }) {
-  const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), date));
+  const dayTasks = tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), date)).sort(byStartTime);
   if (dayTasks.length === 0) return <div className="rounded-md p-3 border border-border bg-card/40 text-sm text-muted-foreground">Sem tarefas para este dia.</div>;
   return (
     <div className="space-y-2">
