@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
 import { runWeeklyAutoExports } from "@/lib/data-io";
 import { runScheduledChecks } from "@/lib/notification-scheduler";
+import { SHORTCUTS } from "@/lib/shortcuts";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -44,6 +45,21 @@ function AppLayout() {
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      const match = SHORTCUTS.find((s) => s.key === e.key.toLowerCase());
+      if (!match) return;
+      e.preventDefault();
+      navigate({ to: match.to });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate]);
 
   if (loading || !session) {
     return (
