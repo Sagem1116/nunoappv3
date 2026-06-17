@@ -66,14 +66,18 @@ export async function uploadFileToStorage(
 }
 
 export async function downloadFile(file: FileRow) {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(file.storage_path, 60);
-  if (error || !data) throw error ?? new Error("No signed url");
+  // Baixar como Blob para garantir que o atributo `download` é respeitado
+  // (browsers ignoram-no em URLs cross-origin como as da Storage).
+  const { data, error } = await supabase.storage.from(BUCKET).download(file.storage_path);
+  if (error || !data) throw error ?? new Error("Falha ao transferir o ficheiro");
+  const url = URL.createObjectURL(data);
   const a = document.createElement("a");
-  a.href = data.signedUrl;
+  a.href = url;
   a.download = file.name;
   document.body.appendChild(a);
   a.click();
   a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export async function getSignedUrl(path: string, expiresIn = 60): Promise<string> {
