@@ -250,11 +250,14 @@ function Dashboard() {
 
   return (
     <div className="page-enter space-y-8">
-      <div>
-        <p className="text-sm text-muted-foreground">{format(today, "EEEE, d 'de' MMMM", { locale: pt })}</p>
-        <h2 className="text-3xl font-semibold mt-1">
-          Olá, <span className="neon-text">{user?.email?.split("@")[0]}</span>
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">{format(today, "EEEE, d 'de' MMMM", { locale: pt })}</p>
+          <h2 className="text-3xl font-semibold mt-1">
+            Olá, <span className="neon-text">{user?.email?.split("@")[0]}</span>
+          </h2>
+        </div>
+        <Clock />
       </div>
 
       {/* KPI cards */}
