@@ -56,6 +56,24 @@ const PRIO_DOT: Record<string, string> = {
   high: "bg-red-400", medium: "bg-yellow-400", low: "bg-primary",
 };
 
+function Clock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="text-right">
+      <div className="text-3xl font-semibold tabular-nums tracking-tight">
+        {format(time, "HH:mm:ss")}
+      </div>
+      <div className="text-xs text-muted-foreground uppercase tracking-widest">
+        {format(time, "EEEE, d MMMM yyyy", { locale: pt })}
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
