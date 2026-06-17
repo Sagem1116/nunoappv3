@@ -56,6 +56,24 @@ const PRIO_DOT: Record<string, string> = {
   high: "bg-red-400", medium: "bg-yellow-400", low: "bg-primary",
 };
 
+function Clock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="text-right">
+      <div className="text-3xl font-semibold tabular-nums tracking-tight">
+        {format(time, "HH:mm:ss")}
+      </div>
+      <div className="text-xs text-muted-foreground uppercase tracking-widest">
+        {format(time, "EEEE, d MMMM yyyy", { locale: pt })}
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -250,11 +268,14 @@ function Dashboard() {
 
   return (
     <div className="page-enter space-y-8">
-      <div>
-        <p className="text-sm text-muted-foreground">{format(today, "EEEE, d 'de' MMMM", { locale: pt })}</p>
-        <h2 className="text-3xl font-semibold mt-1">
-          Olá, <span className="neon-text">{user?.email?.split("@")[0]}</span>
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">{format(today, "EEEE, d 'de' MMMM", { locale: pt })}</p>
+          <h2 className="text-3xl font-semibold mt-1">
+            Olá, <span className="neon-text">{user?.email?.split("@")[0]}</span>
+          </h2>
+        </div>
+        <Clock />
       </div>
 
       {/* KPI cards */}
