@@ -102,6 +102,20 @@ function FinancasPage() {
 
   useEffect(() => { if (user) load(); /* eslint-disable-next-line */ }, [user?.id]);
 
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("savings_movements")
+        .select("amount,kind");
+      const total = ((data as any[]) ?? []).reduce(
+        (s, m) => s + (m.kind === "deposit" ? Number(m.amount) : -Number(m.amount)),
+        0,
+      );
+      setSavingsTotal(total);
+    })();
+  }, [user?.id]);
+
   const stats = useMemo(() => {
     let income = 0, expense = 0;
     for (const t of txs) {
