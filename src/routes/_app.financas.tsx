@@ -224,8 +224,9 @@ function FinancasPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={Wallet} label="Saldo total" value={fmt(stats.balance)}
-          accent={stats.balance >= 0 ? "text-primary" : "text-destructive"} />
+        <StatCard icon={Wallet} label="Saldo total" value={fmt(stats.balance + savingsTotal)}
+          accent={stats.balance + savingsTotal >= 0 ? "text-primary" : "text-destructive"}
+          subLabel={savingsTotal > 0 ? <>dos quais <span className="text-emerald-400 font-medium">{fmt(savingsTotal)}</span> de poupanças</> : undefined} />
         <StatCard icon={TrendingUp} label="Entradas" value={fmt(stats.income)} accent="text-emerald-400" />
         <StatCard icon={TrendingDown} label="Gastos" value={fmt(stats.expense)} accent="text-orange-400" />
       </div>
