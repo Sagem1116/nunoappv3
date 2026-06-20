@@ -64,6 +64,7 @@ function FinancasPage() {
   const [filterType, setFilterType] = useState<"all" | TxType>("all");
   const [filterCat, setFilterCat] = useState<string>("all");
   const [catManagerOpen, setCatManagerOpen] = useState(false);
+  const [savingsTotal, setSavingsTotal] = useState(0);
 
   const loadCats = async () => {
     const { data } = await (supabase as any)
@@ -100,6 +101,20 @@ function FinancasPage() {
   };
 
   useEffect(() => { if (user) load(); /* eslint-disable-next-line */ }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("savings_movements")
+        .select("amount,kind");
+      const total = ((data as any[]) ?? []).reduce(
+        (s, m) => s + (m.kind === "deposit" ? Number(m.amount) : -Number(m.amount)),
+        0,
+      );
+      setSavingsTotal(total);
+    })();
+  }, [user?.id]);
 
   const stats = useMemo(() => {
     let income = 0, expense = 0;
@@ -209,8 +224,9 @@ function FinancasPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={Wallet} label="Saldo total" value={fmt(stats.balance)}
-          accent={stats.balance >= 0 ? "text-primary" : "text-destructive"} />
+        <StatCard icon={Wallet} label="Saldo total" value={fmt(stats.balance + savingsTotal)}
+          accent={stats.balance + savingsTotal >= 0 ? "text-primary" : "text-destructive"}
+          subLabel={savingsTotal > 0 ? <>dos quais <span className="text-emerald-400 font-medium">{fmt(savingsTotal)}</span> de poupanças</> : undefined} />
         <StatCard icon={TrendingUp} label="Entradas" value={fmt(stats.income)} accent="text-emerald-400" />
         <StatCard icon={TrendingDown} label="Gastos" value={fmt(stats.expense)} accent="text-orange-400" />
       </div>
@@ -380,8 +396,8 @@ function FinancasPage() {
 }
 
 function StatCard({
-  icon: Icon, label, value, accent,
-}: { icon: typeof Wallet; label: string; value: string; accent: string }) {
+  icon: Icon, label, value, accent, subLabel,
+}: { icon: typeof Wallet; label: string; value: string; accent: string; subLabel?: React.ReactNode }) {
   return (
     <div className="glass-card glass-card-hover p-5 flex items-center gap-4">
       <div className="h-12 w-12 rounded-xl grid place-items-center bg-gradient-to-br from-primary/20 to-primary-glow/10 border border-primary/30">
@@ -390,6 +406,7 @@ function StatCard({
       <div className="min-w-0">
         <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className={`text-2xl font-bold ${accent} font-mono`}>{value}</div>
+        {subLabel && <div className="text-[11px] text-muted-foreground mt-0.5">{subLabel}</div>}
       </div>
     </div>
   );
