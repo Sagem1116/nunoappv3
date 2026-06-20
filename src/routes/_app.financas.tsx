@@ -64,6 +64,7 @@ function FinancasPage() {
   const [filterType, setFilterType] = useState<"all" | TxType>("all");
   const [filterCat, setFilterCat] = useState<string>("all");
   const [catManagerOpen, setCatManagerOpen] = useState(false);
+  const [savingsTotal, setSavingsTotal] = useState(0);
 
   const loadCats = async () => {
     const { data } = await (supabase as any)
