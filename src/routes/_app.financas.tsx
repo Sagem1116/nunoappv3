@@ -215,6 +215,11 @@ function FinancasPage() {
         <StatCard icon={TrendingDown} label="Gastos" value={fmt(stats.expense)} accent="text-orange-400" />
       </div>
 
+      {/* Savings */}
+      <SavingsPanel />
+
+
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="glass-card p-5">
