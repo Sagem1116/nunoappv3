@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Trash2, Pencil, X, Wallet, TrendingUp, TrendingDown, Search,
   Download, Upload, Tags as TagsIcon, Check, PiggyBank, ArrowDownCircle, ArrowUpCircle,
+  BadgeDollarSign,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
