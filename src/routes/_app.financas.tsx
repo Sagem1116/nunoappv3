@@ -395,8 +395,8 @@ function FinancasPage() {
 }
 
 function StatCard({
-  icon: Icon, label, value, accent,
-}: { icon: typeof Wallet; label: string; value: string; accent: string }) {
+  icon: Icon, label, value, accent, subLabel,
+}: { icon: typeof Wallet; label: string; value: string; accent: string; subLabel?: React.ReactNode }) {
   return (
     <div className="glass-card glass-card-hover p-5 flex items-center gap-4">
       <div className="h-12 w-12 rounded-xl grid place-items-center bg-gradient-to-br from-primary/20 to-primary-glow/10 border border-primary/30">
@@ -405,6 +405,7 @@ function StatCard({
       <div className="min-w-0">
         <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className={`text-2xl font-bold ${accent} font-mono`}>{value}</div>
+        {subLabel && <div className="text-[11px] text-muted-foreground mt-0.5">{subLabel}</div>}
       </div>
     </div>
   );
