@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Plus, Trash2, Pencil, X, Wallet, TrendingUp, TrendingDown, Search,
-  Download, Upload, Tags as TagsIcon, Check,
+  Download, Upload, Tags as TagsIcon, Check, PiggyBank, ArrowDownCircle, ArrowUpCircle,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -214,6 +214,11 @@ function FinancasPage() {
         <StatCard icon={TrendingUp} label="Entradas" value={fmt(stats.income)} accent="text-emerald-400" />
         <StatCard icon={TrendingDown} label="Gastos" value={fmt(stats.expense)} accent="text-orange-400" />
       </div>
+
+      {/* Savings */}
+      <SavingsPanel />
+
+
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -692,3 +697,193 @@ function CategoryManager({
     </div>
   );
 }
+
+// ============ Savings ============
+interface SavingsMov {
+  id: string;
+  amount: number;
+  kind: "deposit" | "withdraw";
+  description: string;
+  occurred_at: string;
+  created_at: string;
+}
+
+function SavingsPanel() {
+  const { user } = useAuth();
+  const [items, setItems] = useState<SavingsMov[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState<null | "deposit" | "withdraw">(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await (supabase as any)
+      .from("savings_movements")
+      .select("*")
+      .order("occurred_at", { ascending: false })
+      .order("created_at", { ascending: false });
+    setItems(((data as any[]) ?? []).map((r) => ({ ...r, amount: Number(r.amount) })));
+    setLoading(false);
+  };
+
+  useEffect(() => { if (user) load(); /* eslint-disable-next-line */ }, [user?.id]);
+
+  const total = useMemo(
+    () => items.reduce((s, m) => s + (m.kind === "deposit" ? m.amount : -m.amount), 0),
+    [items],
+  );
+
+  const remove = async (id: string) => {
+    if (!confirm("Eliminar movimento?")) return;
+    await (supabase as any).from("savings_movements").delete().eq("id", id);
+    setItems((p) => p.filter((m) => m.id !== id));
+  };
+
+  return (
+    <div className="glass-card p-5 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl grid place-items-center bg-gradient-to-br from-primary/20 to-primary-glow/10 border border-primary/30">
+            <PiggyBank className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Poupanças</div>
+            <div className={`text-2xl font-bold font-mono ${total >= 0 ? "text-primary" : "text-destructive"}`}>
+              {fmt(total)}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setOpen("deposit")}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-sm hover:bg-emerald-500/25"
+          >
+            <ArrowUpCircle className="h-4 w-4" /> Adicionar
+          </button>
+          <button
+            onClick={() => setOpen("withdraw")}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/15 border border-orange-500/40 text-orange-300 text-sm hover:bg-orange-500/25"
+          >
+            <ArrowDownCircle className="h-4 w-4" /> Retirar
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-xs text-muted-foreground">A carregar...</div>
+      ) : items.length === 0 ? (
+        <div className="text-sm text-muted-foreground text-center py-6">
+          Sem movimentos. Adiciona o primeiro depósito.
+        </div>
+      ) : (
+        <div className="divide-y divide-border/50 max-h-64 overflow-auto">
+          {items.map((m) => (
+            <div key={m.id} className="flex items-center gap-3 py-2 text-sm">
+              <span className={`h-7 w-7 rounded-full grid place-items-center ${
+                m.kind === "deposit" ? "bg-emerald-500/15 text-emerald-300" : "bg-orange-500/15 text-orange-300"
+              }`}>
+                {m.kind === "deposit" ? <ArrowUpCircle className="h-4 w-4" /> : <ArrowDownCircle className="h-4 w-4" />}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="truncate">{m.description || <span className="text-muted-foreground italic">—</span>}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {new Date(m.occurred_at).toLocaleDateString("pt-PT")}
+                </div>
+              </div>
+              <div className={`font-mono font-medium ${m.kind === "deposit" ? "text-emerald-400" : "text-orange-400"}`}>
+                {m.kind === "deposit" ? "+" : "−"}{fmt(m.amount)}
+              </div>
+              <button
+                onClick={() => remove(m.id)}
+                className="p-1.5 rounded hover:bg-destructive/20 hover:text-destructive opacity-60 hover:opacity-100"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {open && user && (
+        <SavingsDialog
+          kind={open}
+          onClose={() => setOpen(null)}
+          onSave={async (data) => {
+            const { data: ins } = await (supabase as any)
+              .from("savings_movements")
+              .insert({ ...data, user_id: user.id })
+              .select()
+              .single();
+            if (ins) setItems((p) => [{ ...(ins as any), amount: Number((ins as any).amount) }, ...p]);
+            setOpen(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function SavingsDialog({
+  kind, onClose, onSave,
+}: {
+  kind: "deposit" | "withdraw";
+  onClose: () => void;
+  onSave: (d: { amount: number; kind: "deposit" | "withdraw"; description: string; occurred_at: string }) => Promise<void>;
+}) {
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const v = parseFloat(amount.replace(",", "."));
+    if (!v || v <= 0) return;
+    setBusy(true);
+    await onSave({ amount: v, kind, description: description.trim(), occurred_at: date });
+    setBusy(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm grid place-items-center p-4">
+      <form onSubmit={submit} className="glass-card neon-border w-full max-w-md p-6 space-y-4 page-enter">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold neon-text flex items-center gap-2">
+            <PiggyBank className="h-5 w-5" />
+            {kind === "deposit" ? "Adicionar às poupanças" : "Retirar das poupanças"}
+          </h3>
+          <button type="button" onClick={onClose} className="p-1 hover:text-primary">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <Field label="Valor (€)">
+          <input autoFocus value={amount} inputMode="decimal"
+            onChange={(e) => setAmount(e.target.value)} placeholder="0,00"
+            className={inputCls} />
+        </Field>
+
+        <Field label="Data">
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+        </Field>
+
+        <Field label="Descrição">
+          <input value={description} maxLength={200}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Opcional"
+            className={inputCls} />
+        </Field>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-accent">
+            Cancelar
+          </button>
+          <button type="submit" disabled={busy || !amount}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-glow-strong disabled:opacity-50">
+            {kind === "deposit" ? "Adicionar" : "Retirar"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
